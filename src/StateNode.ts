@@ -252,11 +252,21 @@ class StateNode<
     this.delimiter =
       _config.delimiter ||
       (this.parent ? this.parent.delimiter : STATE_DELIMITER);
+
+    if (!IS_PRODUCTION && _config.id) {
+      if (_config.id.includes(this.delimiter)) {
+        throw new Error(`Explicitly configured state node ID ("${_config.id}") cannot contain path delimiter ("${this.delimiter}").`);
+      }
+
+      if (_config.id[0] === STATE_IDENTIFIER) {
+        throw new Error(
+          `State node ID ("${_config.id}") shouldn't start with "${STATE_IDENTIFIER}".`
+        );
+      }
+    }
+
     this.id =
-      _config.id ||
-      (this.machine
-        ? [this.machine.key, ...this.path].join(this.delimiter)
-        : this.key);
+        _config.id || [this.machine.key, ...this.path].join(this.delimiter);
     this.version = this.parent
       ? this.parent.version
       : (_config as MachineConfig<TContext, TStateSchema, TEvent>).version;
@@ -1932,6 +1942,10 @@ class StateNode<
         return `#${_target.id}`;
       }
 
+      if (isStateId(_target)) {
+        return _target
+      }
+
       const isInternalTarget = _target[0] === this.delimiter;
       internal = internal === undefined ? isInternalTarget : internal;
 
@@ -1945,19 +1959,18 @@ class StateNode<
         ? this.key + _target
         : `${_target}`;
 
-      if (this.parent) {
-        try {
-          const targetStateNode = this.parent.getStateNodeByPath(
-            resolvedTarget
-          );
-          return `#${targetStateNode.id}`;
-        } catch (err) {
-          throw new Error(
-            `Invalid transition for state node '${this.id}' on event '${event}':\n${err.message}`
-          );
+      try {
+        if (!this.parent) {
+          throw new Error(`Child state '${resolvedTarget}' does not exist on '${this.id}'`);
         }
-      } else {
-        return `#${this.getStateNodeByPath(resolvedTarget).id}`;
+        const targetStateNode = this.parent.getStateNodeByPath(
+          resolvedTarget
+        );
+        return `#${targetStateNode.id}`;
+      } catch (err) {
+        throw new Error(
+          `Invalid transition for state node '${this.id}' on event '${event}':\n${err.message}`
+        );
       }
     });
 

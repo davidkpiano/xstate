@@ -619,6 +619,7 @@ describe('actions config', () => {
   const definedAction = () => {};
   const simpleMachine = Machine<Context, State, EventType>(
     {
+      id: 'simple',
       initial: 'a',
       context: {
         count: 0
@@ -640,7 +641,7 @@ describe('actions config', () => {
         b: {}
       },
       on: {
-        E: 'a'
+        E: '#simple.a'
       }
     },
     {

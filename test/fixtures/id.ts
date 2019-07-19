@@ -29,7 +29,7 @@ export const machine = Machine({
           id: 'B_foo',
           on: {
             NEXT: '#B_bar',
-            NEXT_DOT: '#B.dot'
+            NEXT_CUSTOM: '#B_custom'
           }
         },
         bar: {
@@ -38,8 +38,8 @@ export const machine = Machine({
             NEXT: '#A_foo'
           }
         },
-        dot_custom: {
-          id: 'B.dot'
+        custom: {
+          id: 'B_custom'
         }
       }
     },

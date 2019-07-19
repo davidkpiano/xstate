@@ -23,7 +23,7 @@ const idMachine = Machine({
         }
       },
       on: {
-        NEXT_DOT_RESOLVE: '#B.bar'
+        NEXT_ON_OUTER: '#B_bar'
       }
     },
     B: {
@@ -34,7 +34,7 @@ const idMachine = Machine({
           id: 'B_foo',
           on: {
             NEXT: '#B_bar',
-            NEXT_DOT: '#B.dot'
+            NEXT_BAZ: '#B_baz'
           }
         },
         bar: {
@@ -43,8 +43,8 @@ const idMachine = Machine({
             NEXT: '#A_foo'
           }
         },
-        dot: {
-          id: 'B.dot'
+        baz: {
+          id: 'B_baz'
         }
       }
     },
@@ -77,7 +77,7 @@ describe('State node IDs', () => {
   const expected = {
     A: {
       NEXT: 'A.bar',
-      NEXT_DOT_RESOLVE: 'B.bar'
+      NEXT_ON_OUTER: 'B.bar'
     },
     '#A': {
       NEXT: 'A.bar'
@@ -96,7 +96,7 @@ describe('State node IDs', () => {
     },
     'B.foo': {
       'NEXT,NEXT': 'A.foo',
-      NEXT_DOT: 'B.dot'
+      NEXT_BAZ: 'B.baz'
     },
     '#B_foo': {
       'NEXT,NEXT': 'A.foo'
@@ -113,15 +113,15 @@ describe('State node IDs', () => {
 
   testAll(idMachine, expected);
 
-  it('should work with ID + relative path', () => {
+  it('should work with referencing a sibling + a relative path from it', () => {
     const brokenMachine = Machine({
       initial: 'foo',
-      on: {
-        ACTION: '#bar.qux.quux'
-      },
       states: {
         foo: {
-          id: 'foo'
+          id: 'foo',
+          on: {
+            ACTION: 'bar.qux.quux'
+          }
         },
         bar: {
           id: 'bar',
@@ -129,10 +129,8 @@ describe('State node IDs', () => {
             baz: {},
             qux: {
               states: {
-                quux: {
-                  id: '#bar.qux.quux'
-                }
-              }
+                quux: {},
+              },
             }
           }
         }

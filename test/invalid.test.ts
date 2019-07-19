@@ -58,3 +58,26 @@ describe('invalid or resolved states', () => {
     );
   });
 });
+
+describe('invalid transition', () => {
+  it('should throw when attempting to transition to a sibling on the root node', () => {
+    const wordMachine = Machine({
+      id: 'direction',
+      initial: 'left',
+      states: {
+        left: {},
+        right: {},
+      },
+      on: {
+        LEFT_CLICK: 'left',
+        RIGHT_CLICK: 'right',
+      }
+    });
+
+    assert.throws(
+      () => wordMachine.transition('left', 'RIGHT_CLICK'),
+      Error,
+      "Invalid transition for state node 'direction' on event 'LEFT_CLICK':\nChild state 'left' does not exist on 'direction'"
+    );
+  })
+})
