@@ -29,6 +29,7 @@ const greetingMachine = Machine<typeof greetingContext>({
 describe('transient states (eventless transitions)', () => {
   const updateMachine = Machine<{ data: boolean; status?: string }>({
     initial: 'G',
+    context: { data: false },
     states: {
       G: {
         on: { UPDATE_BUTTON_CLICKED: 'E' }

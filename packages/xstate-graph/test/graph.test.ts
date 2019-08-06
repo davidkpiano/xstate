@@ -73,6 +73,7 @@ describe('@xstate/graph', () => {
     { type: 'EVENT'; id: string } | { type: 'STATE' }
   >({
     key: 'cond',
+    context: { id: '' },
     initial: 'pending',
     states: {
       pending: {
@@ -199,64 +200,62 @@ describe('@xstate/graph', () => {
         })
       ).toBe(true);
 
-      expect(getFormattedEdges(lightMachine)).toEqual(
-        [
-          {
-            source: 'light.green',
-            event: 'POWER_OUTAGE',
-            target: 'light.red.flashing',
-            actions: [],
-          },
-          {
-            source: 'light.green',
-            event: 'PUSH_BUTTON',
-            target: 'light.green',
-            actions: ['doNothing'],
-          },
-          {
-            source: 'light.green',
-            event: 'TIMER',
-            target: 'light.yellow',
-            actions: [],
-          },
-          {
-            source: 'light.red',
-            event: 'POWER_OUTAGE',
-            target: 'light.red.flashing',
-            actions: [],
-          },
-          {
-            source: 'light.red',
-            event: 'TIMER',
-            target: 'light.green',
-            actions: [],
-          },
-          {
-            source: 'light.red.wait',
-            event: 'PED_COUNTDOWN',
-            target: 'light.red.stop',
-            actions: [],
-          },
-          {
-            source: 'light.red.walk',
-            event: 'PED_COUNTDOWN',
-            target: 'light.red.wait',
-            actions: ['startCountdown'],
-          },
-          {
-            source: 'light.yellow',
-            event: 'POWER_OUTAGE',
-            target: 'light.red.flashing',
-            actions: [],
-          },
-          {
-            source: 'light.yellow',
-            event: 'TIMER',
-            target: 'light.red',
-            actions: [],
-          },
-        ]
-      );
+      expect(getFormattedEdges(lightMachine)).toEqual([
+        {
+          source: 'light.green',
+          event: 'POWER_OUTAGE',
+          target: 'light.red.flashing',
+          actions: []
+        },
+        {
+          source: 'light.green',
+          event: 'PUSH_BUTTON',
+          target: 'light.green',
+          actions: ['doNothing']
+        },
+        {
+          source: 'light.green',
+          event: 'TIMER',
+          target: 'light.yellow',
+          actions: []
+        },
+        {
+          source: 'light.red',
+          event: 'POWER_OUTAGE',
+          target: 'light.red.flashing',
+          actions: []
+        },
+        {
+          source: 'light.red',
+          event: 'TIMER',
+          target: 'light.green',
+          actions: []
+        },
+        {
+          source: 'light.red.wait',
+          event: 'PED_COUNTDOWN',
+          target: 'light.red.stop',
+          actions: []
+        },
+        {
+          source: 'light.red.walk',
+          event: 'PED_COUNTDOWN',
+          target: 'light.red.wait',
+          actions: ['startCountdown']
+        },
+        {
+          source: 'light.yellow',
+          event: 'POWER_OUTAGE',
+          target: 'light.red.flashing',
+          actions: []
+        },
+        {
+          source: 'light.yellow',
+          event: 'TIMER',
+          target: 'light.red',
+          actions: []
+        }
+      ]);
     });
 
     it('should return an array of all directed edges (parallel)', () => {
@@ -271,58 +270,56 @@ describe('@xstate/graph', () => {
         })
       ).toBe(true);
 
-      expect(getFormattedEdges(parallelMachine)).toEqual(
-        [
-          {
-            source: 'p.a.a1',
-            event: '2',
-            target: 'p.a.a2',
-            actions: [],
-          },
-          {
-            source: 'p.a.a1',
-            event: '3',
-            target: 'p.a.a3',
-            actions: [],
-          },
-          {
-            source: 'p.a.a2',
-            event: '1',
-            target: 'p.a.a1',
-            actions: [],
-          },
-          {
-            source: 'p.a.a2',
-            event: '3',
-            target: 'p.a.a3',
-            actions: [],
-          },
-          {
-            source: 'p.b.b1',
-            event: '2',
-            target: 'p.b.b2',
-            actions: [],
-          },
-          {
-            source: 'p.b.b1',
-            event: '3',
-            target: 'p.b.b3',
-            actions: [],
-          },
-          {
-            source: 'p.b.b2',
-            event: '1',
-            target: 'p.b.b1',
-            actions: [],
-          },
-          {
-            source: 'p.b.b2',
-            event: '3',
-            target: 'p.b.b3',
-            actions: [],
-          },
-        ]
-      );
+      expect(getFormattedEdges(parallelMachine)).toEqual([
+        {
+          source: 'p.a.a1',
+          event: '2',
+          target: 'p.a.a2',
+          actions: []
+        },
+        {
+          source: 'p.a.a1',
+          event: '3',
+          target: 'p.a.a3',
+          actions: []
+        },
+        {
+          source: 'p.a.a2',
+          event: '1',
+          target: 'p.a.a1',
+          actions: []
+        },
+        {
+          source: 'p.a.a2',
+          event: '3',
+          target: 'p.a.a3',
+          actions: []
+        },
+        {
+          source: 'p.b.b1',
+          event: '2',
+          target: 'p.b.b2',
+          actions: []
+        },
+        {
+          source: 'p.b.b1',
+          event: '3',
+          target: 'p.b.b3',
+          actions: []
+        },
+        {
+          source: 'p.b.b2',
+          event: '1',
+          target: 'p.b.b1',
+          actions: []
+        },
+        {
+          source: 'p.b.b2',
+          event: '3',
+          target: 'p.b.b3',
+          actions: []
+        }
+      ]);
     });
   });
 
@@ -411,81 +408,81 @@ describe('@xstate/graph', () => {
       const paths = getShortestPaths(lightMachine) as any;
 
       expect(formatPaths(paths)).toEqual({
-        '"green"': {
-          state: { value: 'green', context: undefined },
+        '"green" | {}': {
+          state: { value: 'green', context: {} },
           weight: 0,
           path: []
         },
-        '"yellow"': {
-          state: { value: 'yellow', context: undefined },
+        '"yellow" | {}': {
+          state: { value: 'yellow', context: {} },
           weight: 1,
           path: [
             {
-              state: { value: 'green', context: undefined },
+              state: { value: 'green', context: {} },
               event: { type: 'TIMER' }
             }
           ]
         },
-        '{"red":"flashing"}': {
-          state: { value: { red: 'flashing' }, context: undefined },
+        '{"red":"flashing"} | {}': {
+          state: { value: { red: 'flashing' }, context: {} },
           weight: 1,
           path: [
             {
-              state: { value: 'green', context: undefined },
+              state: { value: 'green', context: {} },
               event: { type: 'POWER_OUTAGE' }
             }
           ]
         },
-        '{"red":"walk"}': {
-          state: { value: { red: 'walk' }, context: undefined },
+        '{"red":"walk"} | {}': {
+          state: { value: { red: 'walk' }, context: {} },
           weight: 2,
           path: [
             {
-              state: { value: 'green', context: undefined },
+              state: { value: 'green', context: {} },
               event: { type: 'TIMER' }
             },
             {
-              state: { value: 'yellow', context: undefined },
+              state: { value: 'yellow', context: {} },
               event: { type: 'TIMER' }
             }
           ]
         },
-        '{"red":"wait"}': {
-          state: { value: { red: 'wait' }, context: undefined },
+        '{"red":"wait"} | {}': {
+          state: { value: { red: 'wait' }, context: {} },
           weight: 3,
           path: [
             {
-              state: { value: 'green', context: undefined },
+              state: { value: 'green', context: {} },
               event: { type: 'TIMER' }
             },
             {
-              state: { value: 'yellow', context: undefined },
+              state: { value: 'yellow', context: {} },
               event: { type: 'TIMER' }
             },
             {
-              state: { value: { red: 'walk' }, context: undefined },
+              state: { value: { red: 'walk' }, context: {} },
               event: { type: 'PED_COUNTDOWN' }
             }
           ]
         },
-        '{"red":"stop"}': {
-          state: { value: { red: 'stop' }, context: undefined },
+        '{"red":"stop"} | {}': {
+          state: { value: { red: 'stop' }, context: {} },
           weight: 4,
           path: [
             {
-              state: { value: 'green', context: undefined },
+              state: { value: 'green', context: {} },
               event: { type: 'TIMER' }
             },
             {
-              state: { value: 'yellow', context: undefined },
+              state: { value: 'yellow', context: {} },
               event: { type: 'TIMER' }
             },
             {
-              state: { value: { red: 'walk' }, context: undefined },
+              state: { value: { red: 'walk' }, context: {} },
               event: { type: 'PED_COUNTDOWN' }
             },
             {
-              state: { value: { red: 'wait' }, context: undefined },
+              state: { value: { red: 'wait' }, context: {} },
               event: { type: 'PED_COUNTDOWN' }
             }
           ]
@@ -496,27 +493,27 @@ describe('@xstate/graph', () => {
     it('should return a mapping of shortest paths to all states (parallel)', () => {
       const paths = getShortestPaths(parallelMachine) as any;
       expect(formatPaths(paths)).toEqual({
-        '{"a":"a1","b":"b1"}': {
-          state: { value: { a: 'a1', b: 'b1' }, context: undefined },
+        '{"a":"a1","b":"b1"} | {}': {
+          state: { value: { a: 'a1', b: 'b1' }, context: {} },
           weight: 0,
           path: []
         },
-        '{"a":"a2","b":"b2"}': {
-          state: { value: { a: 'a2', b: 'b2' }, context: undefined },
+        '{"a":"a2","b":"b2"} | {}': {
+          state: { value: { a: 'a2', b: 'b2' }, context: {} },
           weight: 1,
           path: [
             {
-              state: { value: { a: 'a1', b: 'b1' }, context: undefined },
+              state: { value: { a: 'a1', b: 'b1' }, context: {} },
               event: { type: '2' }
             }
           ]
         },
-        '{"a":"a3","b":"b3"}': {
-          state: { value: { a: 'a3', b: 'b3' }, context: undefined },
+        '{"a":"a3","b":"b3"} | {}': {
+          state: { value: { a: 'a3', b: 'b3' }, context: {} },
           weight: 1,
           path: [
             {
-              state: { value: { a: 'a1', b: 'b1' }, context: undefined },
+              state: { value: { a: 'a1', b: 'b1' }, context: {} },
               event: { type: '3' }
             }
           ]
@@ -527,7 +524,7 @@ describe('@xstate/graph', () => {
     it('the initial state should have a zero-length path', () => {
       expect(
         getShortestPaths(lightMachine)[
-          JSON.stringify(lightMachine.initialState.value)
+          `${JSON.stringify(lightMachine.initialState.value)} | {}`
         ].path
       ).toHaveLength(0);
     });
@@ -611,148 +608,148 @@ describe('@xstate/graph', () => {
       const paths = getSimplePaths(lightMachine) as any;
 
       expect(formatPaths(paths)).toEqual({
-        '"green"': {
-          state: { value: 'green', context: undefined },
+        '"green" | {}': {
+          state: { value: 'green', context: {} },
           paths: [[]]
         },
-        '"yellow"': {
-          state: { value: 'yellow', context: undefined },
+        '"yellow" | {}': {
+          state: { value: 'yellow', context: {} },
           paths: [
             [
               {
-                state: { value: 'green', context: undefined },
+                state: { value: 'green', context: {} },
                 event: { type: 'TIMER' }
               }
             ]
           ]
         },
-        '{"red":"walk"}': {
-          state: { value: { red: 'walk' }, context: undefined },
+        '{"red":"walk"} | {}': {
+          state: { value: { red: 'walk' }, context: {} },
           paths: [
             [
               {
-                state: { value: 'green', context: undefined },
+                state: { value: 'green', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: 'yellow', context: undefined },
+                state: { value: 'yellow', context: {} },
                 event: { type: 'TIMER' }
               }
             ]
           ]
         },
-        '{"red":"wait"}': {
-          state: { value: { red: 'wait' }, context: undefined },
+        '{"red":"wait"} | {}': {
+          state: { value: { red: 'wait' }, context: {} },
           paths: [
             [
               {
-                state: { value: 'green', context: undefined },
+                state: { value: 'green', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: 'yellow', context: undefined },
+                state: { value: 'yellow', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: { red: 'walk' }, context: undefined },
+                state: { value: { red: 'walk' }, context: {} },
                 event: { type: 'PED_COUNTDOWN' }
               }
             ]
           ]
         },
-        '{"red":"stop"}': {
-          state: { value: { red: 'stop' }, context: undefined },
+        '{"red":"stop"} | {}': {
+          state: { value: { red: 'stop' }, context: {} },
           paths: [
             [
               {
-                state: { value: 'green', context: undefined },
+                state: { value: 'green', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: 'yellow', context: undefined },
+                state: { value: 'yellow', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: { red: 'walk' }, context: undefined },
+                state: { value: { red: 'walk' }, context: {} },
                 event: { type: 'PED_COUNTDOWN' }
               },
               {
-                state: { value: { red: 'wait' }, context: undefined },
+                state: { value: { red: 'wait' }, context: {} },
                 event: { type: 'PED_COUNTDOWN' }
               }
             ]
           ]
         },
-        '{"red":"flashing"}': {
-          state: { value: { red: 'flashing' }, context: undefined },
+        '{"red":"flashing"} | {}': {
+          state: { value: { red: 'flashing' }, context: {} },
           paths: [
             [
               {
-                state: { value: 'green', context: undefined },
+                state: { value: 'green', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: 'yellow', context: undefined },
+                state: { value: 'yellow', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: { red: 'walk' }, context: undefined },
+                state: { value: { red: 'walk' }, context: {} },
                 event: { type: 'PED_COUNTDOWN' }
               },
               {
-                state: { value: { red: 'wait' }, context: undefined },
+                state: { value: { red: 'wait' }, context: {} },
                 event: { type: 'PED_COUNTDOWN' }
               },
               {
-                state: { value: { red: 'stop' }, context: undefined },
+                state: { value: { red: 'stop' }, context: {} },
                 event: { type: 'POWER_OUTAGE' }
               }
             ],
             [
               {
-                state: { value: 'green', context: undefined },
+                state: { value: 'green', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: 'yellow', context: undefined },
+                state: { value: 'yellow', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: { red: 'walk' }, context: undefined },
+                state: { value: { red: 'walk' }, context: {} },
                 event: { type: 'PED_COUNTDOWN' }
               },
               {
-                state: { value: { red: 'wait' }, context: undefined },
+                state: { value: { red: 'wait' }, context: {} },
                 event: { type: 'POWER_OUTAGE' }
               }
             ],
             [
               {
-                state: { value: 'green', context: undefined },
+                state: { value: 'green', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: 'yellow', context: undefined },
+                state: { value: 'yellow', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: { red: 'walk' }, context: undefined },
+                state: { value: { red: 'walk' }, context: {} },
                 event: { type: 'POWER_OUTAGE' }
               }
             ],
             [
               {
-                state: { value: 'green', context: undefined },
+                state: { value: 'green', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: 'yellow', context: undefined },
+                state: { value: 'yellow', context: {} },
                 event: { type: 'POWER_OUTAGE' }
               }
             ],
             [
               {
-                state: { value: 'green', context: undefined },
+                state: { value: 'green', context: {} },
                 event: { type: 'POWER_OUTAGE' }
               }
             ]
@@ -772,37 +769,37 @@ describe('@xstate/graph', () => {
     it('should return a mapping of simple paths to all states (parallel)', () => {
       const paths = getSimplePaths(parallelMachine);
       expect(formatPaths(paths)).toEqual({
-        '{"a":"a1","b":"b1"}': {
-          state: { value: { a: 'a1', b: 'b1' }, context: undefined },
+        '{"a":"a1","b":"b1"} | {}': {
+          state: { value: { a: 'a1', b: 'b1' }, context: {} },
           paths: [[]]
         },
-        '{"a":"a2","b":"b2"}': {
-          state: { value: { a: 'a2', b: 'b2' }, context: undefined },
+        '{"a":"a2","b":"b2"} | {}': {
+          state: { value: { a: 'a2', b: 'b2' }, context: {} },
           paths: [
             [
               {
-                state: { value: { a: 'a1', b: 'b1' }, context: undefined },
+                state: { value: { a: 'a1', b: 'b1' }, context: {} },
                 event: { type: '2' }
               }
             ]
           ]
         },
-        '{"a":"a3","b":"b3"}': {
-          state: { value: { a: 'a3', b: 'b3' }, context: undefined },
+        '{"a":"a3","b":"b3"} | {}': {
+          state: { value: { a: 'a3', b: 'b3' }, context: {} },
           paths: [
             [
               {
-                state: { value: { a: 'a1', b: 'b1' }, context: undefined },
+                state: { value: { a: 'a1', b: 'b1' }, context: {} },
                 event: { type: '2' }
               },
               {
-                state: { value: { a: 'a2', b: 'b2' }, context: undefined },
+                state: { value: { a: 'a2', b: 'b2' }, context: {} },
                 event: { type: '3' }
               }
             ],
             [
               {
-                state: { value: { a: 'a1', b: 'b1' }, context: undefined },
+                state: { value: { a: 'a1', b: 'b1' }, context: {} },
                 event: { type: '3' }
               }
             ]
@@ -814,19 +811,19 @@ describe('@xstate/graph', () => {
     it('should return multiple paths for equivalent transitions', () => {
       const paths = getSimplePaths(equivMachine);
       expect(formatPaths(paths)).toEqual({
-        '"a"': { state: { value: 'a', context: undefined }, paths: [[]] },
-        '"b"': {
-          state: { value: 'b', context: undefined },
+        '"a" | {}': { state: { value: 'a', context: {} }, paths: [[]] },
+        '"b" | {}': {
+          state: { value: 'b', context: {} },
           paths: [
             [
               {
-                state: { value: 'a', context: undefined },
+                state: { value: 'a', context: {} },
                 event: { type: 'FOO' }
               }
             ],
             [
               {
-                state: { value: 'a', context: undefined },
+                state: { value: 'a', context: {} },
                 event: { type: 'BAR' }
               }
             ]
@@ -836,8 +833,8 @@ describe('@xstate/graph', () => {
     });
 
     it('should return a single empty path for the initial state', () => {
-      expect(getSimplePaths(lightMachine)['"green"'].paths).toEqual([[]]);
-      expect(getSimplePaths(equivMachine)['"a"'].paths).toEqual([[]]);
+      expect(getSimplePaths(lightMachine)['"green" | {}'].paths).toEqual([[]]);
+      expect(getSimplePaths(equivMachine)['"a" | {}'].paths).toEqual([[]]);
     });
 
     it('should return value-based paths', () => {
@@ -942,145 +939,145 @@ describe('@xstate/graph', () => {
       });
 
       expect(pathsArray).toEqual([
-        { state: { value: 'green', context: undefined }, paths: [[]] },
+        { state: { value: 'green', context: {} }, paths: [[]] },
         {
-          state: { value: 'yellow', context: undefined },
+          state: { value: 'yellow', context: {} },
           paths: [
             [
               {
-                state: { value: 'green', context: undefined },
+                state: { value: 'green', context: {} },
                 event: { type: 'TIMER' }
               }
             ]
           ]
         },
         {
-          state: { value: { red: 'walk' }, context: undefined },
+          state: { value: { red: 'walk' }, context: {} },
           paths: [
             [
               {
-                state: { value: 'green', context: undefined },
+                state: { value: 'green', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: 'yellow', context: undefined },
+                state: { value: 'yellow', context: {} },
                 event: { type: 'TIMER' }
               }
             ]
           ]
         },
         {
-          state: { value: { red: 'wait' }, context: undefined },
+          state: { value: { red: 'wait' }, context: {} },
           paths: [
             [
               {
-                state: { value: 'green', context: undefined },
+                state: { value: 'green', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: 'yellow', context: undefined },
+                state: { value: 'yellow', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: { red: 'walk' }, context: undefined },
+                state: { value: { red: 'walk' }, context: {} },
                 event: { type: 'PED_COUNTDOWN' }
               }
             ]
           ]
         },
         {
-          state: { value: { red: 'stop' }, context: undefined },
+          state: { value: { red: 'stop' }, context: {} },
           paths: [
             [
               {
-                state: { value: 'green', context: undefined },
+                state: { value: 'green', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: 'yellow', context: undefined },
+                state: { value: 'yellow', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: { red: 'walk' }, context: undefined },
+                state: { value: { red: 'walk' }, context: {} },
                 event: { type: 'PED_COUNTDOWN' }
               },
               {
-                state: { value: { red: 'wait' }, context: undefined },
+                state: { value: { red: 'wait' }, context: {} },
                 event: { type: 'PED_COUNTDOWN' }
               }
             ]
           ]
         },
         {
-          state: { value: { red: 'flashing' }, context: undefined },
+          state: { value: { red: 'flashing' }, context: {} },
           paths: [
             [
               {
-                state: { value: 'green', context: undefined },
+                state: { value: 'green', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: 'yellow', context: undefined },
+                state: { value: 'yellow', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: { red: 'walk' }, context: undefined },
+                state: { value: { red: 'walk' }, context: {} },
                 event: { type: 'PED_COUNTDOWN' }
               },
               {
-                state: { value: { red: 'wait' }, context: undefined },
+                state: { value: { red: 'wait' }, context: {} },
                 event: { type: 'PED_COUNTDOWN' }
               },
               {
-                state: { value: { red: 'stop' }, context: undefined },
+                state: { value: { red: 'stop' }, context: {} },
                 event: { type: 'POWER_OUTAGE' }
               }
             ],
             [
               {
-                state: { value: 'green', context: undefined },
+                state: { value: 'green', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: 'yellow', context: undefined },
+                state: { value: 'yellow', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: { red: 'walk' }, context: undefined },
+                state: { value: { red: 'walk' }, context: {} },
                 event: { type: 'PED_COUNTDOWN' }
               },
               {
-                state: { value: { red: 'wait' }, context: undefined },
+                state: { value: { red: 'wait' }, context: {} },
                 event: { type: 'POWER_OUTAGE' }
               }
             ],
             [
               {
-                state: { value: 'green', context: undefined },
+                state: { value: 'green', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: 'yellow', context: undefined },
+                state: { value: 'yellow', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: { red: 'walk' }, context: undefined },
+                state: { value: { red: 'walk' }, context: {} },
                 event: { type: 'POWER_OUTAGE' }
               }
             ],
             [
               {
-                state: { value: 'green', context: undefined },
+                state: { value: 'green', context: {} },
                 event: { type: 'TIMER' }
               },
               {
-                state: { value: 'yellow', context: undefined },
+                state: { value: 'yellow', context: {} },
                 event: { type: 'POWER_OUTAGE' }
               }
             ],
             [
               {
-                state: { value: 'green', context: undefined },
+                state: { value: 'green', context: {} },
                 event: { type: 'POWER_OUTAGE' }
               }
             ]

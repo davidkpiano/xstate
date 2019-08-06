@@ -65,7 +65,8 @@ import {
   InvokeCreator,
   StateMachine,
   DoneEventObject,
-  SingleOrArray
+  SingleOrArray,
+  DefaultContext
 } from './types';
 import { matchesState } from './utils';
 import { State, stateValuesEqual } from './State';
@@ -106,7 +107,9 @@ const WILDCARD = '*';
 const EMPTY_OBJECT = {};
 
 const isStateId = (str: string) => str[0] === STATE_IDENTIFIER;
-const createDefaultOptions = <TContext>(): MachineOptions<TContext, any> => ({
+const createDefaultOptions = <
+  TContext extends DefaultContext
+>(): MachineOptions<TContext, any> => ({
   actions: {},
   guards: {},
   services: {},
@@ -116,7 +119,7 @@ const createDefaultOptions = <TContext>(): MachineOptions<TContext, any> => ({
 });
 
 class StateNode<
-  TContext = any,
+  TContext extends DefaultContext = DefaultContext,
   TStateSchema extends StateSchema = any,
   TEvent extends EventObject = EventObject
 > {
@@ -245,7 +248,7 @@ class StateNode<
     /**
      * The initial extended state
      */
-    public context?: Readonly<TContext>
+    public context: Readonly<TContext> = _config.context || ({} as TContext)
   ) {
     const { parent, ...config } = _config;
     this.config = config;

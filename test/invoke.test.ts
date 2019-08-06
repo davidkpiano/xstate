@@ -375,20 +375,22 @@ describe('invoke', () => {
   });
 
   it('should start services (machine as invoke config)', done => {
+    const childMachine = Machine({
+      id: 'child',
+      initial: 'sending',
+      states: {
+        sending: {
+          entry: sendParent({ type: 'SUCCESS', data: 42 })
+        }
+      }
+    });
+
     const machineInvokeMachine = Machine({
       id: 'machine-invoke',
       initial: 'pending',
       states: {
         pending: {
-          invoke: Machine({
-            id: 'child',
-            initial: 'sending',
-            states: {
-              sending: {
-                entry: sendParent({ type: 'SUCCESS', data: 42 })
-              }
-            }
-          }),
+          invoke: childMachine,
           on: {
             SUCCESS: {
               target: 'success',

@@ -23,7 +23,8 @@ import {
   DoneEventObject,
   SendExpr,
   SendActionObject,
-  PureAction
+  PureAction,
+  DefaultContext
 } from './types';
 import * as actionTypes from './actionTypes';
 import {
@@ -41,7 +42,10 @@ export const initEvent = { type: actionTypes.init } as {
   type: ActionTypes.Init;
 };
 
-export function getActionFunction<TContext, TEvent extends EventObject>(
+export function getActionFunction<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(
   actionType: ActionType,
   actionFunctionMap?: ActionFunctionMap<TContext, TEvent>
 ):
@@ -53,7 +57,10 @@ export function getActionFunction<TContext, TEvent extends EventObject>(
     : undefined;
 }
 
-export function toActionObject<TContext, TEvent extends EventObject>(
+export function toActionObject<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(
   action: Action<TContext, TEvent>,
   actionFunctionMap?: ActionFunctionMap<TContext, TEvent>
 ): ActionObject<TContext, TEvent> {
@@ -106,7 +113,10 @@ export function toActionObject<TContext, TEvent extends EventObject>(
   return actionObject;
 }
 
-export const toActionObjects = <TContext, TEvent extends EventObject>(
+export const toActionObjects = <
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(
   action?: SingleOrArray<Action<TContext, TEvent>> | undefined,
   actionFunctionMap?: ActionFunctionMap<TContext, TEvent>
 ): Array<ActionObject<TContext, TEvent>> => {
@@ -119,7 +129,10 @@ export const toActionObjects = <TContext, TEvent extends EventObject>(
   return actions.map(subAction => toActionObject(subAction, actionFunctionMap));
 };
 
-export function toActivityDefinition<TContext, TEvent extends EventObject>(
+export function toActivityDefinition<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(
   action: string | ActivityDefinition<TContext, TEvent>
 ): ActivityDefinition<TContext, TEvent> {
   const actionObject = toActionObject(action);
@@ -137,9 +150,10 @@ export function toActivityDefinition<TContext, TEvent extends EventObject>(
  *
  * @param eventType The event to raise.
  */
-export function raise<TContext, TEvent extends EventObject>(
-  event: Event<TEvent>
-): RaiseEvent<TContext, TEvent> {
+export function raise<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(event: Event<TEvent>): RaiseEvent<TContext, TEvent> {
   return {
     type: actionTypes.raise,
     event
@@ -156,7 +170,10 @@ export function raise<TContext, TEvent extends EventObject>(
  *  - `delay` - The number of milliseconds to delay the sending of the event.
  *  - `target` - The target of this event (by default, the machine the event was sent from).
  */
-export function send<TContext, TEvent extends EventObject>(
+export function send<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(
   event: Event<TEvent> | SendExpr<TContext, TEvent>,
   options?: SendActionOptions<TContext, TEvent>
 ): SendAction<TContext, TEvent> {
@@ -174,7 +191,10 @@ export function send<TContext, TEvent extends EventObject>(
   };
 }
 
-export function resolveSend<TContext, TEvent extends EventObject>(
+export function resolveSend<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(
   action: SendAction<TContext, TEvent>,
   ctx: TContext,
   event: TEvent
@@ -208,7 +228,10 @@ export function resolveSend<TContext, TEvent extends EventObject>(
  * @param event The event to send to the parent machine.
  * @param options Options to pass into the send event.
  */
-export function sendParent<TContext, TEvent extends EventObject>(
+export function sendParent<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(
   event: Event<TEvent> | SendExpr<TContext, TEvent>,
   options?: SendActionOptions<TContext, TEvent>
 ): SendAction<TContext, TEvent> {
@@ -224,7 +247,10 @@ export function sendParent<TContext, TEvent extends EventObject>(
  * @param event The event to send back to the sender
  * @param options Options to pass into the send event
  */
-export function respond<TContext, TEvent extends EventObject>(
+export function respond<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(
   event: Event<TEvent> | SendExpr<TContext, TEvent>,
   options?: SendActionOptions<TContext, TEvent>
 ) {
@@ -244,7 +270,10 @@ export function respond<TContext, TEvent extends EventObject>(
  *  - `event` - the event that caused this action to be executed.
  * @param label The label to give to the logged expression.
  */
-export function log<TContext, TEvent extends EventObject>(
+export function log<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(
   expr: (ctx: TContext, event: TEvent) => any = (context, event) => ({
     context,
     event
@@ -277,7 +306,10 @@ export const cancel = (sendId: string | number): CancelAction => {
  *
  * @param activity The activity to start.
  */
-export function start<TContext, TEvent extends EventObject>(
+export function start<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(
   activity: string | ActivityDefinition<TContext, TEvent>
 ): ActivityActionObject<TContext, TEvent> {
   const activityDef = toActivityDefinition(activity);
@@ -294,7 +326,10 @@ export function start<TContext, TEvent extends EventObject>(
  *
  * @param activity The activity to stop.
  */
-export function stop<TContext, TEvent extends EventObject>(
+export function stop<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(
   activity: string | ActivityDefinition<TContext, TEvent>
 ): ActivityActionObject<TContext, TEvent> {
   const activityDef = toActivityDefinition(activity);
@@ -311,7 +346,10 @@ export function stop<TContext, TEvent extends EventObject>(
  *
  * @param assignment An object that represents the partial context to update.
  */
-export const assign = <TContext, TEvent extends EventObject = EventObject>(
+export const assign = <
+  TContext extends DefaultContext,
+  TEvent extends EventObject = EventObject
+>(
   assignment: Assigner<TContext, TEvent> | PropertyAssigner<TContext, TEvent>
 ): AssignAction<TContext, TEvent> => {
   return {
@@ -320,9 +358,10 @@ export const assign = <TContext, TEvent extends EventObject = EventObject>(
   };
 };
 
-export function isActionObject<TContext, TEvent extends EventObject>(
-  action: Action<TContext, TEvent>
-): action is ActionObject<TContext, TEvent> {
+export function isActionObject<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(action: Action<TContext, TEvent>): action is ActionObject<TContext, TEvent> {
   return typeof action === 'object' && 'type' in action;
 }
 
@@ -387,7 +426,10 @@ export function error(id: string, data?: any): ErrorPlatformEvent & string {
   return eventObject as (ErrorPlatformEvent & string);
 }
 
-export function pure<TContext, TEvent extends EventObject>(
+export function pure<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(
   getActions: (
     context: TContext,
     event: TEvent

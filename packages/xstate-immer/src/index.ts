@@ -1,18 +1,23 @@
-import { EventObject, ActionObject } from 'xstate';
+import { EventObject, ActionObject, DefaultContext } from 'xstate';
 import { produce, Draft } from 'immer';
 import { actionTypes } from 'xstate/lib/actions';
 
-export type ImmerAssigner<TContext, TEvent extends EventObject> = (
-  context: Draft<TContext>,
-  event: TEvent
-) => void;
+export type ImmerAssigner<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+> = (context: Draft<TContext>, event: TEvent) => void;
 
-export interface ImmerAssignAction<TContext, TEvent extends EventObject>
-  extends ActionObject<TContext, TEvent> {
+export interface ImmerAssignAction<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+> extends ActionObject<TContext, TEvent> {
   assignment: ImmerAssigner<TContext, TEvent>;
 }
 
-export function assign<TContext, TEvent extends EventObject = EventObject>(
+export function assign<
+  TContext extends DefaultContext,
+  TEvent extends EventObject = EventObject
+>(
   assignment: ImmerAssigner<TContext, TEvent>
 ): ImmerAssignAction<TContext, TEvent> {
   return {
@@ -21,7 +26,10 @@ export function assign<TContext, TEvent extends EventObject = EventObject>(
   };
 }
 
-export function updater<TContext, TEvent extends EventObject>(
+export function updater<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(
   context: TContext,
   event: TEvent,
   assignActions: Array<ImmerAssignAction<TContext, TEvent>>

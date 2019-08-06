@@ -6,10 +6,11 @@ import {
   State,
   Interpreter,
   InterpreterOptions,
-  MachineOptions
+  MachineOptions,
+  DefaultContext
 } from 'xstate';
 
-interface UseMachineOptions<TContext> {
+interface UseMachineOptions<TContext extends DefaultContext> {
   /**
    * If provided, will be merged with machine's context.
    */
@@ -24,7 +25,10 @@ const defaultOptions = {
   immediate: false
 };
 
-export function useMachine<TContext, TEvent extends EventObject>(
+export function useMachine<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(
   machine: StateMachine<TContext, any, TEvent>,
   options: Partial<InterpreterOptions> &
     Partial<UseMachineOptions<TContext>> &
@@ -100,7 +104,10 @@ export function useMachine<TContext, TEvent extends EventObject>(
   return [current, service.send, service];
 }
 
-export function useService<TContext, TEvent extends EventObject>(
+export function useService<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(
   service: Interpreter<TContext, any, TEvent>
 ): [
   State<TContext, TEvent>,

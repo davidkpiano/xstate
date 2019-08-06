@@ -11,18 +11,33 @@ import {
   TransitionDefinition,
   ValueAdjacencyMap
 } from 'xstate';
-import { getActionType, flatten, keys, warn, toEventObject } from 'xstate/lib/utils';
+import {
+  getActionType,
+  flatten,
+  keys,
+  warn,
+  toEventObject
+} from 'xstate/lib/utils';
 
 // TODO: remove types once XState is updated
-export interface PathsItem<TContext, TEvent extends EventObject> {
+export interface PathsItem<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+> {
   state: State<TContext, TEvent>;
   paths: Array<Array<Segment<TContext, TEvent>>>;
 }
 
-export interface PathsMap<TContext, TEvent extends EventObject> {
+export interface PathsMap<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+> {
   [key: string]: PathsItem<TContext, TEvent>;
 }
-export interface Segment<TContext, TEvent extends EventObject> {
+export interface Segment<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+> {
   /**
    * From state.
    */
@@ -33,13 +48,19 @@ export interface Segment<TContext, TEvent extends EventObject> {
   event: TEvent;
 }
 
-export interface PathItem<TContext, TEvent extends EventObject> {
+export interface PathItem<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+> {
   state: State<TContext, TEvent>;
   path: Array<Segment<TContext, TEvent>>;
   weight?: number;
 }
 
-export interface PathMap<TContext, TEvent extends EventObject> {
+export interface PathMap<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+> {
   [key: string]: PathItem<TContext, TEvent>;
 }
 
@@ -59,19 +80,18 @@ export function getNodes(node: StateNode): StateNode[] {
 }
 
 export function getEventEdges<
-  TContext = DefaultContext,
+  TContext extends DefaultContext = DefaultContext,
   TEvent extends EventObject = EventObject
 >(
   node: StateNode<TContext, any, TEvent>,
   event: string
 ): Array<Edge<TContext, TEvent>> {
-  const transitions: TransitionDefinition<TContext, TEvent>[] = node.definition.on[event];
+  const transitions: TransitionDefinition<TContext, TEvent>[] =
+    node.definition.on[event];
 
   return flatten(
     transitions.map(transition => {
-      const targets = transition.target
-        ? transition.target.slice()
-        : undefined;
+      const targets = transition.target ? transition.target.slice() : undefined;
 
       if (!targets) {
         return [
@@ -119,7 +139,7 @@ export function getEventEdges<
 }
 
 export function getEdges<
-  TContext = DefaultContext,
+  TContext extends DefaultContext = DefaultContext,
   TEvent extends EventObject = EventObject
 >(
   node: StateNode<TContext, any, TEvent>,
@@ -149,7 +169,7 @@ export function getEdges<
   return edges;
 }
 
-export function adjacencyMap<TContext = DefaultContext>(
+export function adjacencyMap<TContext extends DefaultContext = DefaultContext>(
   node: StateNode<TContext>,
   context?: TContext
 ): AdjacencyMap {
@@ -179,7 +199,9 @@ export function adjacencyMap<TContext = DefaultContext>(
   return adjacency;
 }
 
-export function serializeState<TContext>(state: State<TContext>): string {
+export function serializeState<TContext extends DefaultContext>(
+  state: State<TContext>
+): string {
   const { value, context } = state;
   return context === undefined
     ? JSON.stringify(value)
@@ -198,7 +220,10 @@ export function deserializeEventString<TEvent extends EventObject>(
   return JSON.parse(eventString) as TEvent;
 }
 
-export interface ValueAdjMapOptions<TContext, TEvent extends EventObject> {
+export interface ValueAdjMapOptions<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+> {
   events: { [K in TEvent['type']]: Array<TEvent & { type: K }> };
   filter: (state: State<TContext>) => boolean;
   stateSerializer: (state: State<TContext>) => string;
@@ -213,7 +238,7 @@ const defaultValueAdjMapOptions: ValueAdjMapOptions<any, any> = {
 };
 
 export function getValueAdjacencyMap<
-  TContext = DefaultContext,
+  TContext extends DefaultContext = DefaultContext,
   TEvent extends EventObject = EventObject
 >(
   node: StateNode<TContext, any, TEvent>,
@@ -275,7 +300,7 @@ export function getValueAdjacencyMap<
 }
 
 export function getShortestPaths<
-  TContext = DefaultContext,
+  TContext extends DefaultContext = DefaultContext,
   TEvent extends EventObject = EventObject
 >(
   machine: StateMachine<TContext, any, TEvent>,
@@ -433,7 +458,7 @@ export function getShortestPaths<
 // }
 
 export function getSimplePaths<
-  TContext = DefaultContext,
+  TContext extends DefaultContext = DefaultContext,
   TEvent extends EventObject = EventObject
 >(
   machine: StateMachine<TContext, any, TEvent>,
@@ -503,7 +528,7 @@ export function getSimplePaths<
 }
 
 export function getSimplePathsAsArray<
-  TContext = DefaultContext,
+  TContext extends DefaultContext = DefaultContext,
   TEvent extends EventObject = EventObject
 >(
   machine: StateNode<TContext, any, TEvent>,

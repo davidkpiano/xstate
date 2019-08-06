@@ -8,6 +8,7 @@ describe('guard conditions', () => {
   const lightMachine = Machine<{ elapsed: number }>(
     {
       key: 'light',
+      context: { elapsed: 0 },
       initial: 'green',
       states: {
         green: {

@@ -4,7 +4,8 @@ import {
   Event,
   EventObject,
   StateSchema,
-  StateNodeConfig
+  StateNodeConfig,
+  DefaultContext
 } from './types';
 import { toEventObject } from './utils';
 
@@ -41,10 +42,10 @@ export function sequence<
   options?: Partial<SequencePatternOptions<TEvent>>
 ): {
   initial: keyof TStateSchema['states'];
-  states: StatesConfig<any, TStateSchema, TEvent>;
+  states: StatesConfig<DefaultContext, TStateSchema, TEvent>;
 } {
   const resolvedOptions = { ...defaultSequencePatternOptions, ...options };
-  const states = {} as StatesConfig<any, TStateSchema, TEvent>;
+  const states = {} as StatesConfig<DefaultContext, TStateSchema, TEvent>;
   const nextEventObject =
     resolvedOptions.nextEvent === undefined
       ? undefined

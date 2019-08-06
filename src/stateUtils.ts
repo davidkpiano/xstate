@@ -1,4 +1,5 @@
-import { EventObject, StateNode, StateValue } from '.';
+import { EventObject, StateValue, DefaultContext } from './types';
+import { StateNode } from './StateNode';
 import { keys, flatten, mapContext } from './utils';
 
 type Configuration<TC, TE extends EventObject> = Iterable<
@@ -191,7 +192,7 @@ export function isInFinalState(
   return false;
 }
 
-export function getDoneData<TContext>(
+export function getDoneData<TContext extends DefaultContext>(
   context: TContext,
   event: EventObject
 ): any {

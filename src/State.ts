@@ -10,7 +10,8 @@ import {
   ActionTypes,
   SCXML,
   StateSchema,
-  ExtractStateValue
+  ExtractStateValue,
+  DefaultContext
 } from './types';
 import { EMPTY_ACTIVITY_MAP } from './constants';
 import { matchesState, keys, isString, toSCXMLEvent } from './utils';
@@ -72,7 +73,7 @@ export function bindActionToState<TC, TE extends EventObject>(
 }
 
 export class State<
-  TContext,
+  TContext extends DefaultContext,
   TEvent extends EventObject = EventObject,
   TStateSchema extends StateSchema<TContext> = any
 > {

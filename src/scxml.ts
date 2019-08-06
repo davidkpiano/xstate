@@ -1,5 +1,5 @@
 import { xml2js, Element as XMLElement } from 'xml-js';
-import { EventObject, ActionObject } from './types';
+import { EventObject, ActionObject, DefaultContext } from './types';
 import { StateNode, Machine } from './index';
 import { mapValues, keys, isString } from './utils';
 import * as actions from './actions';
@@ -65,7 +65,7 @@ function getTargets(targetAttr?: string | number): string[] | undefined {
 }
 
 function mapActions<
-  TContext extends object,
+  TContext extends DefaultContext,
   TEvent extends EventObject = EventObject
 >(elements: XMLElement[]): Array<ActionObject<TContext, TEvent>> {
   return elements.map(element => {

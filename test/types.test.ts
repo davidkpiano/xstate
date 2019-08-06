@@ -1,4 +1,4 @@
-import { Machine, assign } from '../src/index';
+import { Machine, assign } from '../src';
 
 function noop(_x) {
   return;
@@ -121,6 +121,7 @@ describe('Parallel StateSchema', () => {
     ParallelEvent
   >({
     type: 'parallel',
+    context: { elapsed: 0 },
     states: {
       foo: {},
       bar: {},
@@ -169,6 +170,7 @@ describe('Nested parallel stateSchema', () => {
     ParallelEvent
   >({
     initial: 'foo',
+    context: { lastDate: new Date() },
     states: {
       foo: {},
       bar: {},

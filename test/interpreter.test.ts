@@ -637,6 +637,9 @@ Event: {\\"type\\":\\"SOME_EVENT\\"}"
 
     const parentMachine = Machine<Ctx>({
       id: 'parent',
+      context: {
+        password: ''
+      },
       initial: 'start',
       states: {
         start: {

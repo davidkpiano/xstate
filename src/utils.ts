@@ -16,7 +16,8 @@ import {
   StateMachine,
   ConditionPredicate,
   SCXML,
-  StateLike
+  StateLike,
+  DefaultContext
 } from './types';
 import { STATE_DELIMITER, DEFAULT_GUARD_TYPE } from './constants';
 import { IS_PRODUCTION } from './environment';
@@ -292,7 +293,10 @@ export function toArray<T>(value: T[] | T | undefined): T[] {
   return [value];
 }
 
-export function mapContext<TContext, TEvent extends EventObject>(
+export function mapContext<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(
   mapper: Mapper<TContext, TEvent> | PropertyMapper<TContext, TEvent>,
   context: TContext,
   event: TEvent
@@ -402,7 +406,10 @@ export function updateHistoryValue(
   };
 }
 
-export function updateContext<TContext, TEvent extends EventObject>(
+export function updateContext<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(
   context: TContext,
   event: TEvent,
   assignActions: Array<AssignAction<TContext, TEvent>>,
@@ -488,7 +495,10 @@ export function isString(value: any): value is string {
 //   });
 // }
 
-export function toGuard<TContext, TEvent extends EventObject>(
+export function toGuard<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(
   condition?: Condition<TContext, TEvent>,
   guardMap?: Record<string, ConditionPredicate<TContext, TEvent>>
 ): Guard<TContext, TEvent> | undefined {

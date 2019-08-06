@@ -1,6 +1,9 @@
-import { EventObject, SingleOrArray, ActionObject } from '.';
+import { EventObject, SingleOrArray, ActionObject, DefaultContext } from '.';
 
-export function each<TContext, TEvent extends EventObject>(
+export function each<
+  TContext extends DefaultContext,
+  TEvent extends EventObject
+>(
   collection: keyof TContext,
   item: keyof TContext,
   actions: SingleOrArray<ActionObject<TContext, TEvent>>
