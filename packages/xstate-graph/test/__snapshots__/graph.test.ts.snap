@@ -1,5 +1,107 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`@xstate/graph getAlternatePaths() should return a mapping of arrays of paths to target state with max revisits: alternate paths 1`] = `
+Object {
+  "{\\"red\\":\\"flashing\\"}": Array [
+    Object {
+      "segments": Array [
+        Object {
+          "event": Object {
+            "type": "TIMER",
+          },
+          "state": "green",
+        },
+        Object {
+          "event": Object {
+            "type": "POWER_OUTAGE",
+          },
+          "state": "yellow",
+        },
+      ],
+    },
+    Object {
+      "segments": Array [
+        Object {
+          "event": Object {
+            "type": "POWER_OUTAGE",
+          },
+          "state": "green",
+        },
+      ],
+    },
+  ],
+  "{\\"red\\":\\"walk\\"}": Array [
+    Object {
+      "segments": Array [
+        Object {
+          "event": Object {
+            "type": "TIMER",
+          },
+          "state": "green",
+        },
+        Object {
+          "event": Object {
+            "type": "TIMER",
+          },
+          "state": "yellow",
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`@xstate/graph getAlternatePaths() should return a mapping of arrays of paths to target state: alternate paths 1`] = `
+Object {
+  "{\\"red\\":\\"flashing\\"}": Array [
+    Object {
+      "segments": Array [
+        Object {
+          "event": Object {
+            "type": "TIMER",
+          },
+          "state": "green",
+        },
+        Object {
+          "event": Object {
+            "type": "POWER_OUTAGE",
+          },
+          "state": "yellow",
+        },
+      ],
+    },
+    Object {
+      "segments": Array [
+        Object {
+          "event": Object {
+            "type": "POWER_OUTAGE",
+          },
+          "state": "green",
+        },
+      ],
+    },
+  ],
+  "{\\"red\\":\\"walk\\"}": Array [
+    Object {
+      "segments": Array [
+        Object {
+          "event": Object {
+            "type": "TIMER",
+          },
+          "state": "green",
+        },
+        Object {
+          "event": Object {
+            "type": "TIMER",
+          },
+          "state": "yellow",
+        },
+      ],
+    },
+  ],
+}
+`;
+
 exports[`@xstate/graph getShortestPaths() should represent conditional paths based on context: shortest paths conditional 1`] = `
 Object {
   "\\"bar\\" | {\\"id\\":\\"foo\\"}": Object {

@@ -4,10 +4,17 @@ import {
   DefaultContext,
   Event,
   EventObject,
-  StateMachine
+  StateMachine,
+  StateValue
 } from 'xstate';
 import { flatten, keys } from 'xstate/lib/utils';
-import { StatePathsMap, StatePaths, AdjacencyMap, Segments } from './types';
+import {
+  StatePathsMap,
+  StatePaths,
+  AdjacencyMap,
+  Segments,
+  Segment
+} from './types';
 
 export function toEventObject<TEvent extends EventObject>(
   event: Event<TEvent>
@@ -59,8 +66,8 @@ export function deserializeEventString<TEvent extends EventObject>(
 
 export interface ValueAdjMapOptions<TContext, TEvent extends EventObject> {
   events: { [K in TEvent['type']]?: Array<TEvent & { type: K }> };
-  filter: (state: State<TContext>) => boolean;
-  stateSerializer: (state: State<TContext>) => string;
+  filter: (state: State<TContext, TEvent>) => boolean;
+  stateSerializer: (state: State<TContext, TEvent>) => string;
   eventSerializer: (event: TEvent) => string;
 }
 
@@ -71,6 +78,19 @@ const defaultValueAdjMapOptions: ValueAdjMapOptions<any, any> = {
   eventSerializer: serializeEvent
 };
 
+// tslint:disable-next-line:max-line-length
+export interface ValueAlternatePathOptions<
+  TContext,
+  TEvent extends EventObject
+> extends ValueAdjMapOptions<TContext, TEvent> {
+  maxRevisits: number;
+}
+
+const defaultValueAlternatePathOptions: ValueAlternatePathOptions<any, any> = {
+  ...defaultValueAdjMapOptions,
+  maxRevisits: 0
+};
+
 export function getAdjacencyMap<
   TContext = DefaultContext,
   TEvent extends EventObject = EventObject
@@ -78,10 +98,10 @@ export function getAdjacencyMap<
   node: StateNode<TContext, any, TEvent>,
   options?: Partial<ValueAdjMapOptions<TContext, TEvent>>
 ): AdjacencyMap<TContext, TEvent> {
-  const optionsWithDefaults = {
+  const optionsWithDefaults = ({
     ...defaultValueAdjMapOptions,
     ...options
-  } as ValueAdjMapOptions<TContext, TEvent>;
+  } as unknown) as ValueAdjMapOptions<TContext, TEvent>;
   const { filter, stateSerializer, eventSerializer } = optionsWithDefaults;
   const events = {} as Record<TEvent['type'], Array<Event<TEvent>>>;
   for (const event of node.events) {
@@ -147,12 +167,12 @@ export function getShortestPaths<
     // return EMPTY_MAP;
     return EMPTY_MAP;
   }
-  const optionsWithDefaults = {
+  const optionsWithDefaults = ({
     events: {},
     stateSerializer: serializeState,
     eventSerializer: serializeEvent,
     ...options
-  } as ValueAdjMapOptions<TContext, TEvent>;
+  } as unknown) as ValueAdjMapOptions<TContext, TEvent>;
 
   const adjacency = getAdjacencyMap<TContext, TEvent>(
     machine,
@@ -238,10 +258,10 @@ export function getSimplePaths<
   machine: StateMachine<TContext, any, TEvent>,
   options?: Partial<ValueAdjMapOptions<TContext, TEvent>>
 ): StatePathsMap<TContext, TEvent> {
-  const optionsWithDefaults = {
+  const optionsWithDefaults = ({
     ...defaultValueAdjMapOptions,
     ...options
-  };
+  } as unknown) as ValueAdjMapOptions<TContext, TEvent>;
 
   const { stateSerializer } = optionsWithDefaults;
 
@@ -251,7 +271,7 @@ export function getSimplePaths<
 
   const adjacency = getAdjacencyMap(machine, optionsWithDefaults);
   const stateMap = new Map<string, State<TContext, TEvent>>();
-  const visited = new Set();
+  const visited = new Set<string>();
   const path: Segments<TContext, TEvent> = [];
   const paths: StatePathsMap<TContext, TEvent> = {};
 
@@ -304,6 +324,131 @@ export function getSimplePaths<
   }
 
   return paths;
+}
+
+interface AlternatePath<TContext, TEvent extends EventObject> {
+  visited: Set<string>;
+  lastState: string;
+  path: Segments<TContext, TEvent>;
+  revisits: number;
+}
+
+export function getAlternatePaths<
+  TContext = DefaultContext,
+  TEvent extends EventObject = EventObject
+>(
+  machine: StateMachine<TContext, any, TEvent>,
+  finalState: StateValue,
+  options?: Partial<ValueAlternatePathOptions<TContext, TEvent>>
+): StatePathsMap<TContext, TEvent> {
+  const optionsWithDefaults = ({
+    ...defaultValueAlternatePathOptions,
+    ...options
+  } as unknown) as ValueAlternatePathOptions<TContext, TEvent>;
+
+  const { stateSerializer, maxRevisits } = optionsWithDefaults;
+
+  if (!machine.states) {
+    return EMPTY_MAP;
+  }
+
+  const adjacency = getAdjacencyMap(machine, optionsWithDefaults);
+  const stateMap = new Map<string, State<TContext, TEvent>>();
+  const paths: Array<AlternatePath<TContext, TEvent>> = [];
+
+  function state2state(
+    fromState: State<TContext, TEvent>,
+    toStateSerial: StateValue,
+    alternatePath: AlternatePath<TContext, TEvent>
+  ) {
+    const fromStateSerial = stateSerializer(fromState);
+    alternatePath.visited.add(fromStateSerial);
+
+    if (!fromState.matches(toStateSerial)) {
+      const max = keys(adjacency[fromStateSerial]).length;
+      let i = max;
+      for (const subEvent of keys(adjacency[fromStateSerial])) {
+        const nextSegment = adjacency[fromStateSerial][subEvent];
+        i--;
+
+        if (!nextSegment) {
+          continue;
+        }
+        const nextStateSerial = stateSerializer(nextSegment.state);
+        if (!stateMap.has(nextStateSerial)) {
+          stateMap.set(nextStateSerial, nextSegment.state);
+        }
+
+        if (alternatePath.visited.has(nextStateSerial)) {
+          if (alternatePath.revisits >= maxRevisits) {
+            // stackElement.revisits += 1; // marks stack as nonsuccessful
+            continue;
+          }
+          alternatePath.revisits += 1;
+        }
+
+        const step: Segment<TContext, TEvent> = {
+          state: stateMap.get(fromStateSerial)!,
+          event: deserializeEventString(subEvent)
+        };
+        if (i !== max) {
+          const path = [...alternatePath.path];
+          path.push(step);
+          const newAlternatePath = {
+            revisits: alternatePath.revisits,
+            lastState: nextStateSerial,
+            path,
+            visited: new Set<string>(alternatePath.visited)
+          };
+          newAlternatePath.visited.add(nextStateSerial);
+          paths.push(newAlternatePath);
+          state2state(nextSegment.state, toStateSerial, newAlternatePath);
+        } else {
+          // last one
+          alternatePath.visited.add(nextStateSerial);
+          alternatePath.lastState = nextStateSerial;
+          alternatePath.path.push(step);
+          state2state(nextSegment.state, toStateSerial, alternatePath);
+        }
+      }
+    }
+  }
+
+  const initialStateSerial = stateSerializer(machine.initialState);
+  stateMap.set(initialStateSerial, machine.initialState);
+
+  paths.push({
+    revisits: 0,
+    lastState: initialStateSerial,
+    path: [],
+    visited: new Set<string>()
+  });
+
+  state2state(stateMap.get(paths[0].lastState)!, finalState, paths[0]);
+
+  const result: StatePathsMap<TContext, TEvent> = {};
+
+  paths
+    .filter(p => p.revisits <= maxRevisits)
+    .forEach(path => {
+      const pathState = stateMap.get(path.lastState)!;
+      if (!pathState.matches(finalState)) {
+        return;
+      }
+      if (pathState === undefined) {
+        throw Error('empty pathState' + JSON.stringify(path));
+      }
+      if (!result[path.lastState]) {
+        result[path.lastState] = { paths: [], state: pathState };
+      }
+      result[path.lastState].paths.push({
+        state: pathState,
+        segments: path.path,
+        weight: path.path.length
+      });
+    });
+
+  return result;
 }
 
 export function getSimplePathsAsArray<

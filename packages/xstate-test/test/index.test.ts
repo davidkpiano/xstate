@@ -1,6 +1,6 @@
 // nothing yet
 import { createModel } from '../src';
-import { Machine, assign } from 'xstate';
+import { Machine, assign, MachineOptions, EventObject } from 'xstate';
 import stripAnsi from 'strip-ansi';
 
 const dieHardMachine = Machine<{ three: number; five: number }>(
@@ -56,9 +56,9 @@ const dieHardMachine = Machine<{ three: number; five: number }>(
       }
     }
   },
-  {
+  ({
     actions: {
-      pour3to5: assign(ctx => {
+      pour3to5: assign<{ three: number; five: number }>(ctx => {
         const poured = Math.min(5 - ctx.five, ctx.three);
 
         return {
@@ -66,7 +66,7 @@ const dieHardMachine = Machine<{ three: number; five: number }>(
           five: ctx.five + poured
         };
       }),
-      pour5to3: assign(ctx => {
+      pour5to3: assign<{ three: number; five: number }>(ctx => {
         const poured = Math.min(3 - ctx.three, ctx.five);
 
         const res = {
@@ -84,7 +84,9 @@ const dieHardMachine = Machine<{ three: number; five: number }>(
     guards: {
       weHave4Gallons: ctx => ctx.five === 4
     }
-  }
+  } as unknown) as Partial<
+    MachineOptions<{ three: number; five: number }, EventObject>
+  >
 );
 
 class Jugs {
@@ -168,6 +170,40 @@ describe('testing a model (shortestPathsTo)', () => {
 describe('testing a model (simplePathsTo)', () => {
   dieHardModel
     .getSimplePathPlansTo('success') // ...
+    .forEach(plan => {
+      describe(`reaches state ${JSON.stringify(
+        plan.state.value
+      )} (${JSON.stringify(plan.state.context)})`, () => {
+        plan.paths.forEach(path => {
+          it(path.description, () => {
+            const testJugs = new Jugs();
+            return path.test({ jugs: testJugs });
+          });
+        });
+      });
+    });
+});
+
+describe('testing a model (alternatePathsTo)', () => {
+  dieHardModel
+    .getAlternatePathPlans('success') // ...
+    .forEach(plan => {
+      describe(`reaches state ${JSON.stringify(
+        plan.state.value
+      )} (${JSON.stringify(plan.state.context)})`, () => {
+        plan.paths.forEach(path => {
+          it(path.description, () => {
+            const testJugs = new Jugs();
+            return path.test({ jugs: testJugs });
+          });
+        });
+      });
+    });
+});
+
+describe('testing a model (alternatePathsTo max revisits 1)', () => {
+  dieHardModel
+    .getAlternatePathPlans('success', { maxRevisits: 1 }) // ...
     .forEach(plan => {
       describe(`reaches state ${JSON.stringify(
         plan.state.value

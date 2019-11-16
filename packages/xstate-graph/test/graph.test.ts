@@ -1,5 +1,10 @@
 import { Machine, StateNode } from 'xstate';
-import { getStateNodes, getSimplePaths, getShortestPaths } from '../src/index';
+import {
+  getStateNodes,
+  getSimplePaths,
+  getShortestPaths,
+  getAlternatePaths
+} from '../src/index';
 import { getSimplePathsAsArray, getAdjacencyMap } from '../src/graph';
 import { assign } from 'xstate';
 
@@ -196,6 +201,47 @@ describe('@xstate/graph', () => {
       );
 
       expect(paths).toMatchSnapshot('shortest paths conditional');
+    });
+  });
+
+  describe('getAlternatePaths()', () => {
+    it('should return a mapping of arrays of paths to target state', () => {
+      const alternatePaths = getAlternatePaths(lightMachine, 'red');
+      const paths = {};
+
+      for (const a in alternatePaths) {
+        if (!alternatePaths.hasOwnProperty(a)) {
+          continue;
+        }
+        paths[a] = alternatePaths[a].paths.map(p => ({
+          segments: p.segments.map(s => ({
+            event: s.event,
+            state: s.state.value
+          }))
+        }));
+      }
+
+      expect(paths).toMatchSnapshot('alternate paths');
+    });
+    it('should return a mapping of arrays of paths to target state with max revisits', () => {
+      const alternatePaths = getAlternatePaths(lightMachine, 'red', {
+        maxRevisits: 2
+      });
+      const paths = {};
+
+      for (const a in alternatePaths) {
+        if (!alternatePaths.hasOwnProperty(a)) {
+          continue;
+        }
+        paths[a] = alternatePaths[a].paths.map(p => ({
+          segments: p.segments.map(s => ({
+            event: s.event,
+            state: s.state.value
+          }))
+        }));
+      }
+
+      expect(paths).toMatchSnapshot('alternate paths');
     });
   });
 
