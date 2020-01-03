@@ -292,6 +292,12 @@ export function flatten<T>(array: Array<T | T[]>): T[] {
   return ([] as T[]).concat(...array);
 }
 
+export const intersects = <T>(a: T[], b: T[]): boolean => {
+  return a.some(elA => b.some(elB => elA === elB));
+};
+
+export const uniq = <T>(arr: T[]): T[] => Array.from(new Set(arr));
+
 export function toArrayStrict<T>(value: T[] | T): T[] {
   if (isArray(value)) {
     return value;

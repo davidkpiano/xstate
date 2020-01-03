@@ -374,13 +374,13 @@ async function runTestToCompletion(
     await runW3TestToCompletion(machine);
     return;
   }
-  const resolvedStateValue = machine.resolve(
-    pathsToStateValue(
-      test.initialConfiguration.map(id => machine.getStateNodeById(id).path)
-    )
+
+  const resolvedStateValue = pathsToStateValue(
+    test.initialConfiguration.map(id => machine.getStateNodeById(id).path)
   );
+
   let done = false;
-  let nextState: State<any> = machine.getInitialState(resolvedStateValue);
+  let nextState: State<any>;
   const service = interpret(machine, {
     clock: new SimulatedClock()
   })
@@ -390,7 +390,7 @@ async function runTestToCompletion(
     .onDone(() => {
       done = true;
     })
-    .start(nextState);
+    .start(resolvedStateValue);
 
   test.events.forEach(({ event, nextConfiguration, after }) => {
     if (done) {

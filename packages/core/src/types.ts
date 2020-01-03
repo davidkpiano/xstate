@@ -621,19 +621,6 @@ export interface ActivityMap {
   [activityKey: string]: ActivityDefinition<any, any> | false;
 }
 
-// tslint:disable-next-line:class-name
-export interface StateTransition<TContext, TEvent extends EventObject> {
-  transitions: Array<TransitionDefinition<TContext, TEvent>>;
-  configuration: Array<StateNode<TContext, any, TEvent>>;
-  entrySet: Array<StateNode<TContext, any, TEvent>>;
-  exitSet: Array<StateNode<TContext, any, TEvent>>;
-  /**
-   * The source state that preceded the transition.
-   */
-  source: State<TContext> | undefined;
-  actions: Array<ActionObject<TContext, TEvent>>;
-}
-
 export enum ActionTypes {
   Start = 'xstate.start',
   Stop = 'xstate.stop',
