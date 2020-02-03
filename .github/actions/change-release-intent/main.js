@@ -26,6 +26,7 @@ async function execWithOutput(command, args, options) {
 const publishablePackages = [
   'xstate',
   '@xstate/fsm',
+  '@xstate/react',
   '@xstate/test',
   '@xstate/vue'
 ];

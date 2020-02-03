@@ -8,6 +8,7 @@ import {
 } from '@xstate/fsm';
 import { useSubscription, Subscription } from 'use-subscription';
 import useConstant from './useConstant';
+import { DIFFERENT_MACHINE_WARNING_MESSAGE } from './utils';
 
 const getServiceState = <
   TContext extends object,
@@ -42,10 +43,7 @@ export function useMachine<
     const [initialMachine] = useState(stateMachine);
 
     if (stateMachine !== initialMachine) {
-      throw new Error(
-        'Machine given to `useMachine` has changed between renders. This is not supported and might lead to unexpected results.\n' +
-          'Please make sure that you pass the same Machine as argument each time.'
-      );
+      throw new Error(DIFFERENT_MACHINE_WARNING_MESSAGE);
     }
   }
 

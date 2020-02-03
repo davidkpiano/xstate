@@ -12,6 +12,7 @@ import {
 } from 'xstate';
 import { useSubscription, Subscription } from 'use-subscription';
 import useConstant from './useConstant';
+import { DIFFERENT_MACHINE_WARNING_MESSAGE } from './utils';
 
 interface UseMachineOptions<TContext, TEvent extends EventObject> {
   /**
@@ -43,10 +44,7 @@ export function useMachine<
     const [initialMachine] = useState(machine);
 
     if (process.env.NODE_ENV !== 'production' && machine !== initialMachine) {
-      console.warn(
-        'Machine given to `useMachine` has changed between renders. This is not supported and might lead to unexpected results.\n' +
-          'Please make sure that you pass the same Machine as argument each time.'
-      );
+      console.warn(DIFFERENT_MACHINE_WARNING_MESSAGE);
     }
   }
 
