@@ -91,7 +91,8 @@ import {
   initEvent,
   toActionObjects,
   resolveLog,
-  resolveRaise
+  resolveRaise,
+  assign
 } from './actions';
 import { IS_PRODUCTION } from './environment';
 import { DEFAULT_GUARD_TYPE, STATE_DELIMITER } from './constants';
@@ -376,6 +377,11 @@ class StateNode<
     this.onEntry = toArray(this.config.entry || this.config.onEntry).map(
       action => toActionObject(action)
     );
+
+    if (this.parent && this.config.context) {
+      this.onEntry.unshift(assign(this.config.context));
+    }
+
     // TODO: deprecate (exit)
     this.onExit = toArray(this.config.exit || this.config.onExit).map(action =>
       toActionObject(action)
@@ -1879,9 +1885,15 @@ class StateNode<
 
     const target = this.resolveTarget(normalizedTarget);
 
+    const actions = toActionObjects(toArray(transitionConfig.actions));
+
+    if (transitionConfig.context) {
+      actions.unshift(assign(transitionConfig.context));
+    }
+
     return {
       ...transitionConfig,
-      actions: toActionObjects(toArray(transitionConfig.actions)),
+      actions,
       cond: toGuard(transitionConfig.cond, guards),
       target,
       source: this,
