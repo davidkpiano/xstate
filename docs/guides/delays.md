@@ -279,15 +279,16 @@ import { interpret } from 'xstate';
 // import { SimulatedClock } from 'xstate/lib/interpreter'; // < 4.6.0
 import { SimulatedClock } from 'xstate/lib/SimulatedClock'; // >= 4.6.0
 
+const simulatedClock = new SimulatedClock();
 const service = interpret(lightDelayMachine, {
-  clock: new SimulatedClock()
+  clock: simulatedClock
 }).onTransition(state => console.log(state.value));
 
 service.start();
 // => 'green'
 
 // move the SimulatedClock forward by 1 second
-service.clock.increment(1000);
+simulatedClock.increment(1000);
 // => 'yellow'
 ```
 
