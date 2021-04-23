@@ -11,6 +11,7 @@
   - [`useActor(actor, getSnapshot)`](#useactoractor-getsnapshot)
   - [`useInterpret(machine, options?, observer?)`](#useinterpretmachine-options-observer)
   - [`useSelector(actor, selector, compare?, getSnapshot?)`](#useselectoractor-selector-compare-getsnapshot)
+  - [`useSuspensfulGetter(state, condition, getter)`](#usesuspensfulgetterstate-condition-getter)
   - [`asEffect(action)`](#aseffect-action)
   - [`asLayoutEffect(action)`](#aslayouteffectaction)
   - [`useMachine(machine)` with `@xstate/fsm`](#usemachinemachine-with-xstatefsm)
@@ -251,6 +252,59 @@ const App = ({ service }) => {
   // ...
 };
 ```
+
+### `useSuspensfulGetter(state, condition, getter)`
+
+- `state` - the `state` from the first index of the return value of `useMachine()`.
+  - For example: `const [state] = useMachine(machine);`.
+- `condition` - a function that takes in `state` and returns a `boolean` that determines whether or not the resource will suspend or retrieve the value you wish to get with your `getter`.
+- `getter` - a function that takes in `state` and returns any value you want it to.
+
+#### Return value
+
+`useSuspensfulGetter` will return an object with one method — `read()`. Based on the return value of your `condition`, this method will either throw a promise or return the value from your `getter`.
+
+- If your `condition` returns a **falsey value**, `read()` will _suspend_ by throwing a promise.
+- If your `condition` returns a **truthy value**, `read()` will _return_ the result of your `getter`.
+
+In other words, once your `condition` is satisified, `read()` will stop suspending and simply give you your value that you asked for with `getter`.
+
+#### Example
+
+In this example, `Outer` is the resource creator and `Inner` is the resource consumer. In `Outer`, we use our machine `userMachine` to determine if the user is logged in and fetch their information. In most cases, getting a user's data is asynchronous and you don't often know how long it will take. Therefore, we will use `useSuspensefulGetter` to create a `resource` to suspend the section of the application that needs to know something about the user until we have access to the user — represented in code, this condition is `user !== undefined`.
+
+`useSuspensefulGetter` does not do the suspending all on its own. After the creation of this `resource`, **we must pass it down at least one level before reading it to avoid an unending loop**. Now that we've passed it down to `Inner`, we can call `resource.read()`. This will either give us access to `state.context.user` or it will suspend all elements up to the nearest `<Suspense>` element and display its `fallback` attribute instead.
+
+```jsx
+function Outer() {
+  const [state] = useMachine(userMachine);
+  const resource = useSuspensefulGetter(
+    state,
+    (state) => state.context.user !== undefined,
+    (state) => state.context.user
+  );
+  // You could also wait for a specific state to be entered.
+  // (state) => state.matches('success') || state.matches('failure')
+
+  return <Inner resource={resource} />;
+}
+
+function Inner({ resource }) {
+  const user = resource.read();
+  if (user === null) {
+    return <p aria-live="polite">You aren't logged in</p>;
+  }
+
+  return <p aria-live="polite">Welcome back {user.name}!</p>;
+}
+
+// Somewhere else in your application
+<Suspense fallback={<p aria-live="polite">Loading user...</p>}>
+  <Outer />
+</Suspense>;
+```
+
+[View this example on CodeSandbox.](https://codesandbox.io/s/xstate-suspense-prototype-0y82l?file=/src/App.tsx)
 
 ### `asEffect(action)`
 
