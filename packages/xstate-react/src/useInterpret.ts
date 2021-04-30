@@ -87,10 +87,15 @@ export function useInterpret<
       services,
       delays
     };
-    const machineWithConfig = machine.withConfig(machineConfig, {
-      ...machine.context,
-      ...context
-    } as TContext);
+    const machineWithConfig = machine.withConfig(
+      machineConfig,
+      machine.context || context
+        ? {
+            ...machine.context,
+            ...context
+          }
+        : undefined
+    );
 
     return interpret(machineWithConfig, {
       deferEvents: true,

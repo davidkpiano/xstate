@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { createMachine } from 'xstate';
+import { createMachine, interpret } from 'xstate';
 import { render, cleanup, fireEvent } from '@testing-library/react';
+import { renderHook } from '@testing-library/react-hooks';
 import { useInterpret } from '../src';
 
 afterEach(cleanup);
@@ -110,5 +111,70 @@ describe('useInterpret', () => {
     rerender(<App value={42} />);
 
     expect(actual).toEqual([1, 42]);
+  });
+
+  it('should behave the same as `interpret` when initial context is not defined', (done) => {
+    const machine = createMachine({
+      initial: 'foo',
+      states: {
+        foo: {}
+      }
+    });
+
+    const interpretService = interpret(machine);
+
+    const App = () => {
+      const useInterpretService = useInterpret(machine);
+
+      expect(useInterpretService.machine.context).toEqual(
+        interpretService.machine.context
+      );
+      done();
+
+      return null;
+    };
+
+    render(<App />);
+  });
+
+  it('does not set a context object when there was none in the definition', () => {
+    const machine = createMachine({
+      initial: 'foo',
+      states: {
+        foo: {}
+      }
+    });
+
+    const { result } = renderHook(() => useInterpret(machine));
+    expect(result.current.machine.context).toBeUndefined();
+  });
+
+  it('does set context object when provided as a config param, even when there was none in the definition', () => {
+    const machine = createMachine({
+      initial: 'foo',
+      states: {
+        foo: {}
+      }
+    });
+
+    const { result } = renderHook(() => useInterpret(machine, { context: {} }));
+    expect(result.current.machine.context).not.toBeUndefined();
+  });
+
+  it('can extend the default context object', () => {
+    const machine = createMachine({
+      initial: 'foo',
+      states: {
+        foo: {}
+      },
+      context: {
+        num: 1
+      }
+    });
+
+    const { result } = renderHook(() =>
+      useInterpret(machine, { context: { num: 2 } })
+    );
+    expect(result.current.machine.context).toEqual({ num: 2 });
   });
 });

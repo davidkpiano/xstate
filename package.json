@@ -43,6 +43,7 @@
     "@changesets/changelog-github": "^0.2.6",
     "@changesets/cli": "^2.9.1",
     "@manypkg/cli": "^0.16.1",
+    "@testing-library/react-hooks": "^5.1.1",
     "@types/jest": "^24.0.23",
     "@types/node": "^12.11.1",
     "@types/use-subscription": "^1.0.0",

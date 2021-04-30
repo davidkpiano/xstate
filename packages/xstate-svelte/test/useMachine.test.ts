@@ -1,5 +1,6 @@
 import { render, fireEvent } from '@testing-library/svelte';
 import UseMachine from './UseMachine.svelte';
+import UseNoContextMachine from './UseMachine.NoContext.svelte';
 import { fetchMachine } from './fetchMachine';
 import { doneInvoke } from 'xstate';
 
@@ -39,5 +40,12 @@ describe('useMachine function', () => {
     await findByText(/Success/);
     const dataEl = getByTestId('data');
     expect(dataEl.textContent).toBe('persisted data');
+  });
+
+  it('does not set a context object when there was none in the definition', async () => {
+    const { findByText, getByTestId } = render(UseNoContextMachine);
+    await findByText(/context is/);
+    const resultEl = getByTestId('context');
+    expect(resultEl.textContent).toBe('context is undefined');
   });
 });
