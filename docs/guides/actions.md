@@ -6,10 +6,10 @@ Actions are _not_ immediately triggered. Instead, [the `State` object](./states.
 
 ::: danger
 
-All of the action creators documented here return **action objects**; it is a pure function that only returns an action object and does _not_ imperatively send an event. Do not imperatively call action creators; they will do nothing!
+All of the action creators documented here have a return type of **action object**; they do not return a function. This means they do _not_ imperatively send an event. An action creator should be viewed more like a "function as value". This is not always obvious given how they are used to configure actions.  The following examples highlight the do's and don'ts of how to use these action creators.
 
 ```js
-// 🚫 Do not do this!
+// 🚫 Don't do this!
 entry: () => {
   // 🚫 This will do nothing; send() is not an imperative function!
   send('SOME_EVENT');
@@ -398,7 +398,7 @@ const authServerMachine = createMachine({
     waitingForCode: {
       on: {
         CODE: {
-          actions: respond('TOKEN', { delay: 10 })
+          actions: () => respond('TOKEN', { delay: 10 })
         }
       }
     }
