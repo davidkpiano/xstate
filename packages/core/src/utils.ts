@@ -615,11 +615,15 @@ export function normalizeTarget<TContext, TEvent extends EventObject>(
 }
 
 export function reportUnhandledExceptionOnInvocation(
-  originalError: any,
-  currentError: any,
+  originalError: unknown,
+  currentError: Error,
   id: string
 ) {
   if (!IS_PRODUCTION) {
+    if (!isError(originalError)) {
+      return;
+    }
+
     const originalStackTrace = originalError.stack
       ? ` Stacktrace was '${originalError.stack}'`
       : '';
@@ -683,6 +687,10 @@ export function toInvokeSource(
   }
 
   return src;
+}
+
+export function isError(error: any): error is Error {
+  return typeof error === 'object' && 'stack' in error && 'message' in error;
 }
 
 export function toObserver<T>(

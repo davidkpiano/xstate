@@ -1445,3 +1445,75 @@ describe('sendParent', () => {
     expect(child).toBeTruthy();
   });
 });
+
+describe('action errors', () => {
+  it('errors from actions should be caught in interpreter.onError()', (done) => {
+    const testMachine = createMachine({
+      initial: 'inactive',
+      states: {
+        inactive: {
+          on: {
+            EVENT: {
+              actions: () => {
+                throw new Error('example action error');
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const service = interpret(testMachine).onError((err) => {
+      expect(err).toBeInstanceOf(Error);
+      expect((err as Error).message).toMatchInlineSnapshot(
+        `"example action error"`
+      );
+      done();
+    });
+
+    service.start();
+
+    service.send('EVENT');
+  });
+
+  it('errors from actions should be caught in error.execution', (done) => {
+    const testMachine = createMachine({
+      initial: 'inactive',
+      states: {
+        inactive: {
+          on: {
+            EVENT: {
+              actions: () => {
+                throw new Error('example action error');
+              }
+            },
+            'error.execution': {
+              target: 'success',
+              cond: (_, e) => {
+                return (
+                  e.data instanceof Error &&
+                  e.data.message === 'example action error'
+                );
+              }
+            }
+          }
+        },
+        success: {
+          type: 'final'
+        }
+      }
+    });
+
+    const service = interpret(testMachine).onDone(() => {
+      // expect(err).toBeInstanceOf(Error);
+      // expect((err as Error).message).toMatchInlineSnapshot(
+      //   `"example action error"`
+      // );
+      done();
+    });
+
+    service.start();
+
+    service.send('EVENT');
+  });
+});

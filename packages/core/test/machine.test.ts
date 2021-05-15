@@ -155,7 +155,7 @@ describe('machine', () => {
   });
 
   describe('machine.withConfig', () => {
-    it('should override guards and actions', () => {
+    it('should override guards and actions', (done) => {
       const differentMachine = configMachine.withConfig({
         actions: {
           entryAction: () => {
@@ -166,14 +166,15 @@ describe('machine', () => {
       });
 
       expect(differentMachine.context).toEqual({ foo: 'bar' });
-
-      const service = interpret(differentMachine);
-
-      expect(() => service.start()).toThrowErrorMatchingInlineSnapshot(
-        `"new entry"`
-      );
-
       expect(differentMachine.transition('foo', 'EVENT').value).toEqual('bar');
+
+      const service = interpret(differentMachine).onError((err) => {
+        expect(err).toBeInstanceOf(Error);
+        expect((err as Error).message).toMatchInlineSnapshot(`"new entry"`);
+        done();
+      });
+
+      service.start();
     });
 
     it('should not override context if not defined', () => {

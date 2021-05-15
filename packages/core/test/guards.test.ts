@@ -130,6 +130,89 @@ describe('guard conditions', () => {
   it('should throw if string transition is not defined', () => {
     expect(() => lightMachine.transition('red', 'BAD_COND')).toThrow();
   });
+
+  it('errors from guards in invoke.onError transition should show correct error', (done) => {
+    const machine = Machine({
+      id: 'machine',
+      initial: 'active',
+      strict: true,
+      states: {
+        active: {
+          invoke: {
+            id: 'willThrow',
+            src: () => Promise.reject(),
+            onDone: 'complete',
+            onError: [
+              {
+                target: 'active',
+                cond: () => {
+                  throw new Error('test');
+                }
+              },
+              { target: 'error' }
+            ]
+          }
+        },
+        error: {},
+        complete: {}
+      }
+    });
+
+    const service = interpret(machine).onError((err) => {
+      expect((err as Error).message).toContain('machine.active');
+      expect((err as Error).message).toContain('test');
+      done();
+    });
+
+    service.start();
+  });
+
+  it('errors from guards in invoke.onError transition should be captured in error.execution transition', (done) => {
+    const machine = Machine({
+      id: 'machine',
+      initial: 'active',
+      strict: true,
+      states: {
+        active: {
+          invoke: {
+            id: 'willThrow',
+            src: () => Promise.reject(),
+            onDone: 'complete',
+            onError: [
+              {
+                target: 'active',
+                cond: () => {
+                  throw new Error('test');
+                }
+              },
+              { target: 'error' }
+            ]
+          },
+          on: {
+            'error.execution': {
+              target: 'success',
+              cond: (_, e) => {
+                return (
+                  // error thrown by XState (failed to evaluate guard) but contains
+                  // original error
+                  e.data instanceof Error && e.data.message.includes('test')
+                );
+              }
+            }
+          }
+        },
+        error: {},
+        complete: {},
+        success: { type: 'final' }
+      }
+    });
+
+    const service = interpret(machine).onDone(() => {
+      done();
+    });
+
+    service.start();
+  });
 });
 
 describe('guard conditions', () => {

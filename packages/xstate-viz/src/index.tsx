@@ -4,7 +4,7 @@ import React, {
   useContext,
   useRef,
   useState,
-  useEffect
+  useEffect,
 } from 'react';
 import ReactDOM from 'react-dom';
 import { StateMachine, Interpreter, StateNode, State } from 'xstate';

@@ -1027,6 +1027,9 @@ describe('invoke', () => {
 
         interpret(promiseMachine)
           .onDone(doneSpy)
+          .onError((err) => {
+            expect((err as Error).message).toBe('test');
+          })
           .onStop(() => {
             expect(doneSpy).not.toHaveBeenCalled();
             done();
@@ -1801,6 +1804,9 @@ describe('invoke', () => {
       });
 
       interpret(errorMachine)
+        .onError((err) => {
+          expect((err as Error).message).toContain('test');
+        })
         .onStop(() => done())
         .start();
     });
@@ -2486,6 +2492,27 @@ describe('services option', () => {
     );
 
     const service = interpret(machine).onDone(() => {
+      done();
+    });
+
+    service.start();
+  });
+
+  it('should capture invoke errors', (done) => {
+    const machine = createMachine({
+      initial: 'a',
+      states: {
+        a: {}
+      },
+      invoke: {
+        src: () => {
+          throw new Error('test');
+        }
+      }
+    });
+
+    const service = interpret(machine).onError((err) => {
+      expect((err as Error).message).toBe('test');
       done();
     });
 

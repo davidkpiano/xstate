@@ -28,7 +28,7 @@
   export default defineComponent({
     setup() {
       const state = ref();
-      const service = useInterpret(machine, {}, nextState => {
+      const service = useInterpret(machine, {}, (nextState) => {
         state.value = nextState.value;
       });
       return { service, state };

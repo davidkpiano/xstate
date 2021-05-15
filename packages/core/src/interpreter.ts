@@ -86,6 +86,8 @@ export type EventListener<TEvent extends EventObject = EventObject> = (
   event: TEvent
 ) => void;
 
+export type ErrorListener = (error: unknown) => void;
+
 export type Listener = () => void;
 
 export interface Clock {
@@ -155,6 +157,7 @@ export class Interpreter<
   private doneListeners: Set<EventListener> = new Set();
   private eventListeners: Set<EventListener> = new Set();
   private sendListeners: Set<EventListener> = new Set();
+  private errorListeners: Set<ErrorListener> = new Set();
   private logger: (...args: any[]) => void;
   /**
    * Whether the service is started.
@@ -426,6 +429,35 @@ export class Interpreter<
     return this;
   }
   /**
+   * Adds an error listener that is notified when an unhandled error occurs.
+   * @param errorListener The error listener
+   */
+  public onError(
+    errorListener: ErrorListener
+  ): Interpreter<TContext, TStateSchema, TEvent, TTypestate> {
+    this.errorListeners.add(errorListener);
+    return this;
+  }
+
+  private handleError(errorData: unknown): void {
+    const errorEventHandled = this.state.nextEvents.some(
+      (event) => event === actionTypes.errorExecution
+    );
+
+    if (errorEventHandled) {
+      this.send({
+        type: actionTypes.errorExecution,
+        data: errorData
+      } as any); // TODO: allow this error type
+    }
+
+    if (!errorEventHandled && this.errorListeners.size === 0) {
+      throw errorData;
+    }
+
+    this.errorListeners.forEach((errorListener) => errorListener(errorData));
+  }
+  /**
    * Removes a listener.
    * @param listener The listener to remove
    */
@@ -489,20 +521,17 @@ export class Interpreter<
    * This will also notify the `onStop` listeners.
    */
   public stop(): Interpreter<TContext, TStateSchema, TEvent, TTypestate> {
-    for (const listener of this.listeners) {
-      this.listeners.delete(listener);
-    }
+    this.listeners.clear();
+
     for (const listener of this.stopListeners) {
       // call listener, then remove
       listener();
       this.stopListeners.delete(listener);
     }
-    for (const listener of this.contextListeners) {
-      this.contextListeners.delete(listener);
-    }
-    for (const listener of this.doneListeners) {
-      this.doneListeners.delete(listener);
-    }
+
+    this.contextListeners.clear();
+    this.doneListeners.clear();
+    this.errorListeners.clear();
 
     if (!this.initialized) {
       // Interpreter already stopped; do nothing
@@ -715,9 +744,9 @@ export class Interpreter<
     const _event = toSCXMLEvent(event);
 
     if (
-      _event.name.indexOf(actionTypes.errorPlatform) === 0 &&
-      !this.state.nextEvents.some(
-        (nextEvent) => nextEvent.indexOf(actionTypes.errorPlatform) === 0
+      _event.name.startsWith(actionTypes.errorPlatform) &&
+      !this.state.nextEvents.some((nextEvent) =>
+        nextEvent.startsWith(actionTypes.errorPlatform)
       )
     ) {
       throw (_event.data as any).data;
@@ -781,13 +810,10 @@ export class Interpreter<
         });
       } catch (err) {
         if (this.parent) {
-          this.parent.send({
-            type: 'xstate.error',
-            data: err
-          } as EventObject);
+          this.parent.send(error(this.id, err));
         }
 
-        throw err;
+        this.handleError(err);
       }
     }
 
@@ -864,30 +890,34 @@ export class Interpreter<
             ? mapContext(data, context, _event)
             : undefined;
 
-          const source = isFunction(serviceCreator)
-            ? serviceCreator(context, _event.data, {
-                data: resolvedData,
-                src: invokeSource
-              })
-            : serviceCreator;
+          try {
+            const source = isFunction(serviceCreator)
+              ? serviceCreator(context, _event.data, {
+                  data: resolvedData,
+                  src: invokeSource
+                })
+              : serviceCreator;
 
-          if (isPromiseLike(source)) {
-            this.spawnPromise(Promise.resolve(source), id);
-          } else if (isFunction(source)) {
-            this.spawnCallback(source, id);
-          } else if (isObservable<TEvent>(source)) {
-            this.spawnObservable(source, id);
-          } else if (isMachine(source)) {
-            // TODO: try/catch here
-            this.spawnMachine(
-              resolvedData ? source.withContext(resolvedData) : source,
-              {
-                id,
-                autoForward
-              }
-            );
-          } else {
-            // service is string
+            if (isPromiseLike(source)) {
+              this.spawnPromise(Promise.resolve(source), id);
+            } else if (isFunction(source)) {
+              this.spawnCallback(source, id);
+            } else if (isObservable<TEvent>(source)) {
+              this.spawnObservable(source, id);
+            } else if (isMachine(source)) {
+              // TODO: try/catch here
+              this.spawnMachine(
+                resolvedData ? source.withContext(resolvedData) : source,
+                {
+                  id,
+                  autoForward
+                }
+              );
+            } else {
+              // service is string
+            }
+          } catch (err) {
+            this.handleError(err);
           }
         } else {
           this.spawnActivity(activity);
@@ -1029,8 +1059,12 @@ export class Interpreter<
           try {
             // Send "error.platform.id" to this (parent).
             this.send(toSCXMLEvent(errorEvent as any, { origin: id }));
-          } catch (error) {
-            reportUnhandledExceptionOnInvocation(errorData, error, id);
+          } catch (errorFromSend) {
+            if (this.machine.strict) {
+              this.handleError(errorFromSend);
+            }
+
+            reportUnhandledExceptionOnInvocation(errorData, errorFromSend, id);
             if (this.devTools) {
               this.devTools.send(errorEvent, this.state);
             }

@@ -372,10 +372,18 @@ export type TransitionConfigOrTarget<
 >;
 
 export type TransitionsConfigMap<TContext, TEvent extends EventObject> = {
-  [K in TEvent['type']]?: TransitionConfigOrTarget<
-    TContext,
-    TEvent extends { type: K } ? TEvent : never
-  >;
+  [K in TEvent['type']]?: K extends 'error.execution'
+    ? TransitionConfigOrTarget<
+        TContext,
+        {
+          type: 'error.execution';
+          data: unknown;
+        }
+      >
+    : TransitionConfigOrTarget<
+        TContext,
+        TEvent extends { type: K } ? TEvent : never
+      >;
 } & {
   ''?: TransitionConfigOrTarget<TContext, TEvent>;
 } & {
