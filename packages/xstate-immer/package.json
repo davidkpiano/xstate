@@ -34,7 +34,7 @@
   "devDependencies": {
     "immer": "^8.0.1",
     "lerna-alias": "3.0.3-0",
-    "typescript": "^4.1.2",
+    "typescript": "^4.2.4",
     "xstate": "*"
   }
 }

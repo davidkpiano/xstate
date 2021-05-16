@@ -650,7 +650,7 @@ export class Interpreter<
     }
   }
   private defer(sendAction: SendActionObject<TContext, TEvent>): void {
-    this.delayedEventsMap[sendAction.id] = this.clock.setTimeout(() => {
+    this.delayedEventsMap[sendAction.id!] = this.clock.setTimeout(() => {
       if (sendAction.to) {
         this.sendTo(sendAction._event, sendAction.to);
       } else {

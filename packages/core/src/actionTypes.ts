@@ -18,3 +18,4 @@ export const error = ActionTypes.ErrorCustom;
 export const update = ActionTypes.Update;
 export const choose = ActionTypes.Choose;
 export const pure = ActionTypes.Pure;
+export const each = ActionTypes.Each;

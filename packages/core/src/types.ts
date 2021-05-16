@@ -70,7 +70,7 @@ export type ActionFunction<TContext, TEvent extends EventObject> = (
   meta: ActionMeta<TContext, TEvent>
 ) => void;
 
-export interface ChooseConditon<TContext, TEvent extends EventObject> {
+export interface ChooseCondition<TContext, TEvent extends EventObject> {
   guard?: GuardConfig<TContext, TEvent>;
   actions: Actions<TContext, TEvent>;
 }
@@ -654,7 +654,8 @@ export enum ActionTypes {
   ErrorCustom = 'xstate.error',
   Update = 'xstate.update',
   Pure = 'xstate.pure',
-  Choose = 'xstate.choose'
+  Choose = 'xstate.choose',
+  Each = 'xstate.each'
 }
 
 export interface RaiseAction<TEvent extends EventObject> {
@@ -762,7 +763,7 @@ export interface SendAction<
     | undefined;
   event: TSentEvent | SendExpr<TContext, TEvent, TSentEvent>;
   delay?: number | string | DelayExpr<TContext, TEvent>;
-  id: string | number;
+  id?: string;
 }
 
 export interface SendActionObject<
@@ -774,7 +775,7 @@ export interface SendActionObject<
   _event: SCXML.Event<TSentEvent>;
   event: TSentEvent;
   delay?: number;
-  id: string | number;
+  id?: string | undefined;
 }
 
 export type Expr<TContext, TEvent extends EventObject, T> = (
@@ -800,7 +801,7 @@ export enum SpecialTargets {
 }
 
 export interface SendActionOptions<TContext, TEvent extends EventObject> {
-  id?: string | number;
+  id?: string;
   delay?: number | string | DelayExpr<TContext, TEvent>;
   to?:
     | string
@@ -877,7 +878,15 @@ export interface PureAction<TContext, TEvent extends EventObject>
 export interface ChooseAction<TContext, TEvent extends EventObject>
   extends ActionObject<TContext, TEvent> {
   type: ActionTypes.Choose;
-  guards: Array<ChooseConditon<TContext, TEvent>>;
+  guards: Array<ChooseCondition<TContext, TEvent>>;
+}
+
+export interface ForEachAction<TContext, TEvent extends EventObject> {
+  type: ActionTypes.Each;
+  actions: Array<ActionObject<TContext, TEvent>>;
+  array: keyof TContext;
+  item: keyof TContext;
+  index: keyof TContext;
 }
 
 export interface TransitionDefinition<TContext, TEvent extends EventObject>

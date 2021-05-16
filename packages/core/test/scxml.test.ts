@@ -43,9 +43,7 @@ const testGroups = {
   error: [
     // 'error' // not implemented
   ],
-  forEach: [
-    // 'test1', // not implemented
-  ],
+  foreach: ['test1'],
   hierarchy: ['hier0', 'hier1', 'hier2'],
   'hierarchy+documentOrder': ['test0', 'test1'],
   history: [
@@ -125,21 +123,21 @@ const testGroups = {
     // 'test0',
     // 'test1'
   ],
-  // 'send-data': ['send1'], // <content> conversion not implementd
+  'send-data': ['send1'],
   // 'send-idlocation': ['test0'],
-  // 'send-internal': ['test0'],
+  'send-internal': ['test0'],
   'targetless-transition': ['test0', 'test1', 'test2', 'test3'],
   'w3c-ecma': [
     'test144.txml',
     'test147.txml',
     'test148.txml',
     'test149.txml',
-    // 'test150.txml', // <foreach> not implemented yet
-    // 'test151.txml', // <foreach> not implemented yet
-    // 'test152.txml', // <foreach> not implemented yet
-    // 'test153.txml', // <foreach> not implemented yet
-    // 'test155.txml', // <foreach> not implemented yet
-    // 'test156.txml', // <foreach> not implemented yet
+    'test150.txml',
+    'test151.txml',
+    'test152.txml',
+    'test153.txml',
+    'test155.txml',
+    // 'test156.txml', // assign should throw for invalid expressions
     'test158.txml',
     // 'test159.txml', // different error handling
     'test172.txml',
@@ -147,8 +145,8 @@ const testGroups = {
     'test174.txml',
     'test175.txml',
     'test176.txml',
-    // 'test179.txml', // conversion of <content> in <send> not implemented yet
-    // 'test183.txml', // idlocation not implemented yet
+    'test179.txml',
+    'test183.txml',
     'test185.txml',
     'test186.txml',
     'test187.txml',
@@ -283,9 +281,9 @@ const testGroups = {
     // 'test452.txml', // conversion of <script> not implemented yet
     'test453.txml',
     // 'test456.txml', // conversion of <script> not implemented yet
-    // 'test457.txml', // <foreach> not implemented yet
-    // 'test459.txml', // <foreach> not implemented yet
-    // 'test460.txml', // <foreach> not implemented yet
+    'test457.txml',
+    'test459.txml',
+    'test460.txml',
     'test487.txml',
     // 'test488.txml', // error.execution when evaluating param
     'test495.txml',
@@ -303,7 +301,7 @@ const testGroups = {
     // 'test520.txml', // Basic HTTP Event I/O processor not implemented
     // 'test521.txml', // error.communication not implemented yet
     // 'test522.txml', // Basic HTTP Event I/O processor not implemented
-    // 'test525.txml', // <foreach> not implemented yet
+    'test525.txml',
     // 'test527.txml', // conversion of <donedata> not implemented yet
     // 'test528.txml', // conversion of <donedata> not implemented yet + error.execution when evaluating donedata
     // 'test529.txml', // conversion of <donedata> not implemented yet

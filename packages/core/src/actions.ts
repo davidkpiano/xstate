@@ -30,7 +30,7 @@ import {
   DelayFunctionMap,
   SCXML,
   ExprWithMeta,
-  ChooseConditon,
+  ChooseCondition,
   ChooseAction,
   InvokeDefinition,
   InvokeAction,
@@ -38,6 +38,7 @@ import {
   AnyEventObject,
   ActorRef,
   Expr,
+  ForEachAction,
   StopAction,
   SpawnedActorRef,
   BehaviorCreator,
@@ -53,6 +54,7 @@ import {
   toSCXMLEvent,
   isArray
 } from './utils';
+
 import { isActorRef } from './Actor';
 import { ObservableActorRef } from './ObservableActorRef';
 export { actionTypes };
@@ -193,7 +195,7 @@ export function send<
       options && options.id !== undefined
         ? options.id
         : isFunction(event)
-        ? event.name
+        ? undefined
         : (getEventType<TSentEvent>(event) as string)
   };
 }
@@ -216,7 +218,10 @@ export function resolveSend<
   const resolvedEvent = toSCXMLEvent(
     isFunction(action.event)
       ? action.event(ctx, _event.data, meta)
-      : action.event
+      : action.event,
+    {
+      sendid: action.id
+    }
   );
 
   let resolvedDelay: number | undefined;
@@ -602,10 +607,25 @@ export function escalate<
 }
 
 export function choose<TContext, TEvent extends EventObject>(
-  guards: Array<ChooseConditon<TContext, TEvent>>
+  guards: Array<ChooseCondition<TContext, TEvent>>
 ): ChooseAction<TContext, TEvent> {
   return {
     type: ActionTypes.Choose,
     guards
+  };
+}
+
+export function each<TContext, TEvent extends EventObject>(
+  actions: Array<ActionObject<TContext, TEvent>>,
+  props: {
+    array: keyof TContext;
+    item: keyof TContext;
+    index: keyof TContext;
+  }
+): ForEachAction<TContext, TEvent> {
+  return {
+    type: ActionTypes.Each,
+    actions,
+    ...props
   };
 }

@@ -5,7 +5,7 @@ import {
   SCXMLEventMeta,
   SendExpr,
   DelayExpr,
-  ChooseConditon
+  ChooseCondition
 } from './types';
 import { createMachine } from './index';
 import { mapValues, keys, isString, flatten } from './utils';
@@ -137,7 +137,11 @@ function createGuard<
 function mapAction<
   TContext extends object,
   TEvent extends EventObject = EventObject
->(element: XMLElement): ActionObject<TContext, TEvent> {
+>(element: XMLElement): ActionObject<TContext, TEvent> | undefined {
+  if (element.type === 'comment') {
+    return undefined;
+  }
+
   switch (element.name) {
     case 'raise': {
       return actions.raise<TContext, TEvent>(
@@ -145,13 +149,12 @@ function mapAction<
       );
     }
     case 'assign': {
+      const fnBody = `
+          return {'${element.attributes!.location}': ${
+        element.attributes!.expr
+      }};
+        `;
       return actions.assign<TContext, TEvent>((context, e, meta) => {
-        const fnBody = `
-            return {'${element.attributes!.location}': ${
-          element.attributes!.expr
-        }};
-          `;
-
         return evaluateExecutableContent(context, e, meta, fnBody);
       });
     }
@@ -172,41 +175,83 @@ function mapAction<
       let convertedEvent: TEvent['type'] | SendExpr<TContext, TEvent>;
       let convertedDelay: number | DelayExpr<TContext, TEvent> | undefined;
 
-      const params =
-        element.elements &&
-        element.elements.reduce((acc, child) => {
-          if (child.name === 'content') {
-            throw new Error(
-              'Conversion of <content/> inside <send/> not implemented.'
-            );
-          }
-          return `${acc}${child.attributes!.name}:${child.attributes!.expr},\n`;
-        }, '');
-
-      if (event && !params) {
-        convertedEvent = event as TEvent['type'];
-      } else {
-        convertedEvent = (context, _ev, meta) => {
+      if (
+        element.elements?.length === 1 &&
+        element.elements![0].name === 'content'
+      ) {
+        const contentElement = element.elements![0];
+        const content =
+          contentElement.attributes?.expr ||
+          `"${contentElement.elements![0].text}"`;
+        convertedEvent = (context, _event, meta) => {
           const fnBody = `
-              return { type: ${event ? `"${event}"` : eventexpr}, ${
+            return { name: ${
+              event ? `"${event}"` : eventexpr
+            }, data: ${content}, $$type: 'scxml', type: 'external' }
+          `;
+
+          return evaluateExecutableContent(context, _event, meta, fnBody);
+        };
+      } else {
+        const getParams = (context: TContext) => {
+          const childParams =
+            element.elements &&
+            element.elements.reduce((acc, child) => {
+              const expr =
+                child.attributes!.expr || context[child.attributes!.location!];
+
+              return `${acc}${child.attributes!.name}:${expr},\n`;
+            }, '');
+
+          const elementParams = element.attributes!.namelist
+            ? (element.attributes!.namelist as string)
+                .split(/\s/)
+                .map((name) => {
+                  return `${name}: ${context[name]},\n`;
+                })
+                .join('')
+            : '';
+
+          return elementParams + (childParams || '');
+        };
+
+        convertedEvent = (context, _ev, meta) => {
+          const params = getParams(context);
+          const fnBody = `return { type: ${event ? `"${event}"` : eventexpr}, ${
             params ? params : ''
-          } }
-            `;
+          } }`;
 
           return evaluateExecutableContent(context, _ev, meta, fnBody);
         };
+
+        if ('delay' in element.attributes!) {
+          convertedDelay = delayToMs(element.attributes!.delay);
+        } else if (element.attributes!.delayexpr) {
+          convertedDelay = (context, _ev, meta) => {
+            const fnBody = `
+                      return (${delayToMs})(${element.attributes!.delayexpr});
+                    `;
+
+            return evaluateExecutableContent(context, _ev, meta, fnBody);
+          };
+        }
       }
 
-      if ('delay' in element.attributes!) {
-        convertedDelay = delayToMs(element.attributes!.delay);
-      } else if (element.attributes!.delayexpr) {
-        convertedDelay = (context, _ev, meta) => {
-          const fnBody = `
-              return (${delayToMs})(${element.attributes!.delayexpr});
-            `;
+      if ('idlocation' in element.attributes!) {
+        return actions.pure(() => {
+          const generatedId = `${Math.random()}`;
 
-          return evaluateExecutableContent(context, _ev, meta, fnBody);
-        };
+          return [
+            actions.assign<any, TEvent>({
+              [`${element.attributes!.idlocation}`]: generatedId
+            }),
+            actions.send<TContext, TEvent>(convertedEvent, {
+              delay: convertedDelay,
+              to: target as string | undefined,
+              id: generatedId
+            })
+          ];
+        });
       }
 
       return actions.send<TContext, TEvent>(convertedEvent, {
@@ -230,9 +275,9 @@ function mapAction<
       );
     }
     case 'if': {
-      const conds: Array<ChooseConditon<TContext, TEvent>> = [];
+      const conds: Array<ChooseCondition<TContext, TEvent>> = [];
 
-      let current: ChooseConditon<TContext, TEvent> = {
+      let current: ChooseCondition<TContext, TEvent> = {
         guard: createGuard(element.attributes!.cond as string),
         actions: []
       };
@@ -263,6 +308,28 @@ function mapAction<
       conds.push(current);
       return actions.choose(conds);
     }
+    case 'foreach':
+      const { array, item, index } = element.attributes!;
+
+      // check if expected attributes are plain variable identifiers
+      for (const value of [array, item, index]) {
+        if (value && !/^\w/.test(value as string)) {
+          return actions.raise('error.execution');
+        }
+      }
+
+      return actions.each<any, any>(
+        element.elements
+          ?.map((el) => mapAction(el))
+          .filter(
+            (action): action is ActionObject<any, any> => action !== undefined
+          ) || [],
+        {
+          array: element.attributes!.array as string,
+          item: element.attributes!.item as string,
+          index: element.attributes!.index as string
+        }
+      );
     default:
       throw new Error(
         `Conversion of "${element.name}" elements is not implemented yet.`
@@ -281,7 +348,11 @@ function mapActions<
       continue;
     }
 
-    mapped.push(mapAction(element));
+    const action = mapAction(element);
+
+    if (action) {
+      mapped.push(action);
+    }
   }
 
   return mapped;
@@ -504,11 +575,15 @@ function scxmlToMachine(
             );
           }
 
-          if (expr === '_sessionid') {
-            acc[id!] = undefined;
-          } else {
-            acc[id!] = eval(`(${expr})`);
-          }
+          const resolvedExpr =
+            element.elements?.length === 1 &&
+            element.elements![0].type === 'text'
+              ? eval(`(${element.elements![0].text})`)
+              : expr === '_sessionid'
+              ? undefined
+              : eval(`(${expr})`);
+
+          acc[id!] = resolvedExpr;
 
           return acc;
         }, {})

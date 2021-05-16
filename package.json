@@ -4,6 +4,7 @@
   "description": "Finite State Machines and Statecharts for the Modern Web.",
   "workspaces": {
     "packages": [
+      "examples/*",
       "packages/*",
       "packages/xstate-viz/example"
     ]
@@ -73,10 +74,10 @@
     "patch-package": "^6.2.2",
     "prettier": "^2.0.2",
     "spawn-command": "0.0.2-1",
-    "ts-jest": "^26.4.0",
+    "ts-jest": "^26.5.6",
     "tslint": "^5.11.0",
     "typedoc": "^0.17.4",
-    "typescript": "^4.1.2",
+    "typescript": "^4.2.4",
     "vue": "^3.0.11",
     "vue-jest": "5.0.0-alpha.7",
     "webpack-dev-middleware": "^3.6.0"
