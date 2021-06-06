@@ -28,7 +28,8 @@ import {
   Spawnable,
   Typestate,
   AnyEventObject,
-  AnyInterpreter
+  AnyInterpreter,
+  StateConfig
 } from './types';
 import { State, bindActionToState, isState } from './State';
 import * as actionTypes from './actionTypes';
@@ -97,6 +98,14 @@ interface SpawnOptions {
   name?: string;
   autoForward?: boolean;
   sync?: boolean;
+}
+
+interface SpawnMachineOptions<
+  TContext,
+  TEvent extends EventObject = EventObject
+> extends SpawnOptions {
+  id?: string;
+  state?: StateConfig<TContext, TEvent>;
 }
 
 const DEFAULT_SPAWN_OPTIONS = { sync: false, autoForward: false };
@@ -969,7 +978,7 @@ export class Interpreter<
     TChildEvent extends EventObject
   >(
     machine: StateMachine<TChildContext, TChildStateSchema, TChildEvent>,
-    options: { id?: string; autoForward?: boolean; sync?: boolean } = {}
+    options: SpawnMachineOptions<TChildContext, TChildEvent> = {}
   ): SpawnedActorRef<TChildEvent, State<TChildContext, TChildEvent>> {
     const childService = new Interpreter(machine, {
       ...this.options, // inherit options from this interpreter
@@ -999,12 +1008,16 @@ export class Interpreter<
       this.forwardTo.add(childService.id);
     }
 
+    const initialState = resolvedOptions.state
+      ? State.create(resolvedOptions.state)
+      : undefined;
+
     childService
       .onDone((doneEvent) => {
         this.removeChild(childService.id);
         this.send(toSCXMLEvent(doneEvent as any, { origin: childService.id }));
       })
-      .start();
+      .start(initialState);
 
     return actor;
   }
@@ -1299,7 +1312,7 @@ const resolveSpawnOptions = (nameOrOptions?: string | SpawnOptions) => {
 
 export function spawn<TC, TE extends EventObject>(
   entity: StateMachine<TC, any, TE>,
-  nameOrOptions?: string | SpawnOptions
+  nameOrOptions?: string | SpawnMachineOptions<TC, TE>
 ): ActorRefFrom<StateMachine<TC, any, TE>>;
 export function spawn(
   entity: Spawnable,

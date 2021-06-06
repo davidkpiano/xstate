@@ -171,6 +171,56 @@ describe('spawning machines', () => {
       })
       .start();
   });
+
+  it('should hydrate the machine state', () => {
+    const spy = jest.fn();
+
+    const childMachine = Machine<any>({
+      id: 'child',
+      initial: 'initial',
+      states: {
+        initial: {
+          on: { FOO: 'foo' }
+        },
+        foo: {
+          on: {
+            DO: {
+              actions: spy
+            }
+          }
+        }
+      }
+    });
+
+    const persistedChildState = childMachine.transition('initial', {
+      type: 'FOO'
+    });
+
+    const parentMachine = Machine<any>({
+      id: 'parent',
+      initial: 'start',
+      context: {
+        childRef: undefined
+      },
+      states: {
+        start: {
+          entry: assign({
+            childRef: () => spawn(childMachine, { state: persistedChildState })
+          }),
+          on: {
+            TELL_CHILD: {
+              actions: send('DO', { to: (ctx) => ctx.childRef })
+            }
+          }
+        }
+      }
+    });
+
+    const service = interpret(parentMachine);
+    service.start();
+    service.send('TELL_CHILD');
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('spawning promises', () => {
