@@ -1142,7 +1142,7 @@ export interface StateConfig<TContext, TEvent extends EventObject> {
   events?: TEvent[];
   configuration: Array<StateNode<TContext, any, TEvent>>;
   transitions: Array<TransitionDefinition<TContext, TEvent>>;
-  children: Record<string, ActorRef<any>>;
+  children: Record<string, SpawnedActorRef<any>>;
   done?: boolean;
   tags?: Set<string>;
 }
@@ -1290,6 +1290,10 @@ export interface SpawnedActorRef<TEvent extends EventObject, TEmitted = any>
   getSnapshot: () => TEmitted | undefined;
   stop?: () => void;
   toJSON?: () => any;
+  /**
+   * The source of the actor. Needed for restoring the actor.
+   */
+  src?: InvokeSourceDefinition; // TODO
 }
 
 export type ActorRefFrom<

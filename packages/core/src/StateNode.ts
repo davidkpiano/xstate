@@ -64,8 +64,8 @@ import {
   TransitionDefinitionMap,
   DelayExpr,
   InvokeSourceDefinition,
-  ActorRef,
-  MachineSchema
+  MachineSchema,
+  SpawnedActorRef
 } from './types';
 import { matchesState } from './utils';
 import { State, stateValuesEqual } from './State';
@@ -1216,7 +1216,7 @@ class StateNode<
       },
       currentState
         ? { ...currentState.children }
-        : ({} as Record<string, ActorRef<any>>)
+        : ({} as Record<string, SpawnedActorRef<any>>)
     );
 
     const resolvedConfiguration = resolvedStateValue

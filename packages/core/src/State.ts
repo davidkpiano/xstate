@@ -10,14 +10,14 @@ import {
   SCXML,
   StateSchema,
   TransitionDefinition,
-  Typestate,
-  ActorRef
+  Typestate
 } from './types';
 import { EMPTY_ACTIVITY_MAP } from './constants';
 import { matchesState, keys, isString } from './utils';
 import { StateNode } from './StateNode';
 import { getMeta, nextEvents } from './stateUtils';
 import { initEvent } from './actions';
+import { SpawnedActorRef } from '.';
 
 export function stateValuesEqual(
   a: StateValue | undefined,
@@ -126,7 +126,7 @@ export class State<
   /**
    * An object mapping actor IDs to spawned actors/invoked services.
    */
-  public children: Record<string, ActorRef<any>>;
+  public children: Record<string, SpawnedActorRef<any>>;
   public tags: Set<string>;
   /**
    * Creates a new State instance for the given `stateValue` and `context`.

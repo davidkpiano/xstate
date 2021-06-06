@@ -51,7 +51,8 @@ import {
   symbolObservable,
   toInvokeSource,
   toObserver,
-  isActor
+  isActor,
+  mapValues
 } from './utils';
 import { Scheduler } from './scheduler';
 import { Actor, isSpawnedActor, createDeferredActor } from './Actor';
@@ -476,9 +477,25 @@ export class Interpreter<
                 );
           });
 
+    // restore actors
+    if (initialState) {
+      Object.keys(resolvedState.children).forEach((key) => {
+        const actorData = resolvedState.children[key];
+
+        if ('snapshot' in actorData) {
+          this.invoke(
+            { src: (actorData as any).src, id: key, type: actionTypes.invoke },
+            resolvedState,
+            (actorData as any).snapshot
+          );
+        }
+      });
+    }
+
     if (this.options.devTools) {
       this.attachDev();
     }
+
     this.scheduler.initialize(() => {
       this.update(resolvedState, initEvent as SCXML.Event<TEvent>);
     });
@@ -827,69 +844,7 @@ export class Interpreter<
 
         // Invoked services
         if (activity.type === ActionTypes.Invoke) {
-          const invokeSource = toInvokeSource(activity.src);
-          const serviceCreator:
-            | ServiceConfig<TContext, TEvent>
-            | undefined = this.machine.options.services
-            ? this.machine.options.services[invokeSource.type]
-            : undefined;
-
-          const { id, data } = activity;
-
-          if (!IS_PRODUCTION) {
-            warn(
-              !('forward' in activity),
-              // tslint:disable-next-line:max-line-length
-              `\`forward\` property is deprecated (found in invocation of '${activity.src}' in in machine '${this.machine.id}'). ` +
-                `Please use \`autoForward\` instead.`
-            );
-          }
-
-          const autoForward =
-            'autoForward' in activity
-              ? activity.autoForward
-              : !!activity.forward;
-
-          if (!serviceCreator) {
-            // tslint:disable-next-line:no-console
-            if (!IS_PRODUCTION) {
-              warn(
-                false,
-                `No service found for invocation '${activity.src}' in machine '${this.machine.id}'.`
-              );
-            }
-            return;
-          }
-
-          const resolvedData = data
-            ? mapContext(data, context, _event)
-            : undefined;
-
-          const source = isFunction(serviceCreator)
-            ? serviceCreator(context, _event.data, {
-                data: resolvedData,
-                src: invokeSource
-              })
-            : serviceCreator;
-
-          if (isPromiseLike(source)) {
-            this.spawnPromise(Promise.resolve(source), id);
-          } else if (isFunction(source)) {
-            this.spawnCallback(source, id);
-          } else if (isObservable<TEvent>(source)) {
-            this.spawnObservable(source, id);
-          } else if (isMachine(source)) {
-            // TODO: try/catch here
-            this.spawnMachine(
-              resolvedData ? source.withContext(resolvedData) : source,
-              {
-                id,
-                autoForward
-              }
-            );
-          } else {
-            // service is string
-          }
+          this.invoke(activity, state);
         } else {
           this.spawnActivity(activity);
         }
@@ -921,6 +876,78 @@ export class Interpreter<
     }
 
     return undefined;
+  }
+  private invoke(
+    activity: InvokeDefinition<TContext, TEvent>,
+    state: State<TContext, TEvent, any, TTypestate>,
+    snapshot?: any
+  ) {
+    const { context, _event } = state;
+    const invokeSource = toInvokeSource(activity.src);
+    const serviceCreator: ServiceConfig<TContext, TEvent> | undefined = this
+      .machine.options.services
+      ? this.machine.options.services[invokeSource.type]
+      : undefined;
+
+    const { id, data } = activity;
+
+    if (!IS_PRODUCTION) {
+      warn(
+        !('forward' in activity),
+        // tslint:disable-next-line:max-line-length
+        `\`forward\` property is deprecated (found in invocation of '${activity.src}' in in machine '${this.machine.id}'). ` +
+          `Please use \`autoForward\` instead.`
+      );
+    }
+
+    const autoForward =
+      'autoForward' in activity ? activity.autoForward : !!activity.forward;
+
+    if (!serviceCreator) {
+      // tslint:disable-next-line:no-console
+      if (!IS_PRODUCTION) {
+        warn(
+          false,
+          `No service found for invocation '${activity.src}' in machine '${this.machine.id}'.`
+        );
+      }
+      return;
+    }
+
+    const resolvedData = data ? mapContext(data, context, _event) : undefined;
+
+    const source = isFunction(serviceCreator)
+      ? serviceCreator(context, _event.data, {
+          data: resolvedData,
+          src: invokeSource
+        })
+      : serviceCreator;
+
+    let spawnedActorRef: SpawnedActorRef<any> | undefined;
+
+    if (isPromiseLike(source)) {
+      spawnedActorRef = this.spawnPromise(Promise.resolve(source), id);
+    } else if (isFunction(source)) {
+      spawnedActorRef = this.spawnCallback(source, id);
+    } else if (isObservable<TEvent>(source)) {
+      spawnedActorRef = this.spawnObservable(source, id);
+    } else if (isMachine(source)) {
+      // TODO: try/catch here
+      spawnedActorRef = this.spawnMachine(
+        resolvedData ? source.withContext(resolvedData) : source,
+        {
+          id,
+          autoForward
+        },
+        snapshot
+      );
+    } else {
+      // service is string
+    }
+
+    if (spawnedActorRef) {
+      spawnedActorRef.src = invokeSource;
+    }
   }
 
   private removeChild(childId: string): void {
@@ -969,7 +996,8 @@ export class Interpreter<
     TChildEvent extends EventObject
   >(
     machine: StateMachine<TChildContext, TChildStateSchema, TChildEvent>,
-    options: { id?: string; autoForward?: boolean; sync?: boolean } = {}
+    options: { id?: string; autoForward?: boolean; sync?: boolean } = {},
+    snapshot?: State<TChildContext, TChildEvent, any, any>
   ): SpawnedActorRef<TChildEvent, State<TChildContext, TChildEvent>> {
     const childService = new Interpreter(machine, {
       ...this.options, // inherit options from this interpreter
@@ -1004,7 +1032,7 @@ export class Interpreter<
         this.removeChild(childService.id);
         this.send(toSCXMLEvent(doneEvent as any, { origin: childService.id }));
       })
-      .start();
+      .start(snapshot);
 
     return actor;
   }
@@ -1281,7 +1309,15 @@ export class Interpreter<
   }
 
   public getSnapshot() {
-    return this._state!;
+    return {
+      ...this._state!,
+      children: mapValues(this.state.children, (child) => {
+        return {
+          src: child.src,
+          snapshot: 'getSnapshot' in child ? child.getSnapshot?.() : undefined
+        };
+      })
+    } as any;
   }
 }
 
