@@ -6,14 +6,14 @@
 - [Quick Start](#quick-start)
 - [Examples](#examples)
 - [API](#api)
-  - [`useMachine(machine, options?)`](#usemachinemachine-options)
-  - [`useService(service)`](#useserviceservice)
-  - [`useActor(actor, getSnapshot)`](#useactoractor-getsnapshot)
-  - [`useInterpret(machine, options?, observer?)`](#useinterpretmachine-options-observer)
-  - [`useSelector(actor, selector, compare?, getSnapshot?)`](#useselectoractor-selector-compare-getsnapshot)
-  - [`asEffect(action)`](#aseffectaction)
-  - [`asLayoutEffect(action)`](#aslayouteffectaction)
-  - [`useMachine(machine)` with `@xstate/fsm`](#usemachinemachine-with-xstatefsm)
+  - [`useMachine(machine, options?)`](#usemachine-machine-options)
+  - [`useService(service)`](#useservice-service)
+  - [`useActor(actor, getSnapshot)`](#useactor-actor-getsnapshot)
+  - [`useInterpret(machine, options?, observer?)`](#useinterpret-machine-options-observer)
+  - [`useSelector(actor, selector, compare?, getSnapshot?)`](#useselector-actor-selector-compare-getsnapshot)
+  - [`asEffect(action)`](#aseffect-action)
+  - [`asLayoutEffect(action)`](#aslayouteffect-action)
+  - [`useMachine(machine)` with `@xstate/fsm`](#usemachine-machine-with-xstatefsm)
 - [Configuring Machines](#configuring-machines)
 - [Matching States](#matching-states)
 - [Persisted and Rehydrated State](#persisted-and-rehydrated-state)
@@ -227,6 +227,21 @@ const App = ({ service }) => {
 };
 ```
 
+When the selector depends on a prop, it must be memoized with `React.useCallback()`:
+
+```js
+import { useSelector } from '@xstate/react';
+
+const App = ({ service, offset }) => {
+  const count = useSelector(
+    service,
+    React.useCallback((state) => state.context.count + offset, [offset])
+  );
+
+  // ...
+};
+```
+
 With `compare` function:
 
 ```js
@@ -253,6 +268,22 @@ const selectCount = (state) => state.context.count;
 const App = ({ service }) => {
   const service = useInterpret(someMachine);
   const count = useSelector(service, selectCount);
+
+  // ...
+};
+```
+
+With Typescript, you might want to define the selector and comparator inline for better type inference. In that case, you still need to use `React.useCallback()` for both. To get proper types you need to provide the 2 generic arguments to `useSelector()` - the type of the service we're selecting from, and the output type of our selector.
+
+```typescript
+import { useSelector } from '@xstate/react';
+
+const App = ({ service, offset }) => {
+  const count = useSelector<typeof service, number>(
+    service,
+    React.useCallback((state) => state.context.count, []),
+    React.useCallback((a, b) => a === b, [])
+  );
 
   // ...
 };

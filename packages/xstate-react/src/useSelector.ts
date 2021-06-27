@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState, useDebugValue } from 'react';
 import { ActorRef, Interpreter, Subscribable } from 'xstate';
 import { isActorWithState } from './useActor';
 import { getServiceSnapshot } from './useService';
@@ -24,28 +24,52 @@ export function useSelector<
   selector: (emitted: TEmitted) => T,
   compare: (a: T, b: T) => boolean = defaultCompare,
   getSnapshot: (a: TActor) => TEmitted = defaultGetSnapshot
-) {
-  const [selected, setSelected] = useState(() => selector(getSnapshot(actor)));
-  const selectedRef = useRef<T>(selected);
+): T {
+  const [state, setState] = useState(() => ({
+    actor,
+    value: selector(getSnapshot(actor))
+  }));
+
+  let valueToReturn = state.value;
+  let value = selector(getSnapshot(actor));
+  if (state.actor !== actor || !compare(valueToReturn, value)) {
+    valueToReturn = value;
+    setState({
+      actor,
+      value: valueToReturn
+    });
+  }
+
+  useDebugValue(valueToReturn);
 
   useEffect(() => {
-    const updateSelectedIfChanged = (nextSelected: T) => {
-      if (!compare(selectedRef.current, nextSelected)) {
-        setSelected(nextSelected);
-        selectedRef.current = nextSelected;
+    let didUnsubscribe = false;
+    const checkForUpdates = (emitted: TEmitted) => {
+      if (didUnsubscribe) {
+        return false;
       }
+
+      const value = selector(emitted);
+      setState((prevState) => {
+        if (prevState.actor !== actor) {
+          return prevState;
+        }
+
+        if (compare(prevState.value, value)) {
+          return prevState;
+        }
+
+        return { ...prevState, value };
+      });
     };
+    const sub = actor.subscribe(checkForUpdates);
+    checkForUpdates(getSnapshot(actor));
 
-    const initialSelected = selector(getSnapshot(actor));
-    updateSelectedIfChanged(initialSelected);
+    return () => {
+      didUnsubscribe = true;
+      sub.unsubscribe();
+    };
+  }, [actor, selector, compare, getSnapshot]);
 
-    const sub = actor.subscribe((emitted) => {
-      const nextSelected = selector(emitted);
-      updateSelectedIfChanged(nextSelected);
-    });
-
-    return () => sub.unsubscribe();
-  }, [selector, compare]);
-
-  return selected;
+  return valueToReturn;
 }
