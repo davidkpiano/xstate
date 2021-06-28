@@ -6,20 +6,24 @@ While _finite_ states are well-defined in finite state machines and statecharts,
 
 In XState, extended state is known as **context**. Below is an example of how `context` is used to simulate filling a glass of water:
 
-```js
-import { createMachine, assign } from 'xstate';
+```ts
+import { createMachine, assign, ConditionPredicate } from 'xstate';
+
+interface Context {
+  amount: number;
+}
+type Event = { type: 'FILL' };
 
 // Action to increment the context amount
-const addWater = assign({
-  amount: (context, event) => context.amount + 1
+const addWater = assign<Context, Event>({
+  amount: (context) => context.amount + 1
 });
 
 // Guard to check if the glass is full
-function glassIsFull(context, event) {
-  return context.amount >= 10;
-}
+const glassIsFull: ConditionPredicate<Context, Event> = (context) =>
+  context.amount >= 10;
 
-const glassMachine = createMachine(
+const glassMachine = createMachine<Context, Event>(
   {
     id: 'glass',
     // the initial context (extended state) of the statechart
@@ -74,7 +78,7 @@ nextState.context;
 
 The initial context is specified on the `context` property of the `Machine`:
 
-```js
+```ts
 const counterMachine = createMachine({
   id: 'counter',
   // initial context
@@ -95,7 +99,7 @@ const counterMachine = createMachine({
 
 For dynamic `context` (that is, `context` whose initial value is retrieved or provided externally), you can use a machine factory function that creates the machine with the provided context values (implementation may vary):
 
-```js
+```ts
 const createCounterMachine = (count, time) => {
   return createMachine({
     id: 'counter',
@@ -113,7 +117,7 @@ const counterMachine = createCounterMachine(42, Date.now());
 
 Or for existing machines, `machine.withContext(...)` should be used:
 
-```js
+```ts
 const counterMachine = createMachine({
   /* ... */
 });
@@ -198,8 +202,12 @@ Custom actions are always executed with regard to the _next state_ in the transi
 
 For example, in this counter machine, the custom actions will not work as expected:
 
-```js
-const counterMachine = createMachine({
+```ts
+interface Context {
+  count: number;
+}
+
+const counterMachine = createMachine<Context>({
   id: 'counter',
   context: { count: 0 },
   initial: 'active',
@@ -230,8 +238,13 @@ This is because both `assign(...)` actions are batched in order and executed fir
 
 A good way to refactor this to get the desired result is modeling the `context` with explicit _previous_ values, if those are needed:
 
-```js
-const counterMachine = createMachine({
+```ts
+interface Context {
+  count: number;
+  prevCount: number | undefined;
+}
+
+const counterMachine = createMachine<Context>({
   id: 'counter',
   context: { count: 0, prevCount: undefined },
   initial: 'active',
@@ -283,32 +296,43 @@ The benefits of this are:
 
 - Just like with `actions`, it's best to represent `assign()` actions as strings or functions, and then reference them in the machine options:
 
-```js {5}
-const countMachine = createMachine({
-  initial: 'start',
-  context: { count: 0 }
-  states: {
-    start: {
-      entry: 'increment'
+```ts {9}
+interface Context {
+  count: number;
+}
+
+const countMachine = createMachine<Context>(
+  {
+    initial: 'start',
+    context: { count: 0 },
+    states: {
+      start: {
+        entry: 'increment'
+      }
+    }
+  },
+  {
+    actions: {
+      increment: assign({ count: (context) => context.count + 1 }),
+      decrement: assign({ count: (context) => context.count - 1 })
     }
   }
-}, {
-  actions: {
-    increment: assign({ count: context => context.count + 1 }),
-    decrement: assign({ count: context => context.count - 1 })
-  }
-});
+);
 ```
 
 Or as named functions (same result as above):
 
-```js {9}
-const increment = assign({ count: context => context.count + 1 });
-const decrement = assign({ count: context => context.count - 1 });
+```ts {13}
+interface Context {
+  count: number;
+}
 
-const countMachine = createMachine({
+const increment = assign<Context>({ count: (context) => context.count + 1 });
+const decrement = assign<Context>({ count: (context) => context.count - 1 });
+
+const countMachine = createMachine<Context>({
   initial: 'start',
-  context: { count: 0 }
+  context: { count: 0 },
   states: {
     start: {
       // Named function
@@ -364,52 +388,57 @@ In most cases, the types for `context` and `event` in `assign(...)` actions will
 interface CounterContext {
   count: number;
 }
+type CounterEvent = { type: 'INCREMENT' } | { type: 'RESET' };
 
 const machine = createMachine<CounterContext>({
   // ...
   context: {
     count: 0
   },
-  // ...
-  {
-    on: {
-      INCREMENT: {
-        // Inferred automatically in most cases
-        actions: assign({
-          count: (context) => {
-            // context: { count: number }
-            return context.count + 1;
-          }
-        })
-      }
+  on: {
+    INCREMENT: {
+      // Inferred automatically in most cases
+      actions: assign({
+        count: (context) => {
+          // context: { count: number }
+          return context.count + 1;
+        }
+      })
     }
   }
 });
 ```
 
-However, TypeScript inference isn't perfect, so the responsible thing to do is to add the context and event as generics into `assign<Context, Event>(...)`:
+However, TypeScript inference isn't perfect, so the responsible thing to do is to add the context and event as generics into `assign<Context, Event>(...)`. This is especially necessary for assigns that do not use the context parameter:
 
-```ts {3}
-// ...
-on: {
-  INCREMENT: {
-    // Generics guarantee proper inference
-    actions: assign<CounterContext, CounterEvent>({
-      count: (context) => {
-        // context: { count: number }
-        return context.count + 1;
-      }
-    });
-  }
+```ts {13}
+interface CounterContext {
+  count: number;
 }
-// ...
+type CounterEvent = { type: 'INCREMENT' } | { type: 'RESET' };
+
+const machine = createMachine<CounterContext>({
+  context: {
+    count: 0
+  },
+  on: {
+    RESET: {
+      // Generics guarantee proper inference
+      actions: assign<CounterContext, CounterEvent>({
+        count: () => {
+          return 0;
+        }
+      })
+    }
+  }
+});
 ```
 
 ## Quick Reference
 
 **Set initial context**
 
-```js
+```ts
 const machine = createMachine({
   // ...
   context: {
@@ -422,7 +451,7 @@ const machine = createMachine({
 
 **Set dynamic initial context**
 
-```js
+```ts
 const createSomeMachine = (count, user) => {
   return createMachine({
     // ...
@@ -438,8 +467,13 @@ const createSomeMachine = (count, user) => {
 
 **Set custom initial context**
 
-```js
-const machine = createMachine({
+```ts
+interface Context {
+  count: number;
+  user: { name: string } | undefined;
+}
+
+const machine = createMachine<Context>({
   // ...
   // Provided from arguments; your implementation may vary
   context: {
@@ -459,8 +493,13 @@ const myMachine = machine.withContext({
 
 **Assign to context**
 
-```js
-const machine = createMachine({
+```ts
+interface Context {
+  count: number;
+  user: { name: string } | undefined;
+}
+
+const machine = createMachine<Context>({
   // ...
   context: {
     count: 0,
@@ -471,7 +510,7 @@ const machine = createMachine({
   on: {
     INCREMENT: {
       actions: assign({
-        count: (context, event) => context.count + 1
+        count: (context) => context.count + 1
       })
     }
   }

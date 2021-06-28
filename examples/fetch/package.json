@@ -7,6 +7,7 @@
   "license": "MIT",
   "scripts": {
     "start": "parcel index.html --open",
+    "clean": "echo 'No clean'",
     "build": "parcel build index.html"
   },
   "dependencies": {

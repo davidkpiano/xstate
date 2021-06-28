@@ -127,6 +127,9 @@ A [React hook](https://reactjs.org/hooks) that subscribes to state changes from 
 - `send` - A function that sends events to the running service.
 
 ```ts
+const someMachine = createMachine({
+  /* ... */
+});
 const someService = interpret(someMachine).start(); // Make sure to start the service!
 
 const SomeComponent = () => {
@@ -358,11 +361,13 @@ const fetchMachine = createMachine({
   }
 });
 
-const Fetcher = ({ onFetch = () => new Promise(res => res('some data')) }) => {
+const Fetcher = ({
+  onFetch = () => new Promise((res) => res('some data'))
+}) => {
   const [state, send] = useMachine(fetchMachine, {
     actions: {
       load: () => {
-        onFetch().then(res => {
+        onFetch().then((res) => {
           send({ type: 'RESOLVE', data: res });
         });
       }
@@ -371,7 +376,7 @@ const Fetcher = ({ onFetch = () => new Promise(res => res('some data')) }) => {
 
   switch (state.value) {
     case 'idle':
-      return <button onClick={_ => send('FETCH')}>Fetch</button>;
+      return <button onClick={(_) => send('FETCH')}>Fetch</button>;
     case 'loading':
       return <div>Loading...</div>;
     case 'success':

@@ -33,8 +33,9 @@ Since the model defines the machine's `context`, the model can be used within th
 
 The `model.assign` function is typed to the shape of the model's `context`, making it a convenient and type-safe replacement for the `assign` action.
 
-```js
+```ts
 import { createModel } from 'xstate/lib/model';
+import { createMachine } from 'xstate';
 
 const userModel = createModel({
   name: 'Someone',
@@ -43,7 +44,7 @@ const userModel = createModel({
 
 // ...
 
-const machine = createMachine({
+const machine = createMachine<typeof userModel>({
   context: userModel.initialContext,
   // ...
   entry: userModel.assign({ name: '' })
@@ -58,6 +59,7 @@ Modeling machine events in a model gives two benefits:
 - Provides type information to the machine definition, providing event-specific type safety for action definitions
 
 ```ts
+import { createMachine } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 
 const userModel = createModel(
@@ -69,14 +71,14 @@ const userModel = createModel(
   {
     // Event creators
     events: {
-      updateName: (value) => ({ value }),
-      updateAge: (value) => ({ value }),
+      updateName: (name: string) => ({ name }),
+      updateAge: (age: number) => ({ age }),
       anotherEvent: () => ({}) // no payload
     }
   }
 );
 
-const machine = createMachine(
+const machine = createMachine<typeof userModel>(
   {
     context: userModel.initialContext,
     initial: 'active',
@@ -85,7 +87,7 @@ const machine = createMachine(
         on: {
           updateName: {
             actions: userModel.assign({
-              name: (_, event) => event.value
+              name: (_, event) => event.name
             })
           },
           updateAge: {
@@ -97,8 +99,12 @@ const machine = createMachine(
   },
   {
     actions: {
-      assignAge: userModel.assign({
-        age: (_, event) => event.value // inferred
+      assignAge: userModel.assign((_, event) => {
+        // the event cannot be inferred automatically here, so we check it manually
+        if (event.type !== 'updateAge') {
+          return {};
+        }
+        return { age: event.age };
       })
     }
   }
@@ -133,8 +139,8 @@ const userModel = createModel(
   },
   {
     events: {
-      updateName: (value: string) => ({ value }),
-      updateAge: (value: number) => ({ value }),
+      updateName: (name: string) => ({ name }),
+      updateAge: (age: number) => ({ age }),
       anotherEvent: () => ({}) // no payload
     }
   }
@@ -148,8 +154,8 @@ const userModel = createModel(
 // }
 
 // Events inferred as:
-// | { type: 'updateName'; value: string; }
-// | { type: 'updateAge'; value: number; }
+// | { type: 'updateName'; name: string; }
+// | { type: 'updateAge'; age: number; }
 // | { type: 'anotherEvent'; }
 ```
 
@@ -164,7 +170,7 @@ const machine = createMachine<typeof userModel>({
       on: {
         updateName: {
           actions: userModel.assign({
-            name: (_, event) => event.value // inferred
+            name: (_, event) => event.name // inferred
           })
         }
       }
@@ -195,7 +201,7 @@ const machine = createMachine<typeof userModel>(
       assignAge: userModel.assign(
         {
           // The `event.type` here is restricted to "updateAge"
-          age: (_, event) => event.value // inferred as `number`
+          age: (_, event) => event.age // inferred as `number`
         },
         'updateAge' // Restricts the `event` allowed by the "assignAge" action
       )

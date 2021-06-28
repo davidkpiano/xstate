@@ -247,6 +247,8 @@ service.send(ageUpdater.update(100));
 To properly type the Immer `assign` action creator, pass in the `context` and `event` types as generic types:
 
 ```ts
+import { assign } from '@xstate/immer';
+
 interface SomeContext {
   name: string;
 }
@@ -270,6 +272,10 @@ To properly type `createUpdater`, pass in the `context` and the specific `ImmerU
 
 ```ts
 import { createUpdater, ImmerUpdateEvent } from '@xstate/immer';
+
+interface SomeContext {
+  name: string;
+}
 
 // This is the same as:
 // {

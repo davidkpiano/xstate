@@ -3,21 +3,6 @@
 As XState is written in [TypeScript](https://www.typescriptlang.org/), strongly typing your statecharts is useful and encouraged. Consider this light machine example:
 
 ```typescript
-// The hierarchical (recursive) schema for the states
-interface LightStateSchema {
-  states: {
-    green: {};
-    yellow: {};
-    red: {
-      states: {
-        walk: {};
-        wait: {};
-        stop: {};
-      };
-    };
-  };
-}
-
 // The events that the machine handles
 type LightEvent =
   | { type: 'TIMER' }
@@ -29,8 +14,8 @@ interface LightContext {
   elapsed: number;
 }
 
-const lightMachine = createMachine<LightContext, LightStateSchema, LightEvent>({
-  key: 'light',
+const lightMachine = createMachine<LightContext, LightEvent>({
+  id: 'light',
   initial: 'green',
   context: { elapsed: 0 },
   states: {
@@ -80,10 +65,9 @@ const lightMachine = createMachine<LightContext, LightStateSchema, LightEvent>({
 });
 ```
 
-Providing the context, state schema, and events as generic parameters for the `createMachine()` function may seem tedious (and is completely optional), but gives many advantages:
+Providing the context and events as generic parameters for the `createMachine()` function may seem tedious (and is completely optional), but gives many advantages:
 
 - The context type/interface (`TContext`) is passed on to action `exec` functions, guard `cond` functions, and more. It is also passed to deeply nested states.
-- The state schema type/interface (`TStateSchema`) ensures that only state keys defined on the schema are allowed in the actual config object. Nested state schemas are recursively passed down to their representative child states.
 - The event type (`TEvent`) ensures that only specified events (and built-in XState-specific ones) are used in transition configs. The provided event object shapes are also passed on to action `exec` functions, guard `cond` functions, and more. This can prevent unnecessary `event.somePayload === undefined` checks.
 
 Note if you are seeing this error:
@@ -93,56 +77,7 @@ Type error: Type 'string | number' does not satisfy the constraint 'string'.
   Type 'number' is not assignable to type 'string'.  TS2344
 ```
 
-Ensure that your tsconfig file does not include `"keyofStringsOnly": true,`.
-
-## Config Objects
-
-The generic types for `MachineConfig<TContext, TSchema, TEvent>` are the same as those for `createMachine<TContext, TSchema, TEvent>`. This is useful when you are defining a machine config object _outside_ of the `createMachine(...)` function, and helps prevent [inference errors](https://github.com/davidkpiano/xstate/issues/310):
-
-```ts
-import { MachineConfig } from 'xstate';
-
-const myMachineConfig: MachineConfig<TContext, TSchema, TEvent> = {
-  id: 'controller',
-  initial: 'stopped',
-  states: {
-    stopped: {
-      /* ... */
-    },
-    started: {
-      /* ... */
-    }
-  }
-  // ...
-};
-```
-
-## Actions
-
-The `send` action on the interpreted machine `interpret(stateMachine)` isn't always type safe. To get typechecking for this function signature, use the following pattern:
-
-```ts
-type UserEvents = {
-  type: 'TEST';
-  value: string;
-};
-
-const service = interpret(stateMachine);
-
-// This will compile
-service.send({ type: 'TEST', value: 'testvalue' });
-
-// This will have a compile error on the `value` type
-service.send({ type: 'TEST', value: 1 });
-```
-
-If you use the following pattern, you'll lose type safety, so both of these will compile:
-
-```ts
-service.send('TEST', { value: 'testvalue' });
-
-service.send('TEST', { value: 1 });
-```
+Ensure that your tsconfig file does not include `"keyofStringsOnly": true`.
 
 ## Typestates <Badge text="4.7+" />
 
@@ -228,7 +163,8 @@ userService.subscribe((state) => {
 Compound states should have all parent state values explicitly modelled to avoid type errors when testing substates.
 
 ```typescript
-type State =
+interface Context {}
+type TypeState =
   /* ... */
   | {
       value: 'parent';
@@ -244,7 +180,8 @@ type State =
 Where two states have identical context types, their declarations can be merged by using a type union for the value.
 
 ```typescript
-type State =
+interface Context {}
+type TypeState =
   /* ... */
   {
     value: 'parent' | { parent: 'child' };
@@ -253,4 +190,73 @@ type State =
 /* ... */
 ```
 
-:::
+## Config Objects
+
+Machine config objects can be typed. This is useful when defining a machine config object _outside_ of the `createMachine(...)` function, and helps prevent [inference errors](https://github.com/davidkpiano/xstate/issues/310). The first and third generic parameters for `MachineConfig<TContext, TSchema, TEvent>` are the same as the first and second parameters for `createMachine<TContext, TEvent, TTypeState>` respectively. The second generic parameter 'TSchema' accepts an object type with a single key 'states' which lists the possible states of machines accepting the configuration:
+
+```ts
+import { MachineConfig } from 'xstate';
+
+type TEvent = { type: 'EVENT_1' } | { type: 'EVENT_2' };
+
+type MyStateSchema = {
+  states: {
+    stopped: {};
+    started: {};
+  };
+};
+
+const myMachineConfig: MachineConfig<void, MyStateSchema, TEvent> = {
+  id: 'controller',
+  initial: 'stopped',
+  states: {
+    stopped: {
+      /* ... */
+    },
+    started: {
+      /* ... */
+    }
+  }
+  // ...
+};
+```
+
+## Actions
+
+The `send` action on the interpreted machine `interpret(stateMachine)` isn't always type safe. To get typechecking for this function signature, use the following pattern:
+
+```ts
+type UserEvents = {
+  type: 'TEST';
+  value: string;
+};
+
+const machine = createMachine<void, UserEvents>({
+  /* machine definition */
+});
+
+const service = interpret(machine);
+
+// This will compile
+service.send({ type: 'TEST', value: 'testvalue' });
+
+// This will have a compile error on the `value` type
+// @ts-expect-error
+service.send({ type: 'TEST', value: 1 });
+```
+
+If you use the following pattern, you'll lose type safety, so both of these will compile:
+
+```ts
+type UserEvents = {
+  type: 'TEST';
+  value: string;
+};
+
+let service = interpret(createMachine<void, UserEvents>({}));
+
+service.send('TEST', { value: 1 });
+
+// compiles, even though it's an error
+service.send('TEST', { value: 'testvalue' });
+```

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+node -r esbuild-register scripts/verifyCodeExamples.ts "$@"
