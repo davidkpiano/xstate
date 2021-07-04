@@ -146,7 +146,7 @@ service.send('TEST', { value: 1 });
 
 ## Typestates <Badge text="4.7+" />
 
-Typestates are a concept that narrow down the shape of the overall state `context` based on the state `value`. This can be helpful in preventing impossible states and narrowing down what the `context` should be in a given state, without having to write excessive assertions.
+Typestates are a concept that narrow down the shape of the overall state `context` based on the state `value`. This can be helpful in preventing impossible states and narrowing down what the `context` should be in a given state without having to write excessive assertions.
 
 A `Typestate` is an interface consisting of two properties:
 
@@ -225,7 +225,7 @@ userService.subscribe((state) => {
 ```
 
 ::: warning
-Compound states should have all parent state values explicitly modelled to avoid type errors when testing substates.
+Compound states should have all parent state values explicitly modeled to avoid type errors when testing substates.
 
 ```typescript
 type State =

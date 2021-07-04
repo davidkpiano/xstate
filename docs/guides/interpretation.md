@@ -1,6 +1,6 @@
 # Interpreting Machines
 
-While a state machine/statechart with a pure `.transition()` function is useful for flexibility, purity, and testability, in order for it to have any use in a real-life application, something needs to:
+While a state machine/statechart with a pure `.transition()` function is useful for flexibility, purity, and testability, for it to have any use in a real-life application, something needs to:
 
 - Keep track of the current state, and persist it
 - Execute side-effects
@@ -92,7 +92,7 @@ service.send([
 
 This will immediately schedule all batched events to be processed sequentially. Since each event causes a state transition that might have actions to execute, actions in intermediate states are deferred until all events are processed, and then they are executed with the state they were created in (not the end state).
 
-This means that the end state (after all events are processed) will have an `.actions` array of _all_ of the accumulated actions from the intermediate states. Each of these actions will be bound to their respective intermediate states.
+This means that the end state (after all events are processed) will have an `.actions` array of _all_ of the accumulated actions from the intermediate states. Each of these actions will be bound to its respective intermediate states.
 
 ::: warning
 
@@ -138,7 +138,7 @@ service.onTransition((state) => {
 
 ## Starting and Stopping
 
-The service can be initialized (i.e., started) and stopped with `.start()` and `.stop()`. Calling `.start()` will immediately transition the service to its initial state. Calling `.stop()` will remove all listeners from the service, and do any listener cleanup, if applicable.
+The service can be initialized (i.e., started) and stopped with `.start()` and `.stop()`. Calling `.start()` will immediately transition the service to its initial state. Calling `.stop()` will remove all listeners from the service and do any listener cleanup, if applicable.
 
 ```js
 const service = interpret(machine);

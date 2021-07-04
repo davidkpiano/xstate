@@ -1,10 +1,10 @@
 # Concepts
 
-XState is a library for creating, interpreting, and executing finite state machines and statecharts, as well as managing invocations of those machines as actors. The following fundamental computer science concepts are important to know how to make the best use of XState, and in general for all your current and future software projects.
+XState is a library for creating, interpreting, and executing finite state machines and statecharts. It also provides tools for managing invocations of those machines as actors. The following fundamental computer science concepts are important to know how to make the best use of XState, and in general, for all your current and future software projects.
 
 ## Finite State Machines
 
-A finite state machine is a mathematical model of computation that describes the behavior of a system that can be in only one state at any given time. For example, let's say you can be represented by a state machine with a finite number (2) of states: `asleep` or `awake`. At any given time, you're either `asleep` or `awake`. It is impossible for you to be both `asleep` and `awake` at the same time, and it is impossible for you to be neither `asleep` nor `awake`.
+A finite state machine is a mathematical model of computation that describes the behavior of a system that can be in only one state at any given time. For example, let's say you are represented by a state machine with a finite number (2) of states: `asleep` or `awake`. At any given time, you're either `asleep` or `awake`. It is impossible for you to be both `asleep` and `awake` simultaneously, and it is impossible for you to be neither `asleep` nor `awake`.
 
 Formally, finite state machines have five parts:
 
@@ -14,7 +14,7 @@ Formally, finite state machines have five parts:
 - A **transition function** that determines the next state given the current state and event
 - A (possibly empty) set of **final states**
 
-**State** refers to some finite, _qualitative_ "mode" or "status" of a system being modeled by a state machine, and does not describe all the (possibly infinite) data related to that system. For example, water can be in 1 of 4 states: `ice`, `liquid`, `gas`, or `plasma`. However, the temperature of water can vary and its measurement is _quantitative_ and infinite.
+**State** refers to some finite, _qualitative_ "mode" or "status" of a system being modeled by a state machine and does not describe all the (possibly infinite) data related to that system. For example, water can be in 1 of 4 states: `ice`, `liquid`, `gas`, or `plasma`. However, the temperature of water can vary, and its measurement is _quantitative_ and infinite.
 
 More resources:
 
@@ -24,7 +24,7 @@ More resources:
 
 ## Statecharts
 
-Statecharts are a formalism for modeling stateful, reactive systems. Computer scientist David Harel presented this formalism as an extension to state machines in his 1987 paper [Statecharts: A Visual Formalism for Complex Systems](https://www.sciencedirect.com/science/article/pii/0167642387900359/pdf). Some of the extensions include:
+Statecharts are a formalism for modeling stateful, reactive systems. Computer scientist David Harel presented this formalism as an extension to state machines in his 1987 paper [Statecharts: A Visual Formalism For Complex Systems](https://www.sciencedirect.com/science/article/pii/0167642387900359/pdf). Some of the extensions include:
 
 - Guarded transitions
 - Actions (entry, exit, transition)
@@ -35,7 +35,7 @@ Statecharts are a formalism for modeling stateful, reactive systems. Computer sc
 
 More resources:
 
-- [Statecharts: A Visual Formalism for Complex Systems](https://www.sciencedirect.com/science/article/pii/0167642387900359/pdf) by David Harel
+- [Statecharts: A Visual Formalism For Complex Systems](https://www.sciencedirect.com/science/article/pii/0167642387900359/pdf) by David Harel
 - [The World of Statecharts](https://statecharts.github.io/) by Erik Mogensen
 
 ## Actor Model

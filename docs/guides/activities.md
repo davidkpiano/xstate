@@ -1,6 +1,6 @@
 # Activities
 
-An activity is an action that occurs over time, and can be started and stopped. According to Harel's original statecharts paper:
+An activity is an action that occurs over time and can be started and stopped. According to Harel's original statecharts paper:
 
 > An activity always takes a nonzero amount of time, like beeping, displaying, or executing lengthy computations.
 
@@ -226,7 +226,7 @@ const toggleMachine = createMachine(
 );
 ```
 
-Using XState's [interpreter](./interpretation.md), every time an action occurs to start an activity, it will call that activity creator to start the activity, and use the returned "stopper" (if it is returned) to stop the activity:
+Using XState's [interpreter](./interpretation.md), every time an action occurs to start an activity, it will call that activity creator to start the activity and use the returned "stopper" (if it is returned) to stop the activity:
 
 ```js
 import { interpret } from 'xstate';
@@ -253,7 +253,7 @@ service.send({ type: 'TOGGLE' });
 
 ## Restarting Activities
 
-When [restoring a persisted state](./states.md#persisting-state), activities that were previously running are _not restarted_ by default. This is to prevent undesirable and/or unexpected behavior. However, activities can be manually started by adding `start(...)` actions to the persisted state before restarting a service:
+When [restoring a persisted state](./states.md#persisting-state), activities that were previously running are _not restarted_ by default. This is to prevent undesirable or unexpected behavior. However, activities can be manually started by adding `start(...)` actions to the persisted state before restarting a service:
 
 ```js
 import { State, actions } from 'xstate';

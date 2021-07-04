@@ -5,11 +5,11 @@ Below is an incomplete collection of many resources for learning and applying XS
 ## Courses
 
 :::tip Official Course
-Watch the official [State Machines in JavaScript with XState](https://frontendmasters.com/courses/xstate/) course by [@davidkpiano](https://twitter.com/davidkpiano) on Frontend Masters! In this course, you’ll learn the fundamentals of state machines and statecharts, from building your own without any libraries in pure JavaScript, up to using XState to take advantage of a wide variety of other features.
+Watch the official [State Machines in JavaScript with XState](https://frontendmasters.com/courses/xstate/) course by [@davidkpiano](https://twitter.com/davidkpiano) on Frontend Masters! In this course, you’ll learn the fundamentals of state machines and statecharts, from building your own without any libraries in pure JavaScript up to using XState to take advantage of a wide variety of other features.
 
 The workshop code examples are [open-sourced and available on GitHub](https://github.com/davidkpiano/frontend-masters-xstate-workshop).
 
-There is also a follow-up course: [State Modeling with React and XState](https://frontendmasters.com/workshops/xstate-react/). Once you've gone through the first course, be sure to take this one too so you can learn how to apply state machines and statecharts to real-world apps and master advanced concepts such as spawning/invoking actors and model-based testing.
+There is also a follow-up course: [State Modeling with React and XState](https://frontendmasters.com/workshops/xstate-react/). Once you’ve gone through the first course, be sure to take this one, too, so you can learn how to apply state machines and statecharts to real-world apps and master advanced concepts such as spawning/invoking actors and model-based testing.
 :::
 
 :::tip Catalogue
@@ -42,7 +42,7 @@ Explore a collection of professionally-designed state machines and statecharts i
 - [XState - a TypeScript state machine with a lot of features](http://realfiction.net/2019/01/30/xstate-a-typescript-state-machine-with-a-lot-of-features) by Frank Quednau
 - [Creating a Complex IVR System with Ease with XState](https://www.nexmo.com/blog/2019/06/20/creating-a-complex-ivr-system-with-ease-with-xstate-dr) by Yonatan Mevorach
 - [My love letter to XState and statecharts ♥](https://dev.to/timdeschryver/my-love-letter-to-xstate-and-statecharts-287b) by Tim Deschryver
-- [StackOverflow: What is an actual difference between redux and a state machine (e.g. xstate)?](https://stackoverflow.com/questions/54482695/what-is-an-actual-difference-between-redux-and-a-state-machine-e-g-xstate/54521035#54521035)
+- [StackOverflow: What is an actual difference between redux and a state machine (e.g., xstate)?](https://stackoverflow.com/questions/54482695/what-is-an-actual-difference-between-redux-and-a-state-machine-e-g-xstate/54521035#54521035)
 - [Hyperapp demo with XState](https://github.com/johnkazer/hyperapp-xstate-demo) by [@johnkazer](https://github.com/johnkazer)
 - [A series of examples showing how to model application state with statechart using xstate](https://github.com/coodoo/xstate-examples) by [@coodoo](https://github.com/coodoo/xstate-examples)
 - [Finite State Machines in React JS using XState](https://www.skcript.com/svr/finite-state-machines-in-react-js-using-xstate/) by [Sooraj Nair](https://www.linkedin.com/in/sooraj-nair-a81543172/)
@@ -51,7 +51,7 @@ Explore a collection of professionally-designed state machines and statecharts i
 - [▶️ Standing on the Shoulders of Giants. Development with XState](https://www.youtube.com/watch?v=GuzcWkVrqLg) by Brad Woods
   - [Slides and more](https://www.atlassian.com/atlascamp/watch-sessions/2019/advanced-app-development/standing-on-the-shoulders-of-giants-development-with-xstate)
 - [Getting Started with XState](https://www.vietnguyen.site/getting-started-with-xstate/) by Viet Nguyen
-- [How to Effortlessly Model Async (React) with XState's Invoke](https://medium.com/@tahini/how-to-effortlessly-model-async-react-with-xstates-invoke-4c36dc8547b3) by Matthew Jones
+- [How to Effortlessly Model Async (React) with XState’s Invoke](https://medium.com/@tahini/how-to-effortlessly-model-async-react-with-xstates-invoke-4c36dc8547b3) by Matthew Jones
 - [XState 新手教學 - Finite State Machine](https://blog.jerry-hong.com/posts/xstate-tutorials-state-machine/?fbclid=IwAR14AL6nwxR5lb78CSABY18rOm2EA7I5f7uaErgZGC0ISmcJFri0VL91_xA) by Jerry Hong
 - [XState 状态管理](https://blog.zfanw.com/xstate-state-management/) by 陈三
 - [▶️ Aplicaciones React usando XState](https://www.youtube.com/watch?v=9P3sLqSiswE) by Luis César Contreras
@@ -111,7 +111,7 @@ Explore a collection of professionally-designed state machines and statecharts i
 - [Introduction to XState](https://flaviocopes.com/xstate/) by [Flavio Copes](https://flaviocopes.com/)
 - [▶️ Autocomplete, XState, and anything in between](https://www.youtube.com/watch?v=7CP-OUcUq2Q) by [Krzysztof Żuraw](https://krzysztofzuraw.com)
 - [▶️ How to add an XState machine conf to a project](https://www.youtube.com/watch?v=A0bLzjQdZPU) by [Diego Perez](https://www.youtube.com/channel/UCxr-10LjbO-CTiPRcCLyRyg)
-- [▶️ Part 1: Tic-tac-toe - Let's build (using JavaScript, React, Cypress and XState)](https://www.youtube.com/watch?v=uVySNh6ud2w)
+- [▶️ Part 1: Tic-tac-toe - Let’s build (using JavaScript, React, Cypress and XState)](https://www.youtube.com/watch?v=uVySNh6ud2w)
   - [▶️ Part 2](https://www.youtube.com/watch?v=LtqTNATLIlY)
   - [▶️ Part 3](https://www.youtube.com/watch?v=t5WU1oZeBQw)
 - [Learn and Apply XState with Vonage Video](https://dev.to/vonagedev/learn-and-apply-xstate-with-vonage-video-5dfg) by [Kelly Andrews](https://dev.to/kellyjandrews)
@@ -133,7 +133,7 @@ Explore a collection of professionally-designed state machines and statecharts i
 - [Slides - Working with State Machines in Angular](https://slides.com/stli/xstate-angular-nl) with XState by [Stefanos Lignos](https://twitter.com/stefanos_lig)
 - [Firebase authentication with XState and Svelte](https://codechips.me/firebase-authentication-with-xstate-and-svelte/) by [@codechips](https://github.com/codechips)
   - [GitHub - code](https://github.com/codechips/svelte-firebase-auth-xstate-example)
-- [▶️ Model Based Testing with XState | Why It's Great | Part 1](https://www.youtube.com/watch?v=tkxH7o-n9sI) by [John Bales](https://www.youtube.com/channel/UCVYw7ad200ZmvsZ0BVC9YvA)
+- [▶️ Model Based Testing with XState | Why It’s Great | Part 1](https://www.youtube.com/watch?v=tkxH7o-n9sI) by [John Bales](https://www.youtube.com/channel/UCVYw7ad200ZmvsZ0BVC9YvA)
   - [▶️ Model Based Testing with XState | The Basics | Part 2](https://www.youtube.com/watch?v=9_dWCweA8Pk)
   - [▶️ Model Based Testing with XState | Path Generation with Context | Part 3](https://www.youtube.com/watch?v=9gQulfnG7HM)
 - [▶️ Mini Introducción a XState](https://www.youtube.com/watch?v=brMpOOAOUZ4) by [Michell Ayala](https://www.youtube.com/channel/UCBXo5FFDCtNoddUOqZuWX7w)
@@ -141,7 +141,7 @@ Explore a collection of professionally-designed state machines and statecharts i
 - [Testing XState with React Testing Library](https://dev.to/joepurnell1/testing-xstate-with-react-testing-library-26kh) by [Joe Purnell](https://dev.to/joepurnell1)
 - [▶️ Easy Introduction to XState in React | States, Transitions, Guards, and (Actions](https://www.youtube.com/watch?v=PRwDOSjIFg8) by [Bhargav Ponnapalli](https://www.youtube.com/channel/UC4gKWR53xDzybMwm8Y61ukA)
 - [▶️ State-driven Interfaces with XState](https://www.youtube.com/watch?v=bPUgBHFfQdI) on [Mozilla Indonesia](https://www.youtube.com/channel/UCUwngm8TCj0mhsvKTO2q5fQ)
-- [▶️ Virtual Lunch & Learn: Let's build an app using Svelte, TypeScript, XState and Tailwind](https://www.youtube.com/watch?v=-FiN2Svpk2s) by Anders Bech Mellson
+- [▶️ Virtual Lunch & Learn: Let’s build an app using Svelte, TypeScript, XState and Tailwind](https://www.youtube.com/watch?v=-FiN2Svpk2s) by Anders Bech Mellson
 - [▶️ Refactoring with XState - Part 1](https://www.youtube.com/watch?v=hZ1vaMJnKx0) by [VigsCodes](https://www.youtube.com/channel/UCAFlrYILud3-3MCs8nsDiAA)
 - [State machines in Production](https://moduscreate.com/blog/state-machines-in-production/) by [Ivan Kovic](https://twitter.com/kobeljic)
 - [When your brain is breaking, try XState](https://swizec.com/blog/when-your-brain-is-breaking-try-xstate) by [@swizec](https://swizec.com)
@@ -195,7 +195,7 @@ Explore a collection of professionally-designed state machines and statecharts i
 - [▶️ Custom Svelte Store: XState as Svelte store](https://www.youtube.com/watch?v=NIfQsc5XAzU) by [lihautan](https://www.youtube.com/channel/UCbmC3HP3FaAFdcZkui8YoMQ)
 - [▶️ Finite State Machine on Frontend](https://www.youtube.com/watch?v=gCT-lCYYhf4) by [Eugenia Zigisova](https://twitter.com/jevgeniazi)
 - [#1 Introduction to XState in React](https://blog.imbhargav5.com/1-introduction-to-xstate-in-react) by [Bhargav Ponnapalli](https://blog.imbhargav5.com/)
-- [▶️ Modelling application behaviour with the XState library (in React)](https://www.youtube.com/watch?v=paZ4ImyI1YQ) by [Marc Klefter](https://twitter.com/marcklefter)
+- [▶️ Modelling application behavior with the XState library (in React)](https://www.youtube.com/watch?v=paZ4ImyI1YQ) by [Marc Klefter](https://twitter.com/marcklefter)
 - [Rsvp to weddings with XState](https://dev.to/droopytersen/rsvp-to-weddings-with-xstate-55nl) by [Andrew Peterson](https://dev.to/droopytersen)
 - [▶️ XState and State Machines in Vue](https://tallpad.com/series/xstate-misc/episode/1)
 - [Github - XState with React and Angular in Nx Workspace](https://github.com/nartc/nx-state-machine-todos-mvc) by [Chau Tran](https://nartc.me)

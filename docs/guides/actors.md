@@ -2,7 +2,7 @@
 
 [:rocket: Quick Reference](#quick-reference)
 
-The [Actor model](https://en.wikipedia.org/wiki/Actor_model) is a mathematical model of message-based computation that simplifies how multiple "entities" (or "actors") communicate with each other. Actors communicate by sending messages (events) to each other. An actor's local state is private, unless it wishes to share it with another actor, by sending it as an event.
+The [Actor model](https://en.wikipedia.org/wiki/Actor_model) is a mathematical model of message-based computation that simplifies how multiple "entities" (or "actors") communicate with each other. Actors communicate by sending messages (events) to each other. An actor's local state is private unless it wishes to share it with another actor by sending it as an event.
 
 When an actor receives an event, three things can happen:
 
@@ -57,7 +57,7 @@ The `spawn(...)` function creates an **actor reference** by providing 1 or 2 arg
   - [Observable](./communication.md#invoking-observables)
 - `name` (optional) - a string uniquely identifying the actor. This should be unique for all spawned actors and invoked services.
 
-Alternatively `spawn` accepts an options object as the second argument which may contain the following options:
+Alternatively, `spawn` accepts an options object as the second argument, which may contain the following options:
 
 - `name` (optional) - a string uniquely identifying the actor. This should be unique for all spawned actors and invoked services.
 - `autoForward` - (optional) `true` if all events sent to this machine should also be sent (or _forwarded_) to the invoked child (`false` by default)
@@ -87,14 +87,14 @@ const todosMachine = createMachine({
 });
 ```
 
-If you do not provide a `name` argument to `spawn(...)`, a unique name will be automatically generated. This name will be nondeterministic :warning:.
+If you do not provide a `name` argument to `spawn(...)`, a unique name will automatically generate. This name will be non-deterministic :warning:.
 
 ::: tip
 Treat `const actorRef = spawn(someMachine)` as just a normal value in `context`. You can place this `actorRef` anywhere within `context`, based on your logic requirements. As long as it's within an assignment function in `assign(...)`, it will be scoped to the service from where it was spawned.
 :::
 
 ::: warning
-Do not call `spawn(...)` outside of an assignment function. This will produce an orphaned actor (without a parent) which will have no effect.
+Do not call `spawn(...)` outside of an assignment function. This will produce an orphaned actor (without a parent), which will have no effect.
 
 ```js
 // ❌ Never call spawn(...) externally
@@ -150,7 +150,7 @@ const machine = createMachine({
 ```
 
 ::: tip
-If you provide an unique `name` argument to `spawn(...)`, you can reference it in the target expression:
+If you provide a unique `name` argument to `spawn(...)`, you can reference it in the target expression:
 
 ```js
 const loginMachine = createMachine({
@@ -194,12 +194,12 @@ const fetchData = (query) => {
 ```
 
 ::: warning
-It is not recommended to spawn promise actors, as [invoking promises](./communication.md#invoking-promises) is a better pattern for this, since they are dependent on state (self-cancelling) and have more predictable behavior.
+It is not recommended to spawn promise actors, as [invoking promises](./communication.md#invoking-promises) is a better pattern for this since they are dependent on state (self-canceling) and have more predictable behavior.
 :::
 
 ## Spawning Callbacks
 
-Just like [invoking callbacks](./communication.md#invoking-callbacks), callbacks can be spawned as actors. This example models a counter-interval actor that increments its own count every second, but can also react to `{ type: 'INC' }` events.
+Just like [invoking callbacks](./communication.md#invoking-callbacks), callbacks can be spawned as actors. This example models a counter-interval actor that increments its count every second but can also react to `{ type: 'INC' }` events.
 
 ```js {22}
 const counterInterval = (callback, receive) => {
@@ -328,7 +328,7 @@ parentService.send({ type: 'LOCAL.WAKE' });
 
 ## Syncing and Reading State <Badge text="4.6.1+"/>
 
-One of the main tenets of the Actor model is that actor state is _private_ and _local_ - it is never shared unless the actor chooses to share it, via message passing. Sticking with this model, an actor can _notify_ its parent whenever its state changes by sending it a special "update" event with its latest state. In other words, parent actors can subscribe to their child actors' states.
+One of the main tenets of the Actor model is that actor state is _private_ and _local_ - it is never shared unless the actor chooses to share it via message passing. Sticking with this model, an actor can _notify_ its parent whenever state changes by sending it a special "update" event with its latest state. In other words, parent actors can subscribe to their child actors' states.
 
 To do this, set `{ sync: true }` as an option to `spawn(...)`:
 
@@ -358,7 +358,7 @@ someService.onTransition((state) => {
 ```
 
 ::: warning
-By default, `sync` is set to `false`. Never read an actor's `.state` when `sync` is disabled; otherwise, you will end up referencing stale state.
+By default, `sync` is set to `false`. Never read an actor's `.state` when `sync` is disabled; otherwise, you will end up referencing a stale state.
 :::
 
 ## Sending Updates <Badge text="4.7+" />
@@ -383,7 +383,7 @@ const childMachine = createMachine({
 ```
 
 ::: tip
-Prefer sending events to the parent explicitly (`sendUpdate()`) rather than subscribing to every state change. Syncing with spawned machines can result in "chatty" event logs, since every update from the child results in a new `"xstate.update"` event sent from the child to the parent.
+Prefer sending events to the parent explicitly (`sendUpdate()`) rather than subscribing to every state change. Syncing with spawned machines can result in "chatty" event logs since every update from the child results in a new `"xstate.update"` event sent from the child to the parent.
 :::
 
 ## Quick Reference

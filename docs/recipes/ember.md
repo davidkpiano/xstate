@@ -63,7 +63,7 @@ export default class ToggleComponent extends Component {
 
 ## Custom integration
 
-To integrate XState into your Ember.js codebase without using an addon you can
+To integrate XState into your Ember.js codebase without using an addon, you can
 follow a similar pattern to [Vue](./vue.md):
 
 - The machine can be defined externally;

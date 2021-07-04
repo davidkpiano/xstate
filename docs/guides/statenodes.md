@@ -90,8 +90,8 @@ const fetchMachine = createMachine({
 There are five different kinds of state nodes:
 
 - An **atomic** state node has no child states. (I.e., it is a leaf node.)
-- A **compound** state node contains one or more child `states`, and has an `initial` state, which is the key of one of those child states.
-- A **parallel** state node contains two or more child `states`, and has no initial state, since it represents being in all of its child states at the same time.
+- A **compound** state node contains one or more child `states` and has an `initial` state, which is the key of one of those child states.
+- A **parallel** state node contains two or more child `states` and has no initial state since it represents being in all of its child states at the same time.
 - A **final** state node is a leaf node that represents an abstract "terminal" state.
 - A **history** state node is an abstract node that represents resolving to its parent node's most recent shallow or deep history state.
 

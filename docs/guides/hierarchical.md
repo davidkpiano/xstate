@@ -8,7 +8,7 @@ Statecharts, by definition, are hierarchical - that is to say, they:
 - encourage composability
 - and prevent state explosion, which frequently occurs in normal finite state machines.
 
-In XState, state and machine configuration share a common schema, which allows machines to be _substates_ and for states to be infinitely nested.
+In XState, state and machine configuration share a common schema, allowing machines to be _substates_ and for states to be infinitely nested.
 
 Here's an example of a traffic light machine with nested states:
 

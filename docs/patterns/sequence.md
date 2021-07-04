@@ -23,9 +23,9 @@ console.log(stepMachine.transition('one', 'NEXT').value);
 // => 'two'
 ```
 
-In this example, the machine is in the steps `'one'`, `'two'`, or `'three'`, and transitions between them in that order on the `'NEXT'` event, until it reaches the last step. The `'PREV'` event is optional, and allows the machine to go to a previous step.
+In this example, the machine is in the steps `'one'`, `'two'`, or `'three'`, and transitions between them in that order on the `'NEXT'` event until it reaches the last step. The `'PREV'` event is optional and allows the machine to go to a previous step.
 
-Modeling the final step of the sequence as a [final state](../guides/final.md) with `{ type: 'final' }` makes it easier for the machine to be invoked by another machine, or used as a child machine of a bigger machine, since `onDone` can be defined on the parent machine as a transition when the sequence machine reaches its final state.
+Modeling the final step of the sequence as a [final state](../guides/final.md) with `{ type: 'final' }` makes it easier for the machine to be invoked by another machine, or used as a child machine of a bigger machine since `onDone` can be defined on the parent machine as a transition when the sequence machine reaches its final state.
 
 ## Async Sequences
 

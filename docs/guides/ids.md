@@ -66,7 +66,7 @@ on: {
 
 ## Custom IDs
 
-State nodes can be targeted via unique identifiers, instead of by relative identifiers. This can simplify the creation of complex statecharts.
+State nodes can be targeted via unique identifiers instead of by relative identifiers. This can simplify the creation of complex statecharts.
 
 To specify an ID for a state node, provide a unique string identifier as its `id` property, e.g., `id: 'greenLight'`.
 
@@ -125,7 +125,7 @@ red: {
 // ...
 ```
 
-Then you cannot target the `'walking'` state via `'#redLight.walking'`, because its ID is resolved to `'#light.red.walking'`. A target that starts with `'#'` will always refer to the _exact match_ for the `'#[state node ID]'`.
+Then you cannot target the `'walking'` state via `'#redLight.walking'` because its ID is resolved to `'#light.red.walking'`. A target that starts with `'#'` will always refer to the _exact match_ for the `'#[state node ID]'`.
 :::
 
 ## Avoiding strings
@@ -167,7 +167,7 @@ const lightMachine = createMachine({
 ```
 
 ::: warning
-The getter _must_ be a pure function that always returns the same value, which is a `StateNode` instance. Using getters to reference state nodes is completely optional, and useful if you want to avoid strings or have stricter typings. This getter will only be called once.
+The getter _must_ be a pure function that always returns the same value, which is a `StateNode` instance. Using getters to reference state nodes is completely optional and useful if you want to avoid strings or have stricter typings. This getter will only be called once.
 :::
 
 ## SCXML
@@ -193,7 +193,7 @@ IDs correspond to the definition of IDs in the SCXML spec:
 
 ## Quick Reference
 
-**Default, automatically generated ID:**
+**Default ID, automatically generated**
 
 ```js
 const lightMachine = createMachine({

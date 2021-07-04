@@ -6,7 +6,7 @@ Actions are _not_ immediately triggered. Instead, [the `State` object](./states.
 
 ::: danger
 
-All of the action creators documented here return **action objects**; it is a pure function that only returns an action object and does _not_ imperatively send an event. Do not imperatively call action creators; they will do nothing!
+All action creators documented here return **action objects**; it is a pure function that only returns an action object and does _not_ imperatively send an event. Do not imperatively call action creators; they will do nothing!
 
 ```js
 // 🚫 Do not do this!
@@ -85,7 +85,7 @@ const triggerMachine = createMachine(
 
 It depends! They mean different things:
 
-- An entry/exit actions means "execute this action **on any transition that enters/exits this state**". Use entry/exit actions when the action is only dependent on the state node that it's in, and not on previous/next state nodes or events.
+- An entry/exit actions declaration means "execute this action **on any transition that enters/exits this state**." Use entry/exit actions when the action is only dependent on the state node that it's in, and not on previous/next state nodes or events.
 
 ```js
 // ...
@@ -103,7 +103,7 @@ It depends! They mean different things:
 // ...
 ```
 
-- A transition actions mean "execute this action **only on this transition**". Use transition actions when the action is dependent on the event and the state node that it is currently in.
+- A transition actions mean "execute this action **only on this transition**." Use transition actions when the action is dependent on the event and the state node that it is currently in.
 
 ```js
 // ...
@@ -156,7 +156,7 @@ console.log(activeState.actions);
 // ]
 ```
 
-Each action object has two properties (and others, that you can specify):
+Each action object has two properties (and others that you can specify):
 
 - `type` - the action type
 - `exec` - the action implementation function
@@ -192,7 +192,7 @@ In XState version 4.x, `assign` actions have priority and are executed before an
 
 ## Send Action
 
-The `send(event)` action creator creates a special "send" action object that tells a service (i.e., [interpreted machine](./interpretation.md)) to send that event to itself. It queues an event to the running service, in the external event queue. This means the event is sent on the next "step" of the interpreter.
+The `send(event)` action creator creates a special "send" action object that tells a service (i.e., [interpreted machine](./interpretation.md)) to send that event to itself. It queues an event to the running service in the external event queue. This means the event is sent on the next "step" of the interpreter.
 
 | Argument   | Type                                       | Description                                               |
 | ---------- | ------------------------------------------ | --------------------------------------------------------- |
@@ -340,7 +340,7 @@ console.log(send({ type: 'SOME_EVENT' }, { to: 'child' }));
 
 ## Raise Action
 
-The `raise()` action creator queues an event to the statechart, in the internal event queue. This means the event is immediately sent on the current "step" of the interpreter.
+The `raise()` action creator queues an event to the statechart in the internal event queue. This means the event is immediately sent on the current "step" of the interpreter.
 
 | Argument | Type                   | Description         |
 | -------- | ---------------------- | ------------------- |
@@ -517,7 +517,7 @@ const parentMachine = createMachine({
 
 ## Log Action
 
-The `log()` action creator is a declarative way of logging anything related to the current state `context` and/or `event`. It takes two optional arguments:
+The `log()` action creator is a declarative way of logging anything related to the current state `context` and `event`. It takes two optional arguments:
 
 | Argument | Type               | Description                                                                                                     |
 | -------- | ------------------ | --------------------------------------------------------------------------------------------------------------- |
@@ -576,7 +576,7 @@ The `choose()` action creator creates an action that specifies which actions sho
 
 **Returns:**
 
-A special `"xstate.choose"` action object that is internally evaluated to conditionally determine which action objects should be executed.
+A special `"xstate.choose"` action object that is internally evaluated to determine which action objects should be executed conditionally.
 
 Each "conditional actions" object in `cond` has these properties:
 
@@ -635,7 +635,7 @@ This is analogous to the SCXML `<if>`, `<elseif>`, and `<else>` elements: [www.w
 
 ## Pure Action
 
-The `pure()` action creator is a pure function (hence the name) that returns the action object(s) to be executed based on the current state `context` and `event` that triggered the action. This allows you to dynamically define which actions should be executed.
+The `pure()` action creator is a pure function (hence the name) that returns the action object(s) to be executed based on the current state `context` and `event` that triggered the action. It allows you to dynamically define which actions to execute.
 
 | Argument     | Type     | Description                                                                                                      |
 | ------------ | -------- | ---------------------------------------------------------------------------------------------------------------- |
@@ -654,7 +654,7 @@ Arguments for `getActions(context, event)`:
 
 **Returns:**
 
-A single action object, an array of action objects, or `undefined` that represents no action objects.
+A single action object, an array of action objects, or `undefined` to signify no action objects.
 
 ```js
 import { createMachine, actions } from 'xstate';
@@ -687,7 +687,7 @@ const machine = createMachine({
 A [self-transition](./transitions.md#self-transitions) is when a state transitions to itself, in which it _may_ exit and then reenter itself. Self-transitions can either be an **internal** or **external** transition:
 
 - An internal transition will _not_ exit and reenter itself, so the state node's `entry` and `exit` actions will not be executed again.
-  - Internal transitions are indicated with `{ internal: true }`, or by leaving the `target` as `undefined`.
+  - Internal transitions are indicated with `{ internal: true }` or by leaving the `target` as `undefined`.
   - Actions defined on the transition's `actions` property will be executed.
 - An external transition _will_ exit and reenter itself, so the state node's `entry` and `exit` actions will be executed again.
   - All transitions are external by default. To be explicit, you can indicate them with `{ internal: false }`.

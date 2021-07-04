@@ -11,7 +11,7 @@ You can invoke:
 - [Promises](#invoking-promises), which will take the `onDone` transition on `resolve`, or the `onError` transition on `reject`
 - [Callbacks](#invoking-callbacks), which can send events to and receive events from the parent machine
 - [Observables](#invoking-observables), which can send events to the parent machine, as well as a signal when it is completed
-- [Machines](#invoking-machines), which can also send/receive events, and also notify the parent machine when it reaches its [final state](./final.md)
+- [Machines](#invoking-machines), which can send/receive events and also notify the parent machine when it reaches its [final state](./final.md)
 
 ## The `invoke` Property
 
@@ -22,7 +22,7 @@ An invocation is defined in a state node's configuration with the `invoke` prope
   - a function that returns a `Promise`
   - a function that returns a "callback handler"
   - a function that returns an observable
-  - a string, which refers to any of the 4 listed options defined in this machine's `options.services`
+  - a string, which refers to any of the four listed options defined in this machine's `options.services`
   - an invoke source object <Badge text="4.12" />, which contains the source string in `{ type: src }`, as well as any other metadata.
 - `id` - the unique identifier for the invoked service
 - `onDone` - (optional) the [transition](./transitions.md) to be taken when:
@@ -31,11 +31,11 @@ An invocation is defined in a state node's configuration with the `invoke` prope
   - the invoked observable completes
 - `onError` - (optional) the transition to be taken when the invoked service encounters an execution error.
 - `autoForward` - (optional) `true` if all events sent to this machine should also be sent (or _forwarded_) to the invoked child (`false` by default)
-  - ⚠️ Avoid setting `autoForward` to `true`, as blindly forwarding all events may lead to unexpected behavior and/or infinite loops. Always prefer to explicitly send events, and/or use the `forward(...)` action creator to directly forward an event to an invoked child. (works currently for machines only! ⚠️)
-- `data` - (optional, used only when invoking machines) an object that maps properties of the child machine's [context](./context.md) to a function that returns the corresponding value from the parent machine's `context`.
+  - ⚠️ Avoid setting `autoForward` to `true`, as blindly forwarding all events may lead to unexpected behavior or infinite loops. Always prefer to send events explicitly or use the `forward(...)` action creator to forward an event to an invoked child directly. (works currently for machines only! ⚠️)
+- `data` - (optional, used when invoking machines) an object that maps properties of the child machine's [context](./context.md) to a function that returns the corresponding value from the parent machine's `context`.
 
 ::: warning
-Don't get the `onDone` property on a state confused with `invoke.onDone` - they are similar transitions, but refer to different things.
+Don't get the `onDone` property on a state confused with `invoke.onDone` - they are similar transitions but refer to different things.
 
 - The `onDone` property on a [state node](./statenodes.md) refers to the compound state node reaching a [final state](./final.md).
 - The `invoke.onDone` property refers to the invocation (`invoke.src`) being done.
@@ -258,7 +258,7 @@ interpret(pingPongMachine)
 
 ## Invoking Observables <Badge text="4.6"/>
 
-[Observables](https://github.com/tc39/proposal-observable) are streams of values emitted over time. Think of them as an array/collection whose values are emitted asynchronously, instead of all at once. There are many implementations of observables in JavaScript; the most popular one is [RxJS](https://github.com/ReactiveX/rxjs).
+[Observables](https://github.com/tc39/proposal-observable) are streams of values emitted over time. Think of them as an array/collection whose values are emitted asynchronously instead of all at once. There are many implementations of observables in JavaScript; the most popular one is [RxJS](https://github.com/ReactiveX/rxjs).
 
 Observables can be invoked, which is expected to send events (strings or objects) to the parent machine, yet not receive events (uni-directional). An observable invocation is a function that takes `context` and `event` as arguments and returns an observable stream of events. The observable is unsubscribed when the state where it is invoked is exited.
 
@@ -293,7 +293,7 @@ const intervalMachine = createMachine({
 });
 ```
 
-The above `intervalMachine` will receive the events from `interval(...)` mapped to event objects, until the observable is "completed" (done emitting values). If the `"CANCEL"` event happens, the observable will be disposed (`.unsubscribe()` will be called internally).
+The above `intervalMachine` will receive the events from `interval(...)` mapped to event objects until the observable is "completed" (done emitting values). If the `"CANCEL"` event happens, the observable will be disposed of (`.unsubscribe()` will be called internally).
 
 ::: tip
 Observables don't necessarily need to be created for every invocation. A "hot observable" can be referenced instead:
@@ -564,7 +564,7 @@ const service = interpret(pingMachine).start();
 
 An invoked service (or [spawned actor](./actors.md)) can _respond_ to another service/actor; i.e., it can send an event _in response to_ an event sent by another service/actor. This is done with the `respond(...)` action creator.
 
-For example, the `'client'` machine below sends the `'CODE'` event to the invoked `'auth-server'` service, which then responds with a `'TOKEN'` event after 1 second.
+For example, the `'client'` machine below sends the `'CODE'` event to the invoked `'auth-server'` service, which responds with a `'TOKEN'` event after 1 second.
 
 ```js
 import { createMachine, send, actions } from 'xstate';
@@ -627,7 +627,7 @@ invoke: [
 // ...
 ```
 
-Each invocation will create a _new_ instance of that service, so even if the `src` of multiple services are the same (e.g., `'someService'` above), multiple instances of `'someService'` will be invoked.
+Each invocation will create a _new_ instance of that service. Even if the `src` of multiple services are the same (e.g., `'someService'` above), multiple instances of `'someService'` will be invoked.
 
 ## Configuring Services
 
@@ -747,7 +747,7 @@ const service = interpret(machine)
   .start();
 ```
 
-When JSON serialized, the `state.children` object is a mapping of service IDs (keys) to objects containing meta data about that service.
+When the state is JSON serialized, the `state.children` object is a mapping of service IDs (keys) to objects containing meta data about that service.
 
 ## Quick Reference
 

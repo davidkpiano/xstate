@@ -11,7 +11,7 @@
   - Tutorial on how to create an IVR (interactive voice response) system with XState, Express, and Nexmo
 - [My love letter to XState and statecharts ♥](https://dev.to/timdeschryver/my-love-letter-to-xstate-and-statecharts-287b) by [Tim Deschryver](https://dev.to/timdeschryver)
   - Overview of the benefits and experience of developing with XState
-  - Includes a [demo `xstate-table` project](https://github.com/timdeschryver/xstate-table) using the exact same XState machine in the following languages:
+  - Includes a [demo `xstate-table` project](https://github.com/timdeschryver/xstate-table) using the same XState machine in the following languages:
     - [Angular](https://stackblitz.com/edit/xstate-angular-table)
     - [React](https://codesandbox.io/s/1dtmk)
     - [Svelte](https://codesandbox.io/s/yb6lq)

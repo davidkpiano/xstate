@@ -1,6 +1,6 @@
 # Events
 
-An event is what causes a state machine to [transition](./transitions.md) from its current [state](./states.md) to its next state. All state transitions in a state machine are due to these events; state cannot change unless some stimulus (the event) causes it to change.
+An event is what causes a state machine to [transition](./transitions.md) from its current [state](./states.md) to its next state. All state transitions in a state machine are due to these events; a state cannot change unless some stimulus (the event) causes it to change.
 
 An event is an object with a `type` property, signifying what type of event it is:
 
@@ -151,7 +151,7 @@ console.log(personMachine.initialState.value);
 
 ## SCXML
 
-Events in SCXML contain information relevant to the source of the event, and have a different schema than event objects in XState. Internally, event objects are converted to SCXML events for compatibility.
+Events in SCXML contain information relevant to the source of the event and have a different schema than event objects in XState. Internally, event objects are converted to SCXML events for compatibility.
 
 SCXML events include:
 

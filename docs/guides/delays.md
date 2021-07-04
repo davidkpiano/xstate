@@ -33,7 +33,7 @@ const lightDelayMachine = createMachine({
 });
 ```
 
-Delayed transitions can be specified in the same way that you specify them on the `on: ...` property. They can be explicit:
+Delayed transitions can be specified in the same way you specify them on the `on: ...` property. They can be explicit:
 
 ```js
 // ...
@@ -47,7 +47,7 @@ states: {
 // ...
 ```
 
-They can be also be conditional with regard to a single delay value:
+They can also be conditional with regard to a single delay value:
 
 ```js
 // ...

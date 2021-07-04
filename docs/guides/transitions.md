@@ -41,7 +41,7 @@ console.log(nextState.value);
 // => 'resolved'
 ```
 
-In the above example, when the machine is in the `pending` state and it receives a `RESOLVE` event, it will transition to the `resolved` state.
+In the above example, when the machine is in the `pending` state, and it receives a `RESOLVE` event, it will transition to the `resolved` state.
 
 A state transition can be defined as:
 
@@ -162,7 +162,7 @@ Other event descriptors include:
 
 ## Self Transitions
 
-A self-transition is when a state transitions to itself, in which it _may_ exit and then reenter itself. Self-transitions can either be an **internal** or **external** transition:
+A self-transition is when a state transitions to itself, in which it _may_ exit and then re-enter itself. Self-transitions can either be an **internal** or **external** transition:
 
 - An **internal transition** will not exit nor re-enter itself, but may enter different child states.
 - An **external transition** will exit and re-enter itself, and may also exit/enter child states.
@@ -197,7 +197,7 @@ const wordMachine = createMachine({
 });
 ```
 
-The above machine will start in the `'left'` state, and based on what is clicked, will internally transition to its other child states. Also, since the transitions are internal, `entry`, `exit` or any of the `actions` defined on the parent state node are not executed again.
+The above machine will start in the `'left'` state, and based on what is clicked, it will internally transition to its other child states. Also, since the transitions are internal, `entry`, `exit`, or any of the `actions` defined on the parent state node are not executed again.
 
 Transitions that have `{ target: undefined }` (or no `target`) are also internal transitions:
 
@@ -232,7 +232,7 @@ const buttonMachine = createMachine({
 
 ## External Transitions
 
-External transitions _will_ exit and reenter the state node in which the transition is defined. In the above example, the parent `word` state node (the root state node) will have its `exit` and `entry` actions executed on its transitions.
+External transitions _will_ exit and re-enter the state node in which the transition is defined. In the above example, the parent `word` state node (the root state node) will have its `exit` and `entry` actions executed on its transitions.
 
 By default, transitions are external, but any transition can be made external by explicitly setting `{ internal: false }` on the transition.
 
@@ -327,13 +327,13 @@ gameService.send('AWARD_POINTS');
 // => 'win'
 ```
 
-Just like transitions, transient transitions can be specified as a single transition (e.g., `'': 'someTarget'`), or an array of conditional transitions. If no conditional transitions on a transient transition are met, the machine stays in the same state.
+Just like transitions, transient transitions can be specified as a single transition (e.g., `'': 'someTarget'`) or an array of conditional transitions. If no conditional transitions on a transient transition are met, the machine stays in the same state.
 
 Null events are always "sent" for every transition, internal or external.
 
 ## Eventless ("Always") Transitions <Badge text="4.11+" />
 
-An eventless transition is a transition that is **always taken** when the machine is in the state where it is defined, and when its `cond` guard evaluates to `true`. They are checked:
+An eventless transition is a transition that is **always taken** when the machine is in the state where it is defined and when its `cond` guard evaluates to `true`. They are checked:
 
 - immediately when the state node is entered
 - every time the machine receives an actionable event (regardless of whether the event triggers internal or external transition)
@@ -408,14 +408,14 @@ gameService.send({ type: 'AWARD_POINTS' });
 ::: warning
 
 It is possible to create infinite loops if eventless transitions are misused.
-Eventless transitions should be defined either with `target`, `cond` + `target`, `cond` + `actions`, or `cond` + `target` + `actions`. Target, if declared, should be different than the current state node. Eventless transitions with no `target` nor `cond` will cause an infinite loop. Transitions with `cond` and `actions` may run into an infinite loop if its `cond` guard keeps returning `true`.
+Eventless transitions should be defined either with `target`, `cond` + `target`, `cond` + `actions`, or `cond` + `target` + `actions`. Target, if declared, should be different from the current state node. Eventless transitions with no `target` nor `cond` will cause an infinite loop. Transitions with `cond` and `actions` may run into an infinite loop if its `cond` guard keeps returning `true`.
 
 :::
 
 ::: tip
 
-When eventless transitions are checked, their guards are evaluated repeatedly until all of them return false, or a transition with target is validated. Every time some guard evaluates to `true` during this process, its associated actions are going to be executed once. Thus it is possible that during a single microtask some transitions without targets are executed multiple times.
-This contrasts with common transitions, where always maximum one transition can be taken.
+When eventless transitions are checked, their guards are evaluated repeatedly until all of them return `false` or a transition with `target` is validated. Every time some guard evaluates to `true` during this process, its associated actions are going to be executed once. Thus, it is possible that during a single microtask, some transitions without targets are executed multiple times.
+This contrasts with common transitions, where always a maximum of one transition can be taken.
 
 :::
 
@@ -473,7 +473,7 @@ Note that when defining multiple transitions with the same event name in a hiera
 
 ## Multiple Targets
 
-A transition based on a single event can have multiple target state nodes. This is uncommon, and only valid if the state nodes are legal; e.g., a transition to two sibling state nodes in a compound state node is illegal, since a (non-parallel) state machine can only be in one state at any given time.
+A transition based on a single event can have multiple target state nodes. This is uncommon and only valid if the state nodes are legal; e.g., a transition to two sibling state nodes in a compound state node is illegal since a (non-parallel) state machine can only be in one state at any given time.
 
 Multiple targets are specified as an array in `target: [...]`, where each target in the array is a relative key or an ID to a state node, just like single targets.
 
@@ -511,7 +511,7 @@ const settingsMachine = createMachine({
 
 A transition that is specified with a wildcard event descriptor (`"*"`) is activated by _any event_. This means that any event will match the transition that has `on: { "*": ... }`, and if the guards pass, that transition will be taken.
 
-Explicit event descriptors will always be chosen over wildcard event descriptors, unless the transitions are specified in an array. In that case, the order of the transitions determines which transition gets chosen.
+Explicit event descriptors will always be chosen over wildcard event descriptors unless the transitions are specified in an array. In that case, the order of the transitions determines which transition gets chosen.
 
 ```js {3,8}
 // For SOME_EVENT, the explicit transition to "here" will be taken

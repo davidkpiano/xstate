@@ -2,9 +2,9 @@
 
 [:rocket: Quick Reference](#quick-reference)
 
-While _finite_ states are well-defined in finite state machines and statecharts, state that represents _quantitative data_ (e.g., arbitrary strings, numbers, objects, etc.) that can be potentially infinite is represented as [extended state](https://en.wikipedia.org/wiki/UML_state_machine#Extended_states) instead. This makes statecharts much more useful for real-life applications.
+While _finite_ states are well-defined in finite state machines and statecharts, a state that represents _quantitative data_ (e.g., arbitrary strings, numbers, objects, etc.) that can be potentially infinite is represented as [extended state](https://en.wikipedia.org/wiki/UML_state_machine#Extended_states) instead. This makes statecharts much more useful for real-life applications.
 
-In XState, extended state is known as **context**. Below is an example of how `context` is used to simulate filling a glass of water:
+In XState, the extended state is known as **context**. Below is an example of how `context` is used to simulate filling a glass of water:
 
 ```js
 import { createMachine, assign } from 'xstate';
@@ -131,11 +131,11 @@ dynamicCounterMachine.initialState.context;
 // => { count: 42, time: 1543687816981 }
 ```
 
-This is preferred to accessing `machine.context` directly, since the initial state is computed with initial `assign(...)` actions and transient transitions, if any.
+This is preferred to accessing `machine.context` directly since the initial state is computed with initial `assign(...)` actions and transient transitions if any.
 
 ## Assign Action
 
-The `assign()` action is used to update the machine's `context`. It takes the context "assigner", which represents how values in the current context should be assigned.
+The `assign()` action is used to update the machine's `context`. It takes the context "assigner," which represents how values in the current context should be assigned.
 
 | Argument   | Type               | Description                                                                                |
 | ---------- | ------------------ | ------------------------------------------------------------------------------------------ |
@@ -175,7 +175,7 @@ Or it can be a function that returns the updated state:
 // ...
 ```
 
-Both the property assigner and context assigner function signatures above are given 3 arguments: the `context`, `event`, and `meta`:
+Both the property assigner and context assigner function signatures above are given three arguments: the `context`, `event`, and `meta`:
 
 | Argument                     | Type        | Description                                         |
 | ---------------------------- | ----------- | --------------------------------------------------- |
@@ -194,7 +194,7 @@ The `assign(...)` function is an **action creator**; it is a pure function that 
 
 ## Action Order
 
-Custom actions are always executed with regard to the _next state_ in the transition. When a state transition has `assign(...)` actions, those actions are always batched and computed _first_, to determine the next state. This is because a state is a combination of the finite state and the extended state (context).
+Custom actions are always executed with regard to the _next state_ in the transition. When a state transition has `assign(...)` actions, those actions are always batched and computed _first_ to determine the next state. This is because a state combines the finite state and the extended state (context).
 
 For example, in this counter machine, the custom actions will not work as expected:
 
@@ -270,7 +270,7 @@ The benefits of this are:
 
 - 🚫 Never mutate the machine's `context` externally. Everything happens for a reason, and every context change should happen explicitly due to an event.
 - Prefer the object syntax of `assign({ ... })`. This makes it possible for future analysis tools to predict _how_ certain properties can change declaratively.
-- Assignments can be stacked, and will run sequentially:
+- Assignments can be stacked and will run sequentially:
 
 ```js
 // ...

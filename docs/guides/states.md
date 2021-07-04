@@ -93,7 +93,7 @@ console.log(initialState.nextEvents);
 // => ['TIMER', 'EMERGENCY']
 ```
 
-This is useful in determining which next events can be taken, and representing these potential events in the UI (such as enabling/disabling certain buttons).
+This is useful in determining which next events can be taken and representing these potential events in the UI (such as enabling/disabling certain buttons).
 
 ### `state.changed`
 
@@ -312,7 +312,7 @@ const fetchMachine = createMachine({
 });
 ```
 
-The current state of the machine collects the `.meta` data of all of the state nodes represented by the state value, and places them on an object where:
+The current state of the machine collects the `.meta` data of all of the state nodes represented by the state value and places them on an object where:
 
 - The keys are the [state node IDs](./ids.md)
 - The values are the state node `.meta` values

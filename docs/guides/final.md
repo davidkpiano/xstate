@@ -1,6 +1,6 @@
 # Final States
 
-A final state node indicates the completion of a part of the statechart, or the entire statechart. Specifically, it indicates that its parent compound state node is "done". If the parent is the root statechart, then the entire statechart is "done" and any further execution is stopped.
+A final state node indicates the completion of a part of the statechart, or the entire statechart. Specifically, it indicates that its parent compound state node is "done." If the parent is the root statechart, then the entire statechart is "done," and any further execution is stopped.
 
 This has many useful use-cases. To indicate that a state node is final, set its `type` property to `'final'`:
 
