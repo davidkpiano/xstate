@@ -1054,6 +1054,8 @@ class StateNode<
   }
 
   /**
+   * Docs: {@link https://xstate.js.org/docs/guides/transitions.html#machine-transition-method Machine `.transition` Method}.
+   *
    * Determines the next state given the current `state` and sent `event`.
    *
    * @param state The current State instance or state value

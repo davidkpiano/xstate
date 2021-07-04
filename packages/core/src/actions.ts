@@ -154,6 +154,9 @@ export function toActivityDefinition<TContext, TEvent extends EventObject>(
 }
 
 /**
+ * Docs: {@link https://xstate.js.org/docs/guides/actions.html#raise-action Raise Action}.
+ * API: {@link https://xstate.js.org/api/globals.html#raise raise}.
+ *
  * Raises an event. This places the event in the internal event queue, so that
  * the event is immediately consumed by the machine in the current step.
  *
@@ -181,6 +184,9 @@ export function resolveRaise<TEvent extends EventObject>(
 }
 
 /**
+ * Docs: {@link https://xstate.js.org/docs/guides/actions.html#send-action Send Action}.
+ * API: {@link https://xstate.js.org/api/globals.html#send send}.
+ *
  * Sends an event. This returns an action that will be read by an interpreter to
  * send the event in the next step, after the current step is finished executing.
  *
@@ -259,6 +265,9 @@ export function resolveSend<
 }
 
 /**
+ * Docs: {@link https://xstate.js.org/docs/guides/communication.html#sending-events sendParent}.
+ * API: {@link https://xstate.js.org/api/globals.html#sendparent sendParent}.
+ *
  * Sends an event to this machine's parent.
  *
  * @param event The event to send to the parent machine.
@@ -279,6 +288,9 @@ export function sendParent<
 }
 
 /**
+ * Docs: {@link https://xstate.js.org/docs/guides/actors.html#sending-updates Sending Updates}.
+ * API: {@link https://xstate.js.org/api/globals.html#sendupdate sendUpate}.
+ *
  * Sends an update event to this machine's parent.
  */
 export function sendUpdate<TContext, TEvent extends EventObject>(): SendAction<
@@ -292,6 +304,9 @@ export function sendUpdate<TContext, TEvent extends EventObject>(): SendAction<
 }
 
 /**
+ * Docs: {@link https://xstate.js.org/docs/guides/actions.html#respond-action Respond Action}.
+ * API: {@link https://xstate.js.org/api/globals.html#respond respond}.
+ *
  * Sends an event back to the sender of the original event.
  *
  * @param event The event to send back to the sender
@@ -322,6 +337,8 @@ const defaultLogExpr = <TContext, TEvent extends EventObject>(
 });
 
 /**
+ * Docs: {@link https://xstate.js.org/docs/guides/actions.html#log-action Log Action}.
+ * API: {@link https://xstate.js.org/api/globals.html#log log}.
  *
  * @param expr The expression function to evaluate which will be logged.
  *  Takes in 2 arguments:
@@ -429,6 +446,9 @@ export function resolveStop<TContext, TEvent extends EventObject>(
 }
 
 /**
+ * Docs: {@link https://xstate.js.org/docs/guides/context.html#assign-action Assign}.
+ * API: {@link https://xstate.js.org/api/globals.html#assign assign}.
+ *
  * Updates the current context of the machine.
  *
  * @param assignment An object that represents the partial context to update.
@@ -509,6 +529,15 @@ export function error(id: string, data?: any): ErrorPlatformEvent & string {
   return eventObject as ErrorPlatformEvent & string;
 }
 
+/**
+ * Docs: {@link https://xstate.js.org/docs/guides/actions.html#pure-action Pure Action}.
+ * API: {@link https://xstate.js.org/api/globals.html#pure pure}.
+ *
+ * It's a pure function that returns the action object(s) to be executed based on the current state `context` and `event` that triggered the action. This allows you to dynamically define which actions should be executed.
+ *
+ * @param getActions A function that returns the action object(s) to be executed based on the given `context` and `event`.
+ * @returns A special `"xstate.pure"` action object that will internally evaluate the get property to determine the action objects that should be executed.
+ */
 export function pure<TContext, TEvent extends EventObject>(
   getActions: (
     context: TContext,
@@ -522,10 +551,14 @@ export function pure<TContext, TEvent extends EventObject>(
 }
 
 /**
+ * Docs: {@link https://xstate.js.org/docs/guides/actions.html#forward-to-action Forward To Action}.
+ * API: {@link https://xstate.js.org/api/globals.html#forwardto forwardTo}.
+ *
  * Forwards (sends) an event to a specified service.
  *
  * @param target The target service to forward the event to.
  * @param options Options to pass into the send action creator.
+ *
  */
 export function forwardTo<TContext, TEvent extends EventObject>(
   target: Required<SendActionOptions<TContext, TEvent>>['to'],
@@ -538,6 +571,9 @@ export function forwardTo<TContext, TEvent extends EventObject>(
 }
 
 /**
+ * Docs: {@link https://xstate.js.org/docs/guides/actions.html#escalate-action Escalate Action}.
+ * API: {@link https://xstate.js.org/api/globals.html#escalate escalate}.
+ *
  * Escalates an error by sending it as an event to this machine's parent.
  *
  * @param errorData The error data to send, or the expression function that
@@ -568,6 +604,15 @@ export function escalate<
   );
 }
 
+/**
+ * Docs: {@link https://xstate.js.org/docs/guides/actions.html#choose-action Choose Action}.
+ * API: {@link https://xstate.js.org/api/globals.html#choose choose}.
+ *
+ * It creates an action that specifies which actions should be executed based on some conditions.
+ *
+ * @param conds
+ * @returns
+ */
 export function choose<TContext, TEvent extends EventObject>(
   conds: Array<ChooseConditon<TContext, TEvent>>
 ): ChooseAction<TContext, TEvent> {

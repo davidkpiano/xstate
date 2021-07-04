@@ -169,6 +169,10 @@ export function has<T>(iterable: Iterable<T>, item: T): boolean {
   return false; // TODO: fix
 }
 
+/**
+ * Docs: {@link https://xstate.js.org/docs/guides/states.html#state-nextevents nextEvents}
+ * It specifies the next events that will cause a transition from the current state:
+ */
 export function nextEvents<TC, TE extends EventObject>(
   configuration: Array<StateNode<TC, any, TE>>
 ): Array<TE['type']> {

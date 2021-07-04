@@ -39,6 +39,9 @@ export function keys<T extends object>(value: T): Array<keyof T & string> {
   return Object.keys(value) as Array<keyof T & string>;
 }
 
+/**
+ * API: {@link https://xstate.js.org/api/globals.html#matchesstate matchesState}
+ */
 export function matchesState(
   parentStateId: StateValue,
   childStateId: StateValue,

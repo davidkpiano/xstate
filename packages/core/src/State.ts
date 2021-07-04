@@ -87,6 +87,9 @@ export class State<
   TTypestate extends Typestate<TContext> = { value: any; context: TContext }
 > {
   public value: StateValue;
+  /**
+   * Docs: {@link https://xstate.js.org/docs/guides/context.html#context Context}.
+   */
   public context: TContext;
   public historyValue?: HistoryValue | undefined;
   public history?: State<TContext, TEvent, TStateSchema, TTypestate>;
@@ -287,6 +290,8 @@ export class State<
   }
 
   /**
+   * Docs: {@link https://xstate.js.org/docs/guides/states.html#state-matches-parentstatevalue matches}
+   *
    * Whether the current state value is a subset of the given parent state value.
    * @param parentStateValue
    */
@@ -306,6 +311,8 @@ export class State<
   }
 
   /**
+   * Docs: {@link https://xstate.js.org/docs/guides/states.html#state-hastag-tag hasTag}.
+   *
    * Whether the current state configuration has a state node with the specified `tag`.
    * @param tag
    */
