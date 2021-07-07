@@ -64,12 +64,6 @@ export interface Behavior<TEvent extends EventObject, TEmitted = any> {
   subscribe?: (observer: Observer<TEmitted>) => Subscription | undefined;
 }
 
-function isSignal(
-  event: EventObject | LifecycleSignal
-): event is LifecycleSignal {
-  return typeof event.type === 'symbol';
-}
-
 export function createDeferredBehavior<TEvent extends EventObject>(
   lazyEntity: () => InvokeCallback
 ): Behavior<TEvent, undefined> {
@@ -122,11 +116,6 @@ export function createDeferredBehavior<TEvent extends EventObject>(
         if (isFunction(dispose)) {
           dispose();
         }
-        return undefined;
-      }
-
-      if (isSignal(event)) {
-        // TODO: unrecognized signal
         return undefined;
       }
 
@@ -305,11 +294,6 @@ export function createMachineBehavior<
       if (event.type === stopSignalType) {
         service?.stop();
         subscription && subscription.unsubscribe(); // TODO: might not be necessary
-        return state;
-      }
-
-      if (isSignal(event)) {
-        // TODO: unrecognized signal
         return state;
       }
 
