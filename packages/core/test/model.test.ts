@@ -199,6 +199,34 @@ describe('createModel', () => {
     expect(updatedState.context.age).toEqual(42);
   });
 
+  it('should model "done.invoke" events', () => {
+    const model = createModel(
+      {
+        name: ''
+      },
+      {
+        events: {
+          SOME_EVENT: () => ({})
+        }
+      }
+    );
+
+    createMachine<typeof model>({
+      context: model.initialContext,
+      invoke: {
+        src: () => new Promise((res) => res(42)),
+        onDone: {
+          actions: model.assign(
+            {
+              name: (_, e) => e.data
+            },
+            'done.invoke'
+          )
+        }
+      }
+    });
+  });
+
   it('should typecheck `createMachine` for model without creators', () => {
     const toggleModel = createModel({ count: 0 });
 

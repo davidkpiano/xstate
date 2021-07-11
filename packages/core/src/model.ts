@@ -1,3 +1,4 @@
+import { DoneInvokeEvent } from '.';
 import { assign } from './actions';
 import { createMachine } from './Machine';
 import type {
@@ -24,12 +25,18 @@ export interface Model<
   TModelCreators = void
 > {
   initialContext: TContext;
-  assign: <TEventType extends TEvent['type'] = TEvent['type']>(
+  assign<TEventType extends TEvent['type'] = TEvent['type']>(
     assigner:
       | Assigner<TContext, ExtractEvent<TEvent, TEventType>>
       | PropertyAssigner<TContext, ExtractEvent<TEvent, TEventType>>,
     eventType?: TEventType
-  ) => AssignAction<TContext, ExtractEvent<TEvent, TEventType>>;
+  ): AssignAction<TContext, ExtractEvent<TEvent, TEventType>>;
+  assign(
+    assigner:
+      | Assigner<TContext, DoneInvokeEvent<any>>
+      | PropertyAssigner<TContext, DoneInvokeEvent<any>>,
+    eventType: `done.invoke` | `done.invoke.${string}`
+  ): AssignAction<TContext, DoneInvokeEvent<any>>;
   events: Prop<TModelCreators, 'events'>;
   reset: () => AssignAction<TContext, any>;
   createMachine: (
