@@ -156,7 +156,7 @@ export class StateNode<
     /**
      * The raw config used to create the machine.
      */
-    public config: StateNodeConfig<TContext, TEvent>,
+    public config: StateNodeConfig<any, TContext, TEvent>,
     options: StateNodeOptions<TContext, TEvent>
   ) {
     this.parent = options._parent;
@@ -180,7 +180,7 @@ export class StateNode<
     this.states = (this.config.states
       ? mapValues(
           this.config.states,
-          (stateConfig: StateNodeConfig<TContext, TEvent>, key) => {
+          (stateConfig: StateNodeConfig<any, TContext, TEvent>, key) => {
             const stateNode = new StateNode(stateConfig, {
               _parent: this,
               _key: key as string,
@@ -353,7 +353,7 @@ export class StateNode<
       this.__initial ||
       ((this.__initial = formatInitialTransition(
         this,
-        this.config.initial || []
+        (this.config.initial as string) || [] // TODO: fix
       )),
       this.__initial)
     );

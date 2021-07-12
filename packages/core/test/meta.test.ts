@@ -26,7 +26,7 @@ describe('state meta data', () => {
         exit: 'exit_stop'
       }
     }
-  };
+  } as const;
 
   const lightMachine = createMachine({
     key: 'light',

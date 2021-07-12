@@ -92,7 +92,7 @@ export class StateMachine<
     /**
      * The raw config used to create the machine.
      */
-    public config: MachineConfig<TContext, TEvent>,
+    public config: MachineConfig<any, TContext, TEvent>,
     options?: Partial<MachineImplementations<TContext, TEvent>>
   ) {
     this.key = config.key || config.id || '(machine)';

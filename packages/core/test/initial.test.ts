@@ -16,7 +16,7 @@ const config = {
     },
     leaf: {}
   }
-};
+} as const;
 
 const deepMachine = createMachine(config);
 
@@ -28,6 +28,8 @@ const parallelDeepMachine = createMachine({
   }
 });
 
+// TODO: add config typings to MachineNode, if we want to support that
+// @ts-ignore
 const deepParallelMachine = createMachine({
   initial: 'one',
   states: {
@@ -59,6 +61,8 @@ describe('Initial states', () => {
 
   it('should resolve deep initial state', () => {
     const machine = createMachine({
+      // TODO: typings for deep initial states?
+      // @ts-ignore
       initial: '#deep_id',
       states: {
         foo: {
@@ -77,6 +81,8 @@ describe('Initial states', () => {
   });
 
   it('should resolve multiple deep initial states', () => {
+    // TODO: typings for deep initial states?
+    // @ts-ignore
     const machine = createMachine({
       initial: ['#foo_deep_id', '#bar_deep_id'],
       states: {
@@ -118,6 +124,8 @@ describe('Initial states', () => {
     let called = false;
 
     const machine = createMachine({
+      // TODO: typings for deep initial states?
+      // @ts-ignore
       initial: '#deep_id',
       states: {
         foo: {

@@ -37,7 +37,7 @@ export function sequence<TEvent extends EventObject>(
   options?: Partial<SequencePatternOptions<TEvent>>
 ): {
   initial: string;
-  states: StatesConfig<any, TEvent>;
+  states: StatesConfig<any, any, TEvent>;
 } {
   const resolvedOptions = { ...defaultSequencePatternOptions, ...options };
   const states = {} as Record<string, any>;
@@ -51,7 +51,7 @@ export function sequence<TEvent extends EventObject>(
       : toEventObject(resolvedOptions.prevEvent);
 
   items.forEach((item, i) => {
-    const state: StateNodeConfig<TEvent, TEvent> = {
+    const state: StateNodeConfig<any, TEvent, TEvent> = {
       on: {}
     };
 
@@ -72,6 +72,6 @@ export function sequence<TEvent extends EventObject>(
 
   return {
     initial: items[0] as string,
-    states: states as StatesConfig<any, TEvent>
+    states: states as StatesConfig<any, any, TEvent>
   };
 }

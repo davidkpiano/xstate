@@ -766,8 +766,9 @@ describe('interpreter', () => {
   });
 
   it('should throw an error if initial state sent to interpreter is invalid', () => {
-    const invalidMachine = {
+    const invalidMachine = createMachine({
       id: 'fetchMachine',
+      // @ts-expect-error
       initial: 'create',
       states: {
         edit: {
@@ -782,10 +783,10 @@ describe('interpreter', () => {
           }
         }
       }
-    };
+    });
 
     expect(() => {
-      interpret(createMachine(invalidMachine)).start();
+      interpret(invalidMachine).start();
     }).toThrowErrorMatchingInlineSnapshot(
       `"Initial state node \\"create\\" not found on parent state node #fetchMachine"`
     );

@@ -13,27 +13,40 @@ export function createMachine<
   TModel extends Model<any, any, any>,
   TContext extends MachineContext = ModelContextFrom<TModel>,
   TEvent extends EventObject = ModelEventsFrom<TModel>,
-  TTypestate extends Typestate<TContext> = { value: any; context: TContext }
+  TTypestate extends Typestate<TContext> = { value: any; context: TContext },
+  TConfig extends MachineConfig<TConfig, TContext, TEvent> = MachineConfig<
+    any,
+    TContext,
+    TEvent
+  >
 >(
-  config: MachineConfig<TContext, TEvent> & { context: TContext },
+  config: TConfig,
   options?: Partial<MachineImplementations<TContext, TEvent>>
 ): StateMachine<TContext, TEvent, TTypestate>;
 export function createMachine<
   TContext extends MachineContext,
   TEvent extends EventObject = AnyEventObject,
-  TTypestate extends Typestate<TContext> = { value: any; context: TContext }
+  TTypestate extends Typestate<TContext> = { value: any; context: TContext },
+  TConfig extends MachineConfig<TConfig, TContext, TEvent> = MachineConfig<
+    any,
+    TContext,
+    TEvent
+  >
 >(
-  config: TContext extends Model<any, any, any>
-    ? never
-    : MachineConfig<TContext, TEvent>,
+  config: TConfig,
   options?: Partial<MachineImplementations<TContext, TEvent>>
 ): StateMachine<TContext, TEvent, TTypestate>;
 export function createMachine<
   TContext extends MachineContext,
   TEvent extends EventObject = AnyEventObject,
-  TTypestate extends Typestate<TContext> = { value: any; context: TContext }
+  TTypestate extends Typestate<TContext> = { value: any; context: TContext },
+  TConfig extends MachineConfig<TConfig, TContext, TEvent> = MachineConfig<
+    any,
+    TContext,
+    TEvent
+  >
 >(
-  definition: MachineConfig<TContext, TEvent>,
+  definition: TConfig,
   implementations?: Partial<MachineImplementations<TContext, TEvent>>
 ): StateMachine<TContext, TEvent, TTypestate> {
   return new StateMachine<TContext, TEvent, TTypestate>(

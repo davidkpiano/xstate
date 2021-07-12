@@ -16,7 +16,7 @@ const pedestrianStates = {
     },
     stop: {}
   }
-};
+} as const;
 
 const lightMachine = createMachine({
   key: 'light',
@@ -258,7 +258,7 @@ describe('machine', () => {
       states: {
         active: {}
       }
-    };
+    } as const;
 
     it.skip('context from a function should be lazily evaluated', () => {
       const testMachine1 = createMachine(testMachineConfig);

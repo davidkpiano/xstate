@@ -24,7 +24,7 @@ describe('strict mode', () => {
         exit: 'exit_stop'
       }
     }
-  };
+  } as const;
 
   const lightMachine = createMachine({
     strict: true,

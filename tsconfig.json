@@ -14,7 +14,8 @@
     "resolveJsonModule": true,
     "jsx": "react",
     "lib": ["es6", "dom"],
-    "strictPropertyInitialization": true
+    "strictPropertyInitialization": true,
+    "noErrorTruncation": true
   },
   "exclude": ["examples"]
 }

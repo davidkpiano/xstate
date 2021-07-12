@@ -18,7 +18,7 @@ describe('deterministic machine', () => {
       },
       stop: {}
     }
-  };
+  } as const;
 
   const lightMachine = createMachine({
     key: 'light',
@@ -68,7 +68,7 @@ describe('deterministic machine', () => {
 
   const deepMachine = createMachine({
     key: 'deep',
-    initial: 'a',
+    initial: 'a1',
     states: {
       a1: {
         initial: 'a2',

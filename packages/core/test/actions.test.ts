@@ -11,7 +11,7 @@ import { ActorRef } from '../src';
 
 describe('entry/exit actions', () => {
   const pedestrianStates = {
-    initial: 'walk',
+    initial: 'walk' as const,
     states: {
       walk: {
         on: {
@@ -69,7 +69,7 @@ describe('entry/exit actions', () => {
   });
 
   const newPedestrianStates = {
-    initial: 'walk',
+    initial: 'walk' as const,
     states: {
       walk: {
         on: {
@@ -385,7 +385,7 @@ describe('entry/exit actions', () => {
 
     describe('should ignore same-parent state actions (sparse)', () => {
       const fooBar = {
-        initial: 'foo',
+        initial: 'foo' as const,
         states: {
           foo: {
             on: {

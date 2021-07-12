@@ -27,7 +27,7 @@ describe('@xstate/graph', () => {
       stop: {},
       flashing: {}
     }
-  };
+  } as const;
 
   const lightMachine = createMachine({
     key: 'light',

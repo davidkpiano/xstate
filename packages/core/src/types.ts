@@ -386,10 +386,11 @@ export type StateNodesConfig<
 };
 
 export type StatesConfig<
+  Self extends StatesConfig<any, any, any>,
   TContext extends MachineContext,
   TEvent extends EventObject
 > = {
-  [K in string]: StateNodeConfig<TContext, TEvent>;
+  [K in keyof Self]: StateNodeConfig<Self[K], TContext, TEvent>;
 };
 
 export type StatesDefinition<
@@ -490,6 +491,7 @@ export interface InvokeConfig<
 }
 
 export interface StateNodeConfig<
+  Self extends StateNodeConfig<any, TContext, TEvent>,
   TContext extends MachineContext,
   TEvent extends EventObject
 > {
@@ -503,7 +505,7 @@ export interface StateNodeConfig<
    */
   initial?:
     | InitialTransitionConfig<TContext, TEvent>
-    | SingleOrArray<string>
+    | SingleOrArray<keyof Self['states']>
     | undefined;
   /**
    * The type of this state node:
@@ -516,12 +518,6 @@ export interface StateNodeConfig<
    */
   type?: 'atomic' | 'compound' | 'parallel' | 'final' | 'history';
   /**
-   * The initial context (extended state) of the machine.
-   *
-   * Can be an object or a function that returns an object.
-   */
-  context?: TContext | (() => TContext);
-  /**
    * Indicates whether the state node is a history state node, and what
    * type of history:
    * shallow, deep, true (shallow), false (none), undefined (none)
@@ -530,7 +526,8 @@ export interface StateNodeConfig<
   /**
    * The mapping of state node keys to their state node configurations (recursive).
    */
-  states?: StatesConfig<TContext, TEvent> | undefined;
+  // @ts-ignore TODO: fix
+  states?: StatesConfig<Self['states'], TContext, TEvent>;
   /**
    * The services to invoke upon entering this state node. These services will be stopped upon exiting this state node.
    */
@@ -626,10 +623,12 @@ export interface StateNodeDefinition<
 
 export type AnyStateNodeDefinition = StateNodeDefinition<any, any>;
 
+export type TODO = any;
+
 export interface AtomicStateNodeConfig<
   TContext extends MachineContext,
   TEvent extends EventObject
-> extends StateNodeConfig<TContext, TEvent> {
+> extends StateNodeConfig<TODO, TContext, TEvent> {
   initial?: undefined;
   parallel?: false | undefined;
   states?: undefined;
@@ -659,7 +658,9 @@ export interface FinalStateNodeConfig<
 export type SimpleOrStateNodeConfig<
   TContext extends MachineContext,
   TEvent extends EventObject
-> = AtomicStateNodeConfig<TContext, TEvent> | StateNodeConfig<TContext, TEvent>;
+> =
+  | AtomicStateNodeConfig<TContext, TEvent>
+  | StateNodeConfig<TODO, TContext, TEvent>;
 
 export type ActionFunctionMap<
   TContext extends MachineContext,
@@ -696,9 +697,10 @@ export interface MachineImplementations<
 }
 
 export interface MachineConfig<
+  Self extends MachineConfig<any, TContext, TEvent>,
   TContext extends MachineContext,
   TEvent extends EventObject
-> extends StateNodeConfig<TContext, TEvent> {
+> extends StateNodeConfig<Self, TContext, TEvent> {
   /**
    * The initial context (extended state)
    */
