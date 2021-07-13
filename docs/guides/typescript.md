@@ -29,7 +29,7 @@ interface LightContext {
   elapsed: number;
 }
 
-const lightMachine = createMachine<LightContext, LightStateSchema, LightEvent>({
+const lightMachine = Machine<LightContext, LightStateSchema, LightEvent>({
   key: 'light',
   initial: 'green',
   context: { elapsed: 0 },
