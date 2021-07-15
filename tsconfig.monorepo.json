@@ -11,6 +11,9 @@
       "path": "./packages/xstate-fsm"
     },
     {
+      "path": "./packages/xstate-form"
+    },
+    {
       "path": "./packages/xstate-graph"
     },
     {
