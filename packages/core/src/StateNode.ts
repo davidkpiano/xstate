@@ -284,7 +284,9 @@ class StateNode<
     /**
      * The raw config used to create the machine.
      */
-    public config: StateNodeConfig<TContext, TStateSchema, TEvent>,
+    public config:
+      | StateNodeConfig<TContext, TStateSchema, TEvent>
+      | HistoryStateNodeConfig<TContext, TEvent>,
     options?: Partial<MachineOptions<TContext, TEvent>>,
     /**
      * The initial extended state

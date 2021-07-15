@@ -36,6 +36,7 @@ editor/
 _examples/
 __examples/
 .vscode/
+.idea
 !.vscode/settings.json
 src/invoke.ts
 *.tsbuildinfo
