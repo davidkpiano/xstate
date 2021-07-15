@@ -14,6 +14,12 @@
     "skipLibCheck": true,
     "jsx": "react",
     "lib": ["es6", "dom"],
-    "strictPropertyInitialization": true
+    "strictPropertyInitialization": true,
+    "paths": {
+      "xstate": ["./packages/core/src"],
+      "xstate/lib/*": ["./packages/core/src/*"],
+      "@xstate/graph": ["./packages/xstate-graph/src"],
+      "@xstate/fsm": ["./packages/xstate-fsm/src"]
+    }
   }
 }

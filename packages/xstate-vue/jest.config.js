@@ -6,5 +6,6 @@ module.exports = {
   transform: {
     // process *.vue files with vue-jest
     '^.+\\.vue$': require.resolve('vue-jest')
-  }
+  },
+  watchPathIgnorePatterns: ['/lib/', '/dist/', '/es/']
 };

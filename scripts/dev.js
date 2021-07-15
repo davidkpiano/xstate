@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const spawnCommand = require('spawn-command');
 
 // spawn build first so dist files are ready by the time we start test script

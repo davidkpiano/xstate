@@ -11,5 +11,6 @@ module.exports = {
       }
     ],
     '^.+\\.ts$': 'ts-jest'
-  }
+  },
+  watchPathIgnorePatterns: ['/lib/', '/dist/', '/es/']
 };
