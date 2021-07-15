@@ -21,20 +21,24 @@ export interface AnyEventObject extends EventObject {
   [key: string]: any;
 }
 
-/**
- * The full definition of an action, with a string `type` and an
- * `exec` implementation function.
- */
-export interface ActionObject<TContext, TEvent extends EventObject> {
+export interface BaseActionObject {
   /**
    * The type of action that is executed.
    */
   type: string;
+  [other: string]: any;
+}
+
+/**
+ * The full definition of an action, with a string `type` and an
+ * `exec` implementation function.
+ */
+export interface ActionObject<TContext, TEvent extends EventObject>
+  extends BaseActionObject {
   /**
    * The implementation for executing the action.
    */
   exec?: ActionFunction<TContext, TEvent>;
-  [other: string]: any;
 }
 
 export type DefaultContext = Record<string, any> | undefined;
@@ -46,9 +50,15 @@ export type EventData = Record<string, any> & { type?: never };
  */
 export type Event<TEvent extends EventObject> = TEvent['type'] | TEvent;
 
-export interface ActionMeta<TContext, TEvent extends EventObject>
-  extends StateMeta<TContext, TEvent> {
-  action: ActionObject<TContext, TEvent>;
+export interface ActionMeta<
+  TContext,
+  TEvent extends EventObject,
+  TAction extends ActionObject<TContext, TEvent> = ActionObject<
+    TContext,
+    TEvent
+  >
+> extends StateMeta<TContext, TEvent> {
+  action: TAction;
   _event: SCXML.Event<TEvent>;
 }
 
@@ -58,10 +68,17 @@ export interface AssignMeta<TContext, TEvent extends EventObject> {
   _event: SCXML.Event<TEvent>;
 }
 
-export type ActionFunction<TContext, TEvent extends EventObject> = (
+export type ActionFunction<
+  TContext,
+  TEvent extends EventObject,
+  TAction extends ActionObject<TContext, TEvent> = ActionObject<
+    TContext,
+    TEvent
+  >
+> = (
   context: TContext,
   event: TEvent,
-  meta: ActionMeta<TContext, TEvent>
+  meta: ActionMeta<TContext, TEvent, TAction>
 ) => void;
 
 export interface ChooseConditon<TContext, TEvent extends EventObject> {
@@ -73,6 +90,28 @@ export type Action<TContext, TEvent extends EventObject> =
   | ActionType
   | ActionObject<TContext, TEvent>
   | ActionFunction<TContext, TEvent>;
+
+export type BaseAction<
+  TContext,
+  TEvent extends EventObject,
+  TAction extends BaseActionObject
+> =
+  | TAction['type']
+  | TAction
+  | RaiseAction<any>
+  | SendAction<TContext, TEvent, any>
+  | AssignAction<TContext, TEvent>
+  | LogAction<TContext, TEvent>
+  | CancelAction
+  | StopAction<TContext, TEvent>
+  | ChooseAction<TContext, TEvent>
+  | ActionFunction<TContext, TEvent>;
+
+export type BaseActions<
+  TContext,
+  TEvent extends EventObject,
+  TAction extends BaseActionObject
+> = SingleOrArray<BaseAction<TContext, TEvent, TAction>>;
 
 export type Actions<TContext, TEvent extends EventObject> = SingleOrArray<
   Action<TContext, TEvent>
@@ -343,12 +382,14 @@ export type StateNodesConfig<
 export type StatesConfig<
   TContext,
   TStateSchema extends StateSchema,
-  TEvent extends EventObject
+  TEvent extends EventObject,
+  TActions extends BaseActionObject = BaseActionObject
 > = {
   [K in keyof TStateSchema['states']]: StateNodeConfig<
     TContext,
     TStateSchema['states'][K],
-    TEvent
+    TEvent,
+    TActions
   >;
 };
 
@@ -455,7 +496,8 @@ export interface InvokeConfig<TContext, TEvent extends EventObject> {
 export interface StateNodeConfig<
   TContext,
   TStateSchema extends StateSchema,
-  TEvent extends EventObject
+  TEvent extends EventObject,
+  TActions extends BaseActionObject = BaseActionObject
 > {
   /**
    * The relative key of the state node, which represents its location in the overall state value.
@@ -495,7 +537,7 @@ export interface StateNodeConfig<
   /**
    * The mapping of state node keys to their state node configurations (recursive).
    */
-  states?: StatesConfig<TContext, TStateSchema, TEvent> | undefined;
+  states?: StatesConfig<TContext, TStateSchema, TEvent, TActions> | undefined;
   /**
    * The services to invoke upon entering this state node. These services will be stopped upon exiting this state node.
    */
@@ -515,7 +557,7 @@ export interface StateNodeConfig<
   /**
    * The action(s) to be executed upon entering the state node.
    */
-  entry?: Actions<TContext, TEvent>;
+  entry?: BaseActions<TContext, TEvent, TActions>;
   /**
    * The action(s) to be executed upon exiting the state node.
    *
@@ -525,7 +567,7 @@ export interface StateNodeConfig<
   /**
    * The action(s) to be executed upon exiting the state node.
    */
-  exit?: Actions<TContext, TEvent>;
+  exit?: BaseActions<TContext, TEvent, TActions>;
   /**
    * The potential transition(s) to be taken upon reaching a final child state node.
    *
@@ -648,10 +690,22 @@ export type SimpleOrStateNodeConfig<
   | AtomicStateNodeConfig<TContext, TEvent>
   | StateNodeConfig<TContext, TStateSchema, TEvent>;
 
-export type ActionFunctionMap<TContext, TEvent extends EventObject> = Record<
-  string,
-  ActionObject<TContext, TEvent> | ActionFunction<TContext, TEvent>
->;
+export type ActionFunctionMap<
+  TContext,
+  TEvent extends EventObject,
+  TActions extends ActionObject<TContext, TEvent> = ActionObject<
+    TContext,
+    TEvent
+  >
+> = {
+  [K in TActions['type']]?:
+    | ActionObject<TContext, TEvent>
+    | ActionFunction<
+        TContext,
+        TEvent,
+        TActions extends { type: K } ? TActions : never
+      >;
+};
 
 export type DelayFunctionMap<TContext, TEvent extends EventObject> = Record<
   string,
@@ -667,9 +721,16 @@ export type DelayConfig<TContext, TEvent extends EventObject> =
   | number
   | DelayExpr<TContext, TEvent>;
 
-export interface MachineOptions<TContext, TEvent extends EventObject> {
+export interface MachineOptions<
+  TContext,
+  TEvent extends EventObject,
+  TActions extends ActionObject<TContext, TEvent> = ActionObject<
+    TContext,
+    TEvent
+  >
+> {
   guards: Record<string, ConditionPredicate<TContext, TEvent>>;
-  actions: ActionFunctionMap<TContext, TEvent>;
+  actions: ActionFunctionMap<TContext, TEvent, TActions>;
   activities: Record<string, ActivityConfig<TContext, TEvent>>;
   services: Record<string, ServiceConfig<TContext, TEvent>>;
   delays: DelayFunctionMap<TContext, TEvent>;
@@ -685,8 +746,9 @@ export interface MachineOptions<TContext, TEvent extends EventObject> {
 export interface MachineConfig<
   TContext,
   TStateSchema extends StateSchema,
-  TEvent extends EventObject
-> extends StateNodeConfig<TContext, TStateSchema, TEvent> {
+  TEvent extends EventObject,
+  TActions extends BaseActionObject = ActionObject<TContext, TEvent>
+> extends StateNodeConfig<TContext, TStateSchema, TEvent, TActions> {
   /**
    * The initial context (extended state)
    */
@@ -735,7 +797,11 @@ export interface StateMachine<
   TContext,
   TStateSchema extends StateSchema,
   TEvent extends EventObject,
-  TTypestate extends Typestate<TContext> = { value: any; context: TContext }
+  TTypestate extends Typestate<TContext> = { value: any; context: TContext },
+  _TActions extends ActionObject<TContext, TEvent> = ActionObject<
+    TContext,
+    TEvent
+  >
 > extends StateNode<TContext, TStateSchema, TEvent, TTypestate> {
   id: string;
   states: StateNode<TContext, TStateSchema, TEvent>['states'];
@@ -1360,7 +1426,7 @@ export interface Behavior<TEvent extends EventObject, TEmitted = any> {
 
 export type EventFrom<T> = T extends StateMachine<any, any, infer TEvent, any>
   ? TEvent
-  : T extends Model<any, infer TEvent, any>
+  : T extends Model<any, infer TEvent, any, any>
   ? TEvent
   : T extends State<any, infer TEvent, any, any>
   ? TEvent
@@ -1375,7 +1441,7 @@ export type ContextFrom<T> = T extends StateMachine<
   any
 >
   ? TContext
-  : T extends Model<infer TContext, any, any>
+  : T extends Model<infer TContext, any, any, any>
   ? TContext
   : T extends State<infer TContext, any, any, any>
   ? TContext

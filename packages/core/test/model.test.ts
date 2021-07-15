@@ -1,4 +1,13 @@
 import { createMachine } from '../src';
+import {
+  cancel,
+  choose,
+  log,
+  send,
+  sendParent,
+  sendUpdate,
+  stop
+} from '../src/actions';
 import { createModel } from '../src/model';
 
 describe('createModel', () => {
@@ -169,7 +178,7 @@ describe('createModel', () => {
           on: {
             updateName: {
               // pre-defined assign action
-              actions: assignName
+              actions: [assignName]
             },
             updateAge: {
               // inline assign action
@@ -197,6 +206,166 @@ describe('createModel', () => {
     );
 
     expect(updatedState.context.age).toEqual(42);
+  });
+
+  it('can model actions', () => {
+    const userModel = createModel(
+      {
+        name: 'David',
+        age: 30
+      },
+      {
+        actions: {
+          greet: (message: string) => ({ message })
+        }
+      }
+    );
+
+    createMachine<typeof userModel>({
+      context: userModel.initialContext,
+      initial: 'active',
+      entry: { type: 'greet', message: 'hello' },
+      exit: { type: 'greet', message: 'goodbye' },
+      states: {
+        active: {
+          entry: [userModel.actions.greet('hello')]
+        }
+      }
+    });
+
+    createMachine<typeof userModel>({
+      context: userModel.initialContext,
+      // @ts-expect-error
+      entry: { type: 'greet' } // missing message
+    });
+
+    createMachine<typeof userModel>({
+      context: userModel.initialContext,
+      // @ts-expect-error
+      entry: { type: 'fake' } // wrong message
+    });
+  });
+
+  it('works with built-in actions', () => {
+    const model = createModel(
+      {},
+      {
+        events: {
+          SAMPLE: () => ({})
+        },
+        actions: {
+          custom: () => ({})
+        }
+      }
+    );
+
+    createMachine<typeof model>({
+      context: model.initialContext,
+      entry: [
+        model.actions.custom(),
+        // raise('SAMPLE'),
+        send('SAMPLE'),
+        sendParent('SOMETHING'),
+        sendUpdate(),
+        // respond('SOMETHING'),
+        log('something'),
+        cancel('something'),
+        stop('something'),
+        model.assign({}),
+        choose([])
+      ],
+      exit: [
+        model.actions.custom(),
+        // raise('SAMPLE'),
+        send('SAMPLE'),
+        sendParent('SOMETHING'),
+        sendUpdate(),
+        // respond('SOMETHING'),
+        log('something'),
+        cancel('something'),
+        stop('something'),
+        model.assign({}),
+        choose([])
+      ],
+      on: {
+        SAMPLE: {
+          actions: [
+            model.actions.custom(),
+            // raise('SAMPLE'),
+            send('SAMPLE'),
+            sendParent('SOMETHING'),
+            sendUpdate(),
+            // respond('SOMETHING'),
+            log('something'),
+            cancel('something'),
+            stop('something'),
+            model.assign({}),
+            choose([])
+          ]
+        }
+      },
+      initial: 'someState',
+      states: {
+        someState: {
+          entry: [
+            model.actions.custom(),
+            // raise('SAMPLE'),
+            send('SAMPLE'),
+            sendParent('SOMETHING'),
+            sendUpdate(),
+            // respond('SOMETHING'),
+            log('something'),
+            cancel('something'),
+            stop('something'),
+            model.assign({}),
+            choose([])
+          ],
+          exit: [
+            model.actions.custom(),
+            // raise('SAMPLE'),
+            send('SAMPLE'),
+            sendParent('SOMETHING'),
+            sendUpdate(),
+            // respond('SOMETHING'),
+            log('something'),
+            cancel('something'),
+            stop('something'),
+            model.assign({}),
+            choose([])
+          ]
+        }
+      }
+    });
+  });
+
+  it('should strongly type action implementations', () => {
+    const model = createModel(
+      {},
+      {
+        events: {
+          SAMPLE: () => ({})
+        },
+        actions: {
+          custom: (param: string) => ({ param })
+        }
+      }
+    );
+
+    createMachine<typeof model>(
+      {
+        context: {}
+      },
+      {
+        actions: {
+          custom: (_ctx, _e, { action }) => {
+            action.param.toUpperCase();
+
+            // @ts-expect-error
+            action.param.whatever();
+          }
+        }
+      }
+    );
   });
 
   it('should typecheck `createMachine` for model without creators', () => {

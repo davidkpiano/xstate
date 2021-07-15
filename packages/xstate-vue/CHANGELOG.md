@@ -80,7 +80,10 @@
   export default {
     props: ['someActor'],
     setup(props) {
-      const count = useSelector(props.someActor, state => state.context.count);
+      const count = useSelector(
+        props.someActor,
+        (state) => state.context.count
+      );
       // ...
       return { count };
     }
@@ -115,7 +118,7 @@
   export default defineComponent({
     setup() {
       const state = ref();
-      const service = useInterpret(machine, {}, nextState => {
+      const service = useInterpret(machine, {}, (nextState) => {
         state.value = nextState.value;
       });
       return { service, state };

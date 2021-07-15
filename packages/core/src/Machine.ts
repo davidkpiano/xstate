@@ -10,7 +10,8 @@ import {
   EventFrom
 } from './types';
 import { StateNode } from './StateNode';
-import { Model, ModelContextFrom } from './model.types';
+import { Model, ModelContextFrom, ModelActionsFrom } from './model.types';
+import { ActionObject } from '.';
 
 /**
  * @deprecated Use `createMachine(...)` instead.
@@ -49,13 +50,16 @@ export function Machine<
 }
 
 export function createMachine<
-  TModel extends Model<any, any, any>,
+  TModel extends Model<any, any, any, any>,
   TContext = ModelContextFrom<TModel>,
   TEvent extends EventObject = EventFrom<TModel>,
-  TTypestate extends Typestate<TContext> = { value: any; context: TContext }
+  TTypestate extends Typestate<TContext> = { value: any; context: TContext },
+  TActions extends ActionObject<TContext, TEvent> = ModelActionsFrom<TModel>
 >(
-  config: MachineConfig<TContext, any, TEvent> & { context: TContext },
-  options?: Partial<MachineOptions<TContext, TEvent>>
+  config: MachineConfig<TContext, any, TEvent, TActions> & {
+    context: TContext;
+  },
+  options?: Partial<MachineOptions<TContext, TEvent, TActions>>
 ): StateMachine<TContext, any, TEvent, TTypestate>;
 export function createMachine<
   TContext,
@@ -64,7 +68,7 @@ export function createMachine<
 >(
   // Ensure that only the first overload matches models, and prevent
   // accidental inference of the model as the `TContext` (which leads to cryptic errors)
-  config: TContext extends Model<any, any, any>
+  config: TContext extends Model<any, any, any, any>
     ? never
     : MachineConfig<TContext, any, TEvent>,
   options?: Partial<MachineOptions<TContext, TEvent>>
