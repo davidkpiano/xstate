@@ -615,3 +615,46 @@ describe('plan description', () => {
     `);
   });
 });
+
+describe('event meta', () => {
+  const machine = Machine({
+    id: 'event meta',
+    initial: 'first',
+    states: {
+      first: {
+        on: { CLICK: { target: 'second', meta: { field: 'one' } } }
+      },
+      second: {
+        on: { CLICK: { target: 'third', meta: { field: 'two' } } }
+      },
+      third: {
+        meta: {
+          test: (context) => context.fields.one && context.fields.two
+        }
+      }
+    }
+  });
+
+  const testModel = createModel<{ fields: Record<string, boolean> }>(
+    machine
+  ).withEvents({
+    CLICK: (context, _, eventMeta) => {
+      context.fields[eventMeta!.field] = true;
+    }
+  });
+
+  const plans = testModel.getShortestPathPlans();
+  plans.forEach((plan) => {
+    describe(`reaches state ${JSON.stringify(
+      plan.state.value
+    )} (${JSON.stringify(plan.state.context)})`, () => {
+      plan.paths.forEach((path) => {
+        describe(path.description, () => {
+          it(`reaches the target state`, () => {
+            return path.test({ fields: {} });
+          });
+        });
+      });
+    });
+  });
+});

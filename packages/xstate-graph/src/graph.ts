@@ -153,9 +153,13 @@ export function getAdjacencyMap<
         (!filter || filter(nextState)) &&
         stateHash !== stateSerializer(nextState)
       ) {
+        const meta = nextState.transitions.find(
+          (transition) => transition.eventType === event.type
+        )?.meta;
         adjacency[stateHash][eventSerializer(event)] = {
           state: nextState,
-          event
+          event,
+          eventMeta: meta
         };
 
         findAdjacencies(nextState);
@@ -246,7 +250,8 @@ export function getShortestPaths<
               state,
               segments: statePathMap[fromState].paths[0].segments.concat({
                 state: stateMap.get(fromState)!,
-                event: deserializeEventString(fromEvent!) as TEvent
+                event: deserializeEventString(fromEvent!) as TEvent,
+                eventMeta: adjacency[fromState][fromEvent!].eventMeta
               }),
               weight
             }

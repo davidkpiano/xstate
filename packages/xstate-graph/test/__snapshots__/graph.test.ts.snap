@@ -11,6 +11,7 @@ Object {
               "id": "whatever",
               "type": "EVENT",
             },
+            "eventMeta": undefined,
             "state": Object {
               "_event": Object {
                 "$$type": "scxml",
@@ -189,6 +190,7 @@ Object {
             "event": Object {
               "type": "STATE",
             },
+            "eventMeta": undefined,
             "state": Object {
               "_event": Object {
                 "$$type": "scxml",
@@ -656,6 +658,7 @@ Object {
             "event": Object {
               "type": "2",
             },
+            "eventMeta": undefined,
             "state": Object {
               "_event": Object {
                 "$$type": "scxml",
@@ -882,6 +885,7 @@ Object {
             "event": Object {
               "type": "3",
             },
+            "eventMeta": undefined,
             "state": Object {
               "_event": Object {
                 "$$type": "scxml",
@@ -1403,6 +1407,7 @@ Object {
             "event": Object {
               "type": "TIMER",
             },
+            "eventMeta": undefined,
             "state": Object {
               "_event": Object {
                 "$$type": "scxml",
@@ -1589,6 +1594,7 @@ Object {
             "event": Object {
               "type": "POWER_OUTAGE",
             },
+            "eventMeta": undefined,
             "state": Object {
               "_event": Object {
                 "$$type": "scxml",
@@ -1783,6 +1789,7 @@ Object {
             "event": Object {
               "type": "TIMER",
             },
+            "eventMeta": undefined,
             "state": Object {
               "_event": Object {
                 "$$type": "scxml",
@@ -1876,6 +1883,7 @@ Object {
             "event": Object {
               "type": "TIMER",
             },
+            "eventMeta": undefined,
             "state": Object {
               "_event": Object {
                 "$$type": "scxml",
@@ -1923,6 +1931,7 @@ Object {
             "event": Object {
               "type": "PED_COUNTDOWN",
             },
+            "eventMeta": undefined,
             "state": Object {
               "_event": Object {
                 "$$type": "scxml",
@@ -1974,6 +1983,7 @@ Object {
             "event": Object {
               "type": "PED_COUNTDOWN",
             },
+            "eventMeta": undefined,
             "state": Object {
               "_event": Object {
                 "$$type": "scxml",
@@ -2131,6 +2141,7 @@ Object {
             "event": Object {
               "type": "TIMER",
             },
+            "eventMeta": undefined,
             "state": Object {
               "_event": Object {
                 "$$type": "scxml",
@@ -2224,6 +2235,7 @@ Object {
             "event": Object {
               "type": "TIMER",
             },
+            "eventMeta": undefined,
             "state": Object {
               "_event": Object {
                 "$$type": "scxml",
@@ -2271,6 +2283,7 @@ Object {
             "event": Object {
               "type": "PED_COUNTDOWN",
             },
+            "eventMeta": undefined,
             "state": Object {
               "_event": Object {
                 "$$type": "scxml",
@@ -2433,6 +2446,7 @@ Object {
             "event": Object {
               "type": "TIMER",
             },
+            "eventMeta": undefined,
             "state": Object {
               "_event": Object {
                 "$$type": "scxml",
@@ -2526,6 +2540,7 @@ Object {
             "event": Object {
               "type": "TIMER",
             },
+            "eventMeta": undefined,
             "state": Object {
               "_event": Object {
                 "$$type": "scxml",

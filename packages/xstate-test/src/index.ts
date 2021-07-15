@@ -19,6 +19,8 @@ import {
   CoverageOptions
 } from './types';
 
+export * from './types';
+
 /**
  * Creates a test model that represents an abstract model of a
  * system under test (SUT).
@@ -130,7 +132,8 @@ export class TestModel<TTestContext, TContext> {
             ...segment,
             description: getDescription(segment.state),
             test: (testContext) => this.testState(segment.state, testContext),
-            exec: (testContext) => this.executeEvent(segment.event, testContext)
+            exec: (testContext) =>
+              this.executeEvent(segment.event, testContext, segment.eventMeta)
           };
         });
 
@@ -299,11 +302,15 @@ export class TestModel<TTestContext, TContext> {
     return testEvent.exec;
   }
 
-  public async executeEvent(event: EventObject, testContext: TTestContext) {
+  public async executeEvent(
+    event: EventObject,
+    testContext: TTestContext,
+    meta?: Record<string, any>
+  ) {
     const executor = this.getEventExecutor(event);
 
     if (executor) {
-      await executor(testContext, event);
+      await executor(testContext, event, meta);
     }
   }
 

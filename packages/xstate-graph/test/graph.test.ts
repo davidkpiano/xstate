@@ -380,6 +380,30 @@ describe('@xstate/graph', () => {
 
       expect(adj).toHaveProperty('"second" | {"count":10}');
     });
+    it('should pass event meta via function', () => {
+      const machine = createMachine<{ count: number }, { type: 'EVENT' }>({
+        initial: 'first',
+        context: {
+          count: 0
+        },
+        states: {
+          first: {
+            on: {
+              EVENT: {
+                target: 'second',
+                meta: { someMeta: 'value' }
+              }
+            }
+          },
+          second: {}
+        }
+      });
+
+      const adj = getAdjacencyMap(machine);
+      expect(
+        adj['"first" | {"count":0}']['{"type":"EVENT"}']
+      ).toHaveProperty('eventMeta', { someMeta: 'value' });
+    });
   });
 
   describe('toDirectedGraph', () => {

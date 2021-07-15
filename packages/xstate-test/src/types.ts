@@ -97,7 +97,11 @@ export type EventExecutor<T> = (
   /**
    * The represented event that will be triggered when executed
    */
-  event: EventObject
+  event: EventObject,
+  /**
+   * The meta object on the Event transition definition
+   */
+  meta?: Record<string, any>
 ) => Promise<any> | void;
 
 export interface TestEventConfig<TTestContext> {

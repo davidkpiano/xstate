@@ -135,6 +135,7 @@ Provides testing details for each event. Each key in `eventsMap` is an object wh
 - `exec` (function): Function that executes the events. It is given two arguments:
   - `testContext` (any): any contextual testing data
   - `event` (EventObject): the event sent by the testing model
+  - `eventMeta` (undefined | Record<string, any>): Any metadata in the transition object of the event
 - `cases?` (EventObject[]): the sample event objects for this event type that can be sent by the testing model.
 
 **Example**

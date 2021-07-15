@@ -61,6 +61,7 @@ export interface AdjacencyMap<TContext, TEvent extends EventObject> {
     {
       state: State<TContext, TEvent>;
       event: TEvent;
+      eventMeta?: Record<string, any>;
     }
   >;
 }
@@ -103,6 +104,7 @@ export interface Segment<TContext, TEvent extends EventObject> {
    * The event to be taken from the specified state.
    */
   event: TEvent;
+  eventMeta?: Record<string, any>;
 }
 
 export type Segments<TContext, TEvent extends EventObject> = Array<
