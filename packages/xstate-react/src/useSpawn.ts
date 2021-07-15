@@ -1,6 +1,6 @@
-import { ActorRef, Behavior, EventObject } from 'xstate';
-import { spawnBehavior } from 'xstate/lib/behaviors';
+import { ActorRef, EventObject } from 'xstate';
 import useConstant from './useConstant';
+import { spawnBehavior, Behavior } from './xstateCoreCopies';
 
 /**
  * React hook that spawns an `ActorRef` with the specified `behavior`.

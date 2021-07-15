@@ -9,7 +9,7 @@ import {
 } from './types';
 import { isMachine, mapContext, toInvokeSource } from './utils';
 import * as serviceScope from './serviceScope';
-import { ActorRef, BaseActorRef } from '.';
+import { ActorRef, BaseActorRef } from './types';
 
 export interface Actor<
   TContext = any,
