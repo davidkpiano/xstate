@@ -3,7 +3,8 @@ import {
   ActionObject,
   AssignAction,
   assign as xstateAssign,
-  AssignMeta
+  AssignMeta,
+  Assigner
 } from 'xstate';
 import { produce, Draft } from 'immer';
 
@@ -26,7 +27,23 @@ function immerAssign<TContext, TEvent extends EventObject = EventObject>(
   });
 }
 
-export { immerAssign as assign };
+function produceAssign<TContext, TEvent extends EventObject>(
+  recipe: ImmerAssigner<TContext, TEvent>
+): Assigner<TContext, TEvent> {
+  return (
+    context: TContext,
+    event: TEvent,
+    meta: AssignMeta<TContext, TEvent>
+  ) => {
+    const newState = produce(
+      context,
+      (draft) => void recipe(draft, event, meta)
+    );
+    return newState;
+  };
+}
+
+export { immerAssign as assign, produceAssign };
 
 export interface ImmerUpdateEvent<
   TType extends string = string,
