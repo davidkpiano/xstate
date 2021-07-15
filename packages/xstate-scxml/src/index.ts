@@ -126,7 +126,7 @@ function stateNodeToSCXML(stateNode: StateNode<any, any, any>): XMLElement {
     Object.keys(stateNode.on).map((event) => {
       const transitions = stateNode.on[event];
 
-      return transitions.map((transition) => transitionToSCXML(transition));
+      return transitions!.map((transition) => transitionToSCXML(transition));
     })
   );
 

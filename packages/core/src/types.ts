@@ -1045,7 +1045,7 @@ export interface TransitionDefinition<TContext, TEvent extends EventObject>
 }
 
 export type TransitionDefinitionMap<TContext, TEvent extends EventObject> = {
-  [K in TEvent['type'] | NullEvent['type'] | '*']: Array<
+  [K in TEvent['type'] | NullEvent['type'] | '*']?: Array<
     TransitionDefinition<
       TContext,
       K extends TEvent['type'] ? Extract<TEvent, { type: K }> : EventObject

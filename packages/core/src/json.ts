@@ -49,7 +49,7 @@ export function machineToJSON(stateNode: StateNode): StateNodeConfig {
     entry: stateNode.onEntry,
     exit: stateNode.onExit,
     on: mapValues(stateNode.on, (transition) => {
-      return transition.map((t) => {
+      return transition!.map((t) => {
         return {
           target: t.target ? t.target.map(getStateNodeId) : [],
           source: getStateNodeId(t.source),

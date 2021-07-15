@@ -261,7 +261,7 @@ class StateNode<
       | Array<TransitionDefinition<TContext, TEvent>>
       | undefined,
     candidates: {} as {
-      [K in TEvent['type'] | NullEvent['type'] | '*']:
+      [K in TEvent['type'] | NullEvent['type'] | '*']?:
         | Array<
             TransitionDefinition<
               TContext,
@@ -536,7 +536,7 @@ class StateNode<
 
     return (this.__cache.on = transitions.reduce((map, transition) => {
       map[transition.eventType] = map[transition.eventType] || [];
-      map[transition.eventType].push(transition as any);
+      map[transition.eventType]!.push(transition as any);
       return map;
     }, {} as TransitionDefinitionMap<TContext, TEvent>));
   }

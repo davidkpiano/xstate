@@ -1,4 +1,10 @@
-import { Machine, assign, createMachine, interpret } from '../src/index';
+import {
+  Machine,
+  assign,
+  createMachine,
+  interpret,
+  MachineConfig
+} from '../src/index';
 import { raise } from '../src/actions';
 
 function noop(_x) {
@@ -384,5 +390,27 @@ describe('Typestates', () => {
       ? service.state.context
       : { result: none, error: 'oops' };
     expect(failed).toEqual({ result: none, error: 'oops' });
+  });
+});
+
+describe('assignability', () => {
+  it('should accept config handling subset of events as part of the whole config handling superset of those events', () => {
+    const EditorConfig: MachineConfig<
+      any,
+      any,
+      { type: 'TOGGLE_ITALIC' } | { type: 'TOGGLE_BOLD' }
+    > = {
+      type: 'parallel',
+      states: {
+        italic: {
+          ...({} as MachineConfig<any, any, { type: 'TOGGLE_ITALIC' }>)
+        },
+        bold: {
+          ...({} as MachineConfig<any, any, { type: 'TOGGLE_BOLD' }>)
+        }
+      }
+    };
+
+    expect(true).toBeTruthy();
   });
 });
