@@ -214,6 +214,12 @@ const timeOfDayService = interpret(timeOfDayMachine.withContext({ time: Date.now
 
 <iframe src="https://xstate.js.org/viz/?gist=ca6a3f84f585c3e9cd6aadc3ae00b886&embed=1"></iframe>
 
+::: warning
+The event object of a transition to a transient state is not available in the conditions or actions
+defined under the null event. In the example above, `isBeforeNoon` and `isBeforeSix` would receive `{ type: '' }` as the
+second parameter, not the initial event type and data that transitioned to `unknown`.
+:::
+
 ## State Node Meta Data
 
 Meta data, which is static data that describes relevant properties of any [state node](./statenodes.md), can be specified on the `.meta` property of the state node:
