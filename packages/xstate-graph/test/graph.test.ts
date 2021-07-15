@@ -5,7 +5,8 @@ import {
   getShortestPaths,
   toDirectedGraph
 } from '../src/index';
-import { getSimplePathsAsArray, getAdjacencyMap } from '../src/graph';
+import { getSimplePathsAsArray } from '../src/graph';
+import { getAdjacencyMap } from '../src/adjacency';
 import { assign } from 'xstate';
 
 describe('@xstate/graph', () => {

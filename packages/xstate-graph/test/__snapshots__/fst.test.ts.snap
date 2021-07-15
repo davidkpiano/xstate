@@ -1,0 +1,157 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`fst should 1`] = `
+Array [
+  Object {
+    "paths": Array [
+      Object {
+        "segments": Array [
+          Object {
+            "event": Object {
+              "type": "FILL_5",
+            },
+            "state": Array [
+              0,
+              0,
+            ],
+          },
+          Object {
+            "event": Object {
+              "type": "TRANSFER_5",
+            },
+            "state": Array [
+              0,
+              5,
+            ],
+          },
+          Object {
+            "event": Object {
+              "type": "EMPTY_3",
+            },
+            "state": Array [
+              3,
+              2,
+            ],
+          },
+          Object {
+            "event": Object {
+              "type": "TRANSFER_5",
+            },
+            "state": Array [
+              0,
+              2,
+            ],
+          },
+          Object {
+            "event": Object {
+              "type": "FILL_5",
+            },
+            "state": Array [
+              2,
+              0,
+            ],
+          },
+          Object {
+            "event": Object {
+              "type": "TRANSFER_5",
+            },
+            "state": Array [
+              2,
+              5,
+            ],
+          },
+        ],
+        "state": Array [
+          3,
+          4,
+        ],
+        "weight": 6,
+      },
+    ],
+    "state": Array [
+      3,
+      4,
+    ],
+  },
+  Object {
+    "paths": Array [
+      Object {
+        "segments": Array [
+          Object {
+            "event": Object {
+              "type": "FILL_5",
+            },
+            "state": Array [
+              0,
+              0,
+            ],
+          },
+          Object {
+            "event": Object {
+              "type": "TRANSFER_5",
+            },
+            "state": Array [
+              0,
+              5,
+            ],
+          },
+          Object {
+            "event": Object {
+              "type": "EMPTY_3",
+            },
+            "state": Array [
+              3,
+              2,
+            ],
+          },
+          Object {
+            "event": Object {
+              "type": "TRANSFER_5",
+            },
+            "state": Array [
+              0,
+              2,
+            ],
+          },
+          Object {
+            "event": Object {
+              "type": "FILL_5",
+            },
+            "state": Array [
+              2,
+              0,
+            ],
+          },
+          Object {
+            "event": Object {
+              "type": "TRANSFER_5",
+            },
+            "state": Array [
+              2,
+              5,
+            ],
+          },
+          Object {
+            "event": Object {
+              "type": "EMPTY_3",
+            },
+            "state": Array [
+              3,
+              4,
+            ],
+          },
+        ],
+        "state": Array [
+          0,
+          4,
+        ],
+        "weight": 7,
+      },
+    ],
+    "state": Array [
+      0,
+      4,
+    ],
+  },
+]
+`;

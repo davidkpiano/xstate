@@ -65,6 +65,16 @@ export interface AdjacencyMap<TContext, TEvent extends EventObject> {
   >;
 }
 
+export interface AdjacencyMapFST<TState, TInput> {
+  [stateId: string]: Record<
+    string,
+    {
+      state: TState;
+      event: TInput;
+    }
+  >;
+}
+
 export interface StatePaths<TContext, TEvent extends EventObject> {
   /**
    * The target state.
@@ -74,6 +84,17 @@ export interface StatePaths<TContext, TEvent extends EventObject> {
    * The paths that reach the target state.
    */
   paths: Array<StatePath<TContext, TEvent>>;
+}
+
+export interface StatePathsFST<TState, TInput> {
+  /**
+   * The target state.
+   */
+  state: TState;
+  /**
+   * The paths that reach the target state.
+   */
+  paths: Array<StatePathFST<TState, TInput>>;
 }
 
 export interface StatePath<TContext, TEvent extends EventObject> {
@@ -91,9 +112,29 @@ export interface StatePath<TContext, TEvent extends EventObject> {
   weight: number;
 }
 
+export interface StatePathFST<TState, TInput> {
+  /**
+   * The ending state of the path.
+   */
+  state: TState;
+  /**
+   * The ordered array of state-event pairs (segments) which reach the ending `state`.
+   */
+  segments: SegmentsFST<TState, TInput>;
+  /**
+   * The combined weight of all segments in the path.
+   */
+  weight: number;
+}
+
 export interface StatePathsMap<TContext, TEvent extends EventObject> {
   [key: string]: StatePaths<TContext, TEvent>;
 }
+
+export interface StatePathsMapFST<TState, TInput> {
+  [key: string]: StatePathsFST<TState, TInput>;
+}
+
 export interface Segment<TContext, TEvent extends EventObject> {
   /**
    * The current state before taking the event.
@@ -105,9 +146,22 @@ export interface Segment<TContext, TEvent extends EventObject> {
   event: TEvent;
 }
 
+export interface SegmentFST<TState, TInput> {
+  /**
+   * The current state before taking the event.
+   */
+  state: TState;
+  /**
+   * The event to be taken from the specified state.
+   */
+  event: TInput;
+}
+
 export type Segments<TContext, TEvent extends EventObject> = Array<
   Segment<TContext, TEvent>
 >;
+
+export type SegmentsFST<TState, TInput> = Array<SegmentFST<TState, TInput>>;
 
 export type ExtractEvent<
   TEvent extends EventObject,
@@ -123,4 +177,11 @@ export interface ValueAdjMapOptions<TContext, TEvent extends EventObject> {
   filter?: (state: State<TContext, any>) => boolean;
   stateSerializer?: (state: State<TContext, any>) => string;
   eventSerializer?: (event: TEvent) => string;
+}
+
+export interface ValueAdjMapOptionsFST<TState, TInput> {
+  events: { [key: string]: TInput[] };
+  filter: (state: TState) => boolean;
+  stateSerializer: (state: TState) => string;
+  eventSerializer: (event: TInput) => string;
 }
