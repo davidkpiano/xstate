@@ -118,7 +118,7 @@ export class State<
    * The next events that will cause a transition from the current state.
    */
   // @ts-ignore - getter for this gets configured in constructor so this property can stay non-enumerable
-  public nextEvents: EventType[];
+  public nextEvents: Array<TEvent['type']>;
   /**
    * The transition definitions that resulted in this state.
    */
