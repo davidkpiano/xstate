@@ -173,6 +173,29 @@ const plans = todosModel.getShortestPathPlans({
 });
 ```
 
+### `testModel.getShortestPathPlansTo(options?)`
+
+Returns an array of testing plans based on the shortest paths from the test model's initial state to a given state specified by the `stateValue`.
+
+**Options**
+
+| Argument | Type     | Description                                                                                                    |
+| -------- | -------- | -------------------------------------------------------------------------------------------------------------- |
+| `stateValue` | string or function | Specifies a target state or a filter function which takes in the `state` and returns `true` if the state should be targeted |
+
+```js
+const todosModel = createModel(todosMachine).withEvents({
+  /* ... */
+});
+
+const plans = todosModel.getShortestPathPlansTo({
+  filter: (state) => state.matches('TODO.DELETE')
+});
+
+// Equivalent:
+const plans = todosModel.getShortestPathPlansTo('TODO.DELETE');
+```
+
 ### `testModel.getSimplePathPlans(options?)`
 
 Returns an array of testing plans based on the simple paths from the test model's initial state to every other reachable state.
@@ -182,6 +205,29 @@ Returns an array of testing plans based on the simple paths from the test model'
 | Argument | Type     | Description                                                                                                    |
 | -------- | -------- | -------------------------------------------------------------------------------------------------------------- |
 | `filter` | function | Takes in the `state` and returns `true` if the state should be traversed, or `false` if traversal should stop. |
+
+### `testModel.getSimplePathPlansTo(options?)`
+
+Returns an array of testing plans based on the simple paths from the test model's initial state to a given state specified by the `stateValue`.
+
+**Options**
+
+| Argument | Type     | Description                                                                                                    |
+| -------- | -------- | -------------------------------------------------------------------------------------------------------------- |
+| `stateValue` | string or function | Specifies a target state or a filter function which takes in the `state` and returns `true` if the state should be targeted. |
+
+```js
+const todosModel = createModel(todosMachine).withEvents({
+  /* ... */
+});
+
+const plans = todosModel.getSimplePathPlansTo({
+  filter: (state) => state.matches('TODO.DELETE')
+});
+
+// Equivalent:
+const plans = todosModel.getSimplePathPlansTo('TODO.DELETE');
+```
 
 ### `testModel.testCoverage(options?)`
 
