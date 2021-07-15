@@ -351,6 +351,33 @@ class StateNode<
         )
       : EMPTY_OBJECT) as StateNodesConfig<TContext, TStateSchema, TEvent>;
 
+    if (!IS_PRODUCTION && this.type === 'parallel' && this.config.onDone) {
+      const childKeysWithoutFinalSubstates = Object.keys(this.states).filter(
+        (childKey) => {
+          const childState = this.states[childKey] as StateNode<
+            any,
+            any,
+            any,
+            any
+          >;
+          return !Object.keys(childState.states).some((grandchildKey) => {
+            const grandchildState = childState.states[
+              grandchildKey
+            ] as StateNode<any, any, any, any>;
+            return grandchildState.type === 'final';
+          });
+        }
+      );
+      warn(
+        !childKeysWithoutFinalSubstates.length,
+        `\`onDone\` transition of the "${
+          this.id
+        }" state won't have any effect because one or more of its children states (${childKeysWithoutFinalSubstates
+          .map((key) => `"${key}"`)
+          .join(', ')}) don't have any final substates.`
+      );
+    }
+
     // Document order
     let order = 0;
 
