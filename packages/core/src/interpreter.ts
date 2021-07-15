@@ -37,7 +37,13 @@ import {
 } from './types';
 import { State, bindActionToState, isState } from './State';
 import * as actionTypes from './actionTypes';
-import { doneInvoke, error, getActionFunction, initEvent } from './actions';
+import {
+  doneInvoke,
+  error,
+  getActionFunction,
+  initEvent,
+  resolveActions
+} from './actions';
 import { IS_PRODUCTION } from './environment';
 import {
   isPromiseLike,
@@ -517,7 +523,15 @@ export class Interpreter<
     }
 
     this.state.configuration.forEach((stateNode) => {
-      for (const action of stateNode.definition.exit) {
+      const exitActions = stateNode.definition.exit;
+      const [resolvedExitActions] = resolveActions(
+        this.machine,
+        this.state,
+        this.state.context,
+        toSCXMLEvent('xstate.stop'), // dummy event, for now
+        exitActions
+      );
+      for (const action of resolvedExitActions) {
         this.exec(action, this.state);
       }
     });

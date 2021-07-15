@@ -2600,6 +2600,40 @@ describe('invoke', () => {
       .onDone(() => done())
       .start();
   });
+
+  // https://github.com/davidkpiano/xstate/issues/2057
+  it('should not throw when child attempts to send event to parent upon parent termination', () => {
+    // Invoked child machine
+    const pongMachine = Machine({
+      id: 'pong',
+      initial: 'active',
+      states: {
+        active: {
+          entry: sendParent('ENTRY_EVENT'),
+          exit: sendParent('EXIT_EVENT')
+        }
+      }
+    });
+
+    // Parent machine
+    const pingMachine = Machine({
+      id: 'ping',
+      initial: 'active',
+      states: {
+        active: {
+          invoke: {
+            id: 'pong',
+            src: pongMachine
+          }
+        }
+      }
+    });
+
+    expect(() => {
+      const service = interpret(pingMachine).start();
+      service.stop();
+    }).not.toThrow();
+  });
 });
 
 describe('services option', () => {
