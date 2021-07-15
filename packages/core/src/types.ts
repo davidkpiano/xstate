@@ -1134,6 +1134,43 @@ export interface Typestate<TContext> {
   context: TContext;
 }
 
+type KeyOfUnion<T> = T extends unknown ? keyof T : never;
+
+type MergeUnion<T> = {
+  [K in keyof T]: T[K];
+} &
+  {
+    [K in Exclude<KeyOfUnion<T>, keyof T>]?: T extends Record<K, any>
+      ? T[K] | undefined
+      : never;
+  };
+
+export type CombineTypestates<
+  TStates extends Typestate<any>
+> = TStates['context'] extends infer C
+  ? TStates extends Typestate<any>
+    ? {
+        value: TStates['value'];
+        context: {
+          [K in keyof (MergeUnion<C> &
+            TStates['context'])]: K extends keyof TStates['context']
+            ? TStates['context'][K]
+            : undefined;
+        };
+      }
+    : never
+  : never;
+
+export type CombineTypestateTuples<
+  TStates extends [StateValue, any]
+> = CombineTypestates<
+  TStates extends [infer V, infer C] ? { value: V; context: C } : never
+>;
+
+export type TypestateContext<T extends Typestate<any>> = {
+  [K in keyof T['context']]: T['context'][K];
+};
+
 export interface StateLike<TContext> {
   value: StateValue;
   context: TContext;

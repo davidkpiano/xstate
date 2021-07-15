@@ -1,9 +1,24 @@
-import { Machine, assign, createMachine, interpret } from '../src/index';
+import {
+  CombineTypestates,
+  CombineTypestateTuples,
+  Machine,
+  TypestateContext,
+  assign,
+  createMachine,
+  interpret
+} from '../src/index';
 import { raise } from '../src/actions';
 
 function noop(_x) {
   return;
 }
+
+type IsEqual<A, B> = [
+  A extends B ? true : false,
+  B extends A ? true : false
+] extends [true, true]
+  ? true
+  : false;
 
 describe('StateSchema', () => {
   interface LightStateSchema {
@@ -385,4 +400,56 @@ describe('Typestates', () => {
       : { result: none, error: 'oops' };
     expect(failed).toEqual({ result: none, error: 'oops' });
   });
+});
+
+describe('CombineTypestates', () => {
+  type TaskTypestate = CombineTypestates<
+    | { value: 'idle' | 'running'; context: { common: boolean } }
+    | { value: 'succeeded'; context: { common: boolean; result: number } }
+    | { value: 'failed'; context: { common: number; error: string } }
+    | { value: { parent: 'child' }; context: { common: boolean } }
+  >;
+
+  type TaskTypestateTuples = CombineTypestateTuples<
+    | ['idle' | 'running', { common: boolean }]
+    | ['succeeded', { common: boolean; result: number }]
+    | ['failed', { common: number; error: string }]
+    | [{ parent: 'child' }, { common: boolean }]
+  >;
+
+  type Expected =
+    | {
+        value: 'idle' | 'running' | { parent: 'child' };
+        context: { common: boolean; result?: undefined; error?: undefined };
+      }
+    | {
+        value: 'succeeded';
+        context: { common: boolean; result: number; error?: undefined };
+      }
+    | {
+        value: 'failed';
+        context: { common: number; result?: undefined; error: string };
+      };
+
+  noop((): IsEqual<TaskTypestate, Expected> => true);
+  noop((): IsEqual<TaskTypestateTuples, Expected> => true);
+});
+
+describe('TypestateContext', () => {
+  type TaskTypestate = CombineTypestates<
+    | { value: 'idle' | 'running'; context: { common: boolean } }
+    | { value: 'succeeded'; context: { common: boolean; result: number } }
+    | { value: 'failed'; context: { common: number; error: string } }
+    | { value: { parent: 'child' }; context: { common: boolean } }
+  >;
+
+  type TaskContext = TypestateContext<TaskTypestate>;
+
+  type Expected = {
+    common: boolean | number;
+    result?: number;
+    error?: string;
+  };
+
+  noop((): IsEqual<TaskContext, Expected> => true);
 });
