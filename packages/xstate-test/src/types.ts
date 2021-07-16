@@ -1,5 +1,6 @@
 import { EventObject, State, StateNode } from 'xstate';
-export interface TestMeta<T, TContext> {
+import { MachineContext } from '../../core/src';
+export interface TestMeta<T, TContext extends MachineContext> {
   test?: (testContext: T, state: State<TContext, any>) => Promise<void> | void;
   description?: string | ((state: State<TContext, any>) => string);
   skip?: boolean;
@@ -40,7 +41,7 @@ export interface TestPathResult {
  * A collection of `paths` used to verify that the SUT reaches
  * the target `state`.
  */
-export interface TestPlan<TTestContext, TContext> {
+export interface TestPlan<TTestContext, TContext extends MachineContext> {
   /**
    * The target state.
    */
@@ -84,7 +85,9 @@ interface EventCase {
   [prop: string]: any;
 }
 
-export type StatePredicate<TContext> = (state: State<TContext, any>) => boolean;
+export type StatePredicate<TContext extends MachineContext> = (
+  state: State<TContext, any>
+) => boolean;
 /**
  * Executes an effect using the `testContext` and `event`
  * that triggers the represented `event`.
@@ -139,6 +142,6 @@ export interface TestModelCoverage {
   transitions: Map<string, Map<EventObject, number>>;
 }
 
-export interface CoverageOptions<TContext> {
-  filter?: (stateNode: StateNode<TContext, any, any>) => boolean;
+export interface CoverageOptions<TContext extends MachineContext> {
+  filter?: (stateNode: StateNode<TContext, any>) => boolean;
 }

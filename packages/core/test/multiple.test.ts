@@ -1,7 +1,7 @@
-import { Machine } from '../src/index';
+import { createMachine } from '../src/index';
 
 describe('multiple', () => {
-  const machine = Machine({
+  const machine = createMachine({
     key: 'machine',
     initial: 'simple',
     states: {

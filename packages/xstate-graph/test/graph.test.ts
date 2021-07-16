@@ -1,4 +1,4 @@
-import { Machine, StateNode, createMachine } from 'xstate';
+import { StateNode, createMachine, assign } from 'xstate';
 import {
   getStateNodes,
   getSimplePaths,
@@ -6,7 +6,6 @@ import {
   toDirectedGraph
 } from '../src/index';
 import { getSimplePathsAsArray, getAdjacencyMap } from '../src/graph';
-import { assign } from 'xstate';
 
 describe('@xstate/graph', () => {
   const pedestrianStates = {
@@ -30,7 +29,7 @@ describe('@xstate/graph', () => {
     }
   };
 
-  const lightMachine = Machine({
+  const lightMachine = createMachine({
     key: 'light',
     initial: 'green',
     states: {
@@ -62,27 +61,30 @@ describe('@xstate/graph', () => {
   });
 
   interface CondMachineCtx {
-    id: string;
+    id?: string;
   }
   type CondMachineEvents = { type: 'EVENT'; id: string } | { type: 'STATE' };
 
-  const condMachine = Machine<CondMachineCtx, CondMachineEvents>({
+  const condMachine = createMachine<CondMachineCtx, CondMachineEvents>({
     key: 'cond',
     initial: 'pending',
+    context: {
+      id: undefined
+    },
     states: {
       pending: {
         on: {
           EVENT: [
             {
               target: 'foo',
-              cond: (_, e) => e.id === 'foo'
+              guard: (_, e) => e.id === 'foo'
             },
             { target: 'bar' }
           ],
           STATE: [
             {
               target: 'foo',
-              cond: (s) => s.id === 'foo'
+              guard: (s) => s.id === 'foo'
             },
             { target: 'bar' }
           ]
@@ -93,7 +95,7 @@ describe('@xstate/graph', () => {
     }
   });
 
-  const parallelMachine = Machine({
+  const parallelMachine = createMachine({
     type: 'parallel',
     key: 'p',
     states: {
@@ -213,7 +215,7 @@ describe('@xstate/graph', () => {
       expect(paths).toMatchSnapshot('simple paths');
     });
 
-    const equivMachine = Machine({
+    const equivMachine = createMachine({
       initial: 'a',
       states: {
         a: { on: { FOO: 'b', BAR: 'b' } },
@@ -250,7 +252,7 @@ describe('@xstate/graph', () => {
         type: 'INC';
         value: number;
       }
-      const countMachine = Machine<Ctx, Events>({
+      const countMachine = createMachine<Ctx, Events>({
         id: 'count',
         initial: 'start',
         context: {
@@ -260,7 +262,7 @@ describe('@xstate/graph', () => {
           start: {
             always: {
               target: 'finish',
-              cond: (ctx) => ctx.count === 3
+              guard: (ctx) => ctx.count === 3
             },
             on: {
               INC: {
@@ -301,7 +303,7 @@ describe('@xstate/graph', () => {
       }
       type Events = { type: 'INC'; value: number } | { type: 'DEC' };
 
-      const counterMachine = Machine<Ctx, Events>({
+      const counterMachine = createMachine<Ctx, Events>({
         id: 'counter',
         initial: 'empty',
         context: {
@@ -312,7 +314,7 @@ describe('@xstate/graph', () => {
           empty: {
             always: {
               target: 'full',
-              cond: (ctx) => ctx.count === 5
+              guard: (ctx) => ctx.count === 5
             },
             on: {
               INC: {

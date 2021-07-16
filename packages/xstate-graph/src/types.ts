@@ -3,7 +3,8 @@ import {
   EventObject,
   StateValue,
   StateNode,
-  TransitionDefinition
+  TransitionDefinition,
+  MachineContext
 } from 'xstate';
 
 export interface TransitionMap {
@@ -55,7 +56,10 @@ export type DirectedGraphNode = JSONSerializable<
   }
 >;
 
-export interface AdjacencyMap<TContext, TEvent extends EventObject> {
+export interface AdjacencyMap<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+> {
   [stateId: string]: Record<
     string,
     {
@@ -65,7 +69,10 @@ export interface AdjacencyMap<TContext, TEvent extends EventObject> {
   >;
 }
 
-export interface StatePaths<TContext, TEvent extends EventObject> {
+export interface StatePaths<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+> {
   /**
    * The target state.
    */
@@ -76,7 +83,10 @@ export interface StatePaths<TContext, TEvent extends EventObject> {
   paths: Array<StatePath<TContext, TEvent>>;
 }
 
-export interface StatePath<TContext, TEvent extends EventObject> {
+export interface StatePath<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+> {
   /**
    * The ending state of the path.
    */
@@ -91,10 +101,16 @@ export interface StatePath<TContext, TEvent extends EventObject> {
   weight: number;
 }
 
-export interface StatePathsMap<TContext, TEvent extends EventObject> {
+export interface StatePathsMap<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+> {
   [key: string]: StatePaths<TContext, TEvent>;
 }
-export interface Segment<TContext, TEvent extends EventObject> {
+export interface Segment<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+> {
   /**
    * The current state before taking the event.
    */
@@ -105,16 +121,20 @@ export interface Segment<TContext, TEvent extends EventObject> {
   event: TEvent;
 }
 
-export type Segments<TContext, TEvent extends EventObject> = Array<
-  Segment<TContext, TEvent>
->;
+export type Segments<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+> = Array<Segment<TContext, TEvent>>;
 
 export type ExtractEvent<
   TEvent extends EventObject,
   TType extends TEvent['type']
 > = TEvent extends { type: TType } ? TEvent : never;
 
-export interface ValueAdjMapOptions<TContext, TEvent extends EventObject> {
+export interface ValueAdjMapOptions<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+> {
   events?: {
     [K in TEvent['type']]?:
       | Array<ExtractEvent<TEvent, K>>

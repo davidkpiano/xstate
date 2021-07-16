@@ -1,4 +1,4 @@
-import { Machine, State, StateFrom, interpret } from '../src/index';
+import { createMachine, State, StateFrom, interpret } from '../src/index';
 import { initEvent, assign } from '../src/actions';
 import { toSCXMLEvent } from '../src/utils';
 
@@ -19,7 +19,7 @@ type Events =
   | { type: 'TO_TWO_MAYBE' }
   | { type: 'TO_FINAL' };
 
-const machine = Machine<any, Events>({
+const machine = createMachine<any, Events>({
   initial: 'one',
   states: {
     one: {
@@ -29,19 +29,14 @@ const machine = Machine<any, Events>({
           target: 'one',
           internal: false
         },
-        INERT: {
-          target: 'one',
-          internal: true
-        },
+        INERT: {},
         INTERNAL: {
-          target: 'one',
-          internal: true,
           actions: ['doSomething']
         },
         TO_TWO: 'two',
         TO_TWO_MAYBE: {
           target: 'two',
-          cond: function maybe() {
+          guard: function maybe() {
             return true;
           }
         },
@@ -147,7 +142,7 @@ describe('State', () => {
     });
 
     it('should report entering a final state as changed', () => {
-      const finalMachine = Machine({
+      const finalMachine = createMachine({
         id: 'final',
         initial: 'one',
         states: {
@@ -169,7 +164,7 @@ describe('State', () => {
     });
 
     it('should report any internal transition assignments as changed', () => {
-      const assignMachine = Machine<{ count: number }>({
+      const assignMachine = createMachine<{ count: number }>({
         id: 'assign',
         initial: 'same',
         context: {
@@ -204,7 +199,7 @@ describe('State', () => {
         | {
             type: 'SAVE';
           };
-      const toggleMachine = Machine<Ctx, ToggleEvents>({
+      const toggleMachine = createMachine<Ctx, ToggleEvents>({
         id: 'input',
         context: {
           value: ''
@@ -232,7 +227,7 @@ describe('State', () => {
               CHANGE: [
                 {
                   target: '.valid',
-                  cond: () => true
+                  guard: () => true
                 },
                 {
                   target: '.invalid'
@@ -258,16 +253,17 @@ describe('State', () => {
 
   describe('.nextEvents', () => {
     it('returns the next possible events for the current state', () => {
-      expect(machine.initialState.nextEvents.sort()).toEqual([
-        'EXTERNAL',
-        'INERT',
-        'INTERNAL',
-        'MACHINE_EVENT',
-        'TO_FINAL',
-        'TO_THREE',
-        'TO_TWO',
-        'TO_TWO_MAYBE'
-      ]);
+      expect(machine.initialState.nextEvents.sort()).toEqual(
+        [
+          'EXTERNAL',
+          'INTERNAL',
+          'MACHINE_EVENT',
+          'TO_FINAL',
+          'TO_THREE',
+          'TO_TWO',
+          'TO_TWO_MAYBE'
+        ].sort()
+      );
 
       expect(
         machine.transition(machine.initialState, 'TO_TWO').nextEvents.sort()
@@ -291,7 +287,7 @@ describe('State', () => {
     });
 
     it('returns no next events if there are none', () => {
-      const noEventsMachine = Machine({
+      const noEventsMachine = createMachine({
         id: 'no-events',
         initial: 'idle',
         states: {
@@ -338,7 +334,7 @@ describe('State', () => {
     it('should create an inert instance of the given State', () => {
       const { initialState } = machine;
 
-      expect(State.inert(initialState, undefined).actions).toEqual([]);
+      expect(State.inert(initialState).actions).toEqual([]);
     });
 
     it('should create an inert instance of the given stateValue and context', () => {
@@ -352,9 +348,7 @@ describe('State', () => {
     it('should preserve the given State if there are no actions', () => {
       const naturallyInertState = State.from('foo');
 
-      expect(State.inert(naturallyInertState, undefined)).toEqual(
-        naturallyInertState
-      );
+      expect(State.inert(naturallyInertState)).toEqual(naturallyInertState);
     });
   });
 
@@ -441,7 +435,7 @@ describe('State', () => {
 
     describe('_sessionid', () => {
       it('_sessionid should be null for non-invoked machines', () => {
-        const testMachine = Machine({
+        const testMachine = createMachine({
           initial: 'active',
           states: {
             active: {}
@@ -452,7 +446,7 @@ describe('State', () => {
       });
 
       it('_sessionid should be the service sessionId for invoked machines', (done) => {
-        const testMachine = Machine({
+        const testMachine = createMachine({
           initial: 'active',
           states: {
             active: {
@@ -481,7 +475,7 @@ describe('State', () => {
       });
 
       it('_sessionid should persist through states (manual)', () => {
-        const testMachine = Machine({
+        const testMachine = createMachine({
           initial: 'active',
           states: {
             active: {
@@ -525,7 +519,7 @@ describe('State', () => {
       ).toContainEqual(
         expect.objectContaining({
           eventType: 'TO_TWO_MAYBE',
-          cond: expect.objectContaining({ name: 'maybe' })
+          guard: expect.objectContaining({ type: 'maybe' })
         })
       );
     });

@@ -3,30 +3,33 @@ import {
   EventObject,
   InvokeConfig,
   InvokeDefinition,
-  InvokeSourceDefinition
+  InvokeSourceDefinition,
+  MachineContext
 } from './types';
 
 export function toInvokeSource(
   src: string | InvokeSourceDefinition
 ): InvokeSourceDefinition {
   if (typeof src === 'string') {
-    const simpleSrc = { type: src };
-    simpleSrc.toString = () => src; // v4 compat - TODO: remove in v5
-    return simpleSrc;
+    return { type: src };
   }
 
   return src;
 }
 
-export function toInvokeDefinition<TContext, TEvent extends EventObject>(
+export function toInvokeDefinition<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+>(
   invokeConfig: InvokeConfig<TContext, TEvent> & {
     src: string | InvokeSourceDefinition;
     id: string;
   }
 ): InvokeDefinition<TContext, TEvent> {
   return {
-    type: actionTypes.invoke,
+    // type: actionTypes.invoke,
     ...invokeConfig,
+    src: toInvokeSource(invokeConfig.src),
     toJSON() {
       const { onDone, onError, ...invokeDef } = invokeConfig;
       return {

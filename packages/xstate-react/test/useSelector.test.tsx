@@ -1,9 +1,7 @@
 import * as React from 'react';
 import { assign, createMachine } from 'xstate';
-import { render, cleanup, fireEvent } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import { useInterpret, useSelector } from '../src';
-
-afterEach(cleanup);
 
 describe('useSelector', () => {
   it('only rerenders for selected values', () => {

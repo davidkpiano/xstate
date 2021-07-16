@@ -1,13 +1,20 @@
 import { useState } from 'react';
 import * as React from 'react';
 import { useService, useMachine } from '../src';
-import { Machine, assign, interpret, Interpreter, createMachine } from 'xstate';
-import { render, cleanup, fireEvent, act } from '@testing-library/react';
-
-afterEach(cleanup);
+import {
+  assign,
+  interpret,
+  Interpreter,
+  createMachine,
+  sendParent,
+  ActorRef
+} from 'xstate';
+import { render, fireEvent, act } from '@testing-library/react';
+import { useActor } from '../src/useActor';
+import { invokeMachine } from 'xstate/invoke';
 
 describe('useService hook', () => {
-  const counterMachine = Machine<
+  const counterMachine = createMachine<
     { count: number },
     { type: 'INC' } | { type: 'SOMETHING' }
   >(
@@ -137,6 +144,46 @@ describe('useService hook', () => {
     expect(countEl.textContent).toBe('1');
   });
 
+  it('initial invoked actor should be immediately available', (done) => {
+    const childMachine = createMachine({
+      id: 'childMachine',
+      initial: 'active',
+      states: {
+        active: {}
+      }
+    });
+    const machine = createMachine({
+      initial: 'active',
+      invoke: {
+        id: 'child',
+        src: invokeMachine(childMachine)
+      },
+      states: {
+        active: {}
+      }
+    });
+
+    const ChildTest: React.FC<{ actor: ActorRef<any> }> = ({ actor }) => {
+      const [state] = useActor(actor);
+
+      expect(state.value).toEqual('active');
+      done();
+      return null;
+    };
+
+    const Test = () => {
+      const [state] = useMachine(machine);
+
+      return <ChildTest actor={state.children.child} />;
+    };
+
+    render(
+      <React.StrictMode>
+        <Test />
+      </React.StrictMode>
+    );
+  });
+
   it('should throw if provided an actor instead of a service', (done) => {
     const Test = () => {
       expect(() => {
@@ -153,12 +200,72 @@ describe('useService hook', () => {
       return null;
     };
 
+    render(
+      <React.StrictMode>
+        <Test />
+      </React.StrictMode>
+    );
+  });
+
+  it('invoked actor should be able to receive (deferred) events that it replays when active', (done) => {
+    const childMachine = createMachine({
+      id: 'childMachine',
+      initial: 'active',
+      states: {
+        active: {
+          on: {
+            FINISH: { actions: sendParent('FINISH') }
+          }
+        }
+      }
+    });
+    const machine = createMachine({
+      initial: 'active',
+      invoke: {
+        id: 'child',
+        src: invokeMachine(childMachine)
+      },
+      states: {
+        active: {
+          on: { FINISH: 'success' }
+        },
+        success: {}
+      }
+    });
+
+    const ChildTest: React.FC<{ actor: ActorRef<any> }> = ({ actor }) => {
+      const [state, send] = useActor(actor);
+
+      expect(state.value).toEqual('active');
+
+      React.useEffect(() => {
+        send({ type: 'FINISH' });
+      }, []);
+
+      return null;
+    };
+
+    const Test = () => {
+      const [state] = useMachine(machine);
+
+      if (state.matches('success')) {
+        done();
+      }
+
+      return <ChildTest actor={state.children.child} />;
+    };
+
+    render(
+      <React.StrictMode>
+        <Test />
+      </React.StrictMode>
+    );
     render(<Test />);
   });
 
   it('should render the final state', () => {
     const service = interpret(
-      Machine<any, { type: 'NEXT' }>({
+      createMachine<any, { type: 'NEXT' }>({
         initial: 'first',
         states: {
           first: {
@@ -196,7 +303,7 @@ describe('useService hook', () => {
             on: {
               EVENT: {
                 target: 'second',
-                cond: (_, e) => e.value === 42
+                guard: (_, e) => e.value === 42
               }
             }
           },

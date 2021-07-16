@@ -1,5 +1,5 @@
-import type { ActorRef, Interpreter, SCXML, State, StateMachine } from 'xstate';
-import { XStateDevInterface } from 'xstate/lib/devTools';
+import type { ActorRef, Interpreter, SCXML, State, MachineNode } from 'xstate';
+import { XStateDevInterface } from 'xstate/dev';
 import { InspectMachineEvent } from './inspectMachine';
 
 export type MaybeLazy<T> = T | (() => T);
@@ -50,7 +50,7 @@ export type ReceiverEvent =
 export type ParsedReceiverEvent =
   | {
       type: 'service.register';
-      machine: StateMachine<any, any, any>;
+      machine: MachineNode<any, any>;
       state: State<any, any>;
       id: string;
       sessionId: string;

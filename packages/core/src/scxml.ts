@@ -7,9 +7,12 @@ import {
   DelayExpr,
   ChooseConditon
 } from './types';
-import { StateNode, Machine } from './index';
-import { mapValues, keys, isString } from './utils';
+import { createMachine } from './index';
+import { mapValues, isString, flatten } from './utils';
 import * as actions from './actions';
+import { invokeMachine } from './invoke';
+import { StateMachine } from './StateMachine';
+import { not, stateIn } from './guards';
 
 function getAttribute(
   element: XMLElement,
@@ -101,33 +104,30 @@ const evaluateExecutableContent = <
   meta: SCXMLEventMeta<TEvent>,
   body: string
 ) => {
-  const datamodel = context
-    ? keys(context)
-        .map((key) => `const ${key} = context['${key}'];`)
-        .join('\n')
-    : '';
-
-  const scope = ['const _sessionid = "NOT_IMPLEMENTED";', datamodel]
+  const scope = ['const _sessionid = "NOT_IMPLEMENTED";']
     .filter(Boolean)
     .join('\n');
 
   const args = ['context', '_event'];
 
   const fnBody = `
-    ${scope}
-    ${body}
+${scope}
+with (context) {
+  ${body}
+}
   `;
 
   const fn = new Function(...args, fnBody);
+
   return fn(context, meta._event);
 };
 
-function createCond<
+function createGuard<
   TContext extends object,
   TEvent extends EventObject = EventObject
->(cond: string) {
+>(guard: string) {
   return (context: TContext, _event: TEvent, meta) => {
-    return evaluateExecutableContent(context, _event, meta, `return ${cond};`);
+    return evaluateExecutableContent(context, _event, meta, `return ${guard};`);
   };
 }
 
@@ -144,16 +144,28 @@ function mapAction<
     case 'assign': {
       return actions.assign<TContext, TEvent>((context, e, meta) => {
         const fnBody = `
-            return {'${element.attributes!.location}': ${
-          element.attributes!.expr
-        }};
+
+${element.attributes!.location};
+
+return {'${element.attributes!.location}': ${element.attributes!.expr}};
           `;
 
         return evaluateExecutableContent(context, e, meta, fnBody);
       });
     }
+    case 'cancel':
+      if ('sendid' in element.attributes!) {
+        return actions.cancel(element.attributes!.sendid! as string);
+      }
+      return actions.cancel((context, e, meta) => {
+        const fnBody = `
+return ${element.attributes!.sendidexpr};
+          `;
+
+        return evaluateExecutableContent(context, e, meta, fnBody);
+      });
     case 'send': {
-      const { event, eventexpr, target } = element.attributes!;
+      const { event, eventexpr, target, id } = element.attributes!;
 
       let convertedEvent: TEvent['type'] | SendExpr<TContext, TEvent>;
       let convertedDelay: number | DelayExpr<TContext, TEvent> | undefined;
@@ -174,9 +186,7 @@ function mapAction<
       } else {
         convertedEvent = (context, _ev, meta) => {
           const fnBody = `
-              return { type: ${event ? `"${event}"` : eventexpr}, ${
-            params ? params : ''
-          } }
+return { type: ${event ? `"${event}"` : eventexpr}, ${params ? params : ''} }
             `;
 
           return evaluateExecutableContent(context, _ev, meta, fnBody);
@@ -188,7 +198,7 @@ function mapAction<
       } else if (element.attributes!.delayexpr) {
         convertedDelay = (context, _ev, meta) => {
           const fnBody = `
-              return (${delayToMs})(${element.attributes!.delayexpr});
+return (${delayToMs})(${element.attributes!.delayexpr});
             `;
 
           return evaluateExecutableContent(context, _ev, meta, fnBody);
@@ -197,7 +207,8 @@ function mapAction<
 
       return actions.send<TContext, TEvent>(convertedEvent, {
         delay: convertedDelay,
-        to: target as string | undefined
+        to: target as string | undefined,
+        id: id as string | undefined
       });
     }
     case 'log': {
@@ -206,7 +217,7 @@ function mapAction<
       return actions.log<TContext, TEvent>(
         (context, e, meta) => {
           const fnBody = `
-              return ${element.attributes!.expr};
+return ${element.attributes!.expr};
             `;
 
           return evaluateExecutableContent(context, e, meta, fnBody);
@@ -215,10 +226,10 @@ function mapAction<
       );
     }
     case 'if': {
-      const conds: ChooseConditon<TContext, TEvent>[] = [];
+      const conds: Array<ChooseConditon<TContext, TEvent>> = [];
 
       let current: ChooseConditon<TContext, TEvent> = {
-        cond: createCond(element.attributes!.cond as string),
+        guard: createGuard(element.attributes!.cond as string),
         actions: []
       };
 
@@ -231,7 +242,7 @@ function mapAction<
           case 'elseif':
             conds.push(current);
             current = {
-              cond: createCond(el.attributes!.cond as string),
+              guard: createGuard(el.attributes!.cond as string),
               actions: []
             };
             break;
@@ -303,12 +314,6 @@ function toConfig(
         target: target ? `#${target}` : undefined
       };
     }
-    case 'final': {
-      return {
-        ...nodeJson.attributes,
-        type: 'final'
-      };
-    }
     default:
       break;
   }
@@ -330,11 +335,11 @@ function toConfig(
       (element) => element.name === 'invoke'
     );
 
-    const onEntryElement = nodeJson.elements.find(
+    const onEntryElements = nodeJson.elements.filter(
       (element) => element.name === 'onentry'
     );
 
-    const onExitElement = nodeJson.elements.find(
+    const onExitElements = nodeJson.elements.filter(
       (element) => element.name === 'onexit'
     );
 
@@ -351,34 +356,72 @@ function toConfig(
       initial = initialElement.elements!.find(
         (element) => element.name === 'transition'
       )!.attributes!.target;
-    } else if (!initialElement && stateElements.length) {
+    } else if (!initial && !initialElement && stateElements.length) {
       initial = stateElements[0].attributes!.id;
     }
 
-    const on = transitionElements.map((value) => {
-      const event = getAttribute(value, 'event') || '';
-      const targets = getAttribute(value, 'target');
-      const internal = getAttribute(value, 'type') === 'internal';
+    const on = flatten(
+      transitionElements.map((value) => {
+        const events = ((getAttribute(value, 'event') as string) || '').split(
+          /\s+/
+        );
 
-      return {
-        event,
-        target: getTargets(targets),
-        ...(value.elements ? executableContent(value.elements) : undefined),
-        ...(value.attributes && value.attributes.cond
-          ? {
-              cond: createCond(value.attributes!.cond as string)
+        return events.map((event) => {
+          const targets = getAttribute(value, 'target');
+          const internal = getAttribute(value, 'type') === 'internal';
+
+          let guardObject = {};
+
+          if (value.attributes?.cond) {
+            const guard = value.attributes!.cond;
+            if ((guard as string).startsWith('In')) {
+              const inMatch = (guard as string).trim().match(/^In\('(.*)'\)/);
+
+              if (inMatch) {
+                guardObject = {
+                  guard: stateIn(`#${inMatch[1]}`)
+                };
+              }
+            } else if ((guard as string).startsWith('!In')) {
+              const notInMatch = (guard as string)
+                .trim()
+                .match(/^!In\('(.*)'\)/);
+
+              if (notInMatch) {
+                guardObject = {
+                  guard: not(stateIn(`#${notInMatch[1]}`))
+                };
+              }
+            } else {
+              guardObject = {
+                guard: createGuard(value.attributes!.cond as string)
+              };
             }
-          : undefined),
-        internal
-      };
-    });
+          }
 
-    const onEntry = onEntryElement
-      ? mapActions(onEntryElement.elements!)
+          return {
+            event,
+            target: getTargets(targets),
+            ...(value.elements ? executableContent(value.elements) : undefined),
+            ...guardObject,
+            internal
+          };
+        });
+      })
+    );
+
+    const onEntry = onEntryElements
+      ? flatten(
+          onEntryElements.map((onEntryElement) =>
+            mapActions(onEntryElement.elements!)
+          )
+        )
       : undefined;
 
-    const onExit = onExitElement
-      ? mapActions(onExitElement.elements!)
+    const onExit = onExitElements
+      ? onExitElements.map((onExitElement) =>
+          mapActions(onExitElement.elements!)
+        )
       : undefined;
 
     const invoke = invokeElements.map((element) => {
@@ -395,13 +438,24 @@ function toConfig(
         (el) => el.name === 'content'
       ) as XMLElement;
 
-      return scxmlToMachine(content, options);
+      return {
+        ...(element.attributes!.id && { id: element.attributes!.id as string }),
+        src: invokeMachine(scxmlToMachine(content, options)),
+        autoForward: element.attributes!.autoforward === 'true'
+      };
     });
 
     return {
       id,
-      ...(initial ? { initial } : undefined),
+      ...(initial
+        ? {
+            initial: String(initial)
+              .split(' ')
+              .map((id) => `#${id}`)
+          }
+        : undefined),
       ...(parallel ? { type: 'parallel' } : undefined),
+      ...(nodeJson.name === 'final' ? { type: 'final' } : undefined),
       ...(stateElements.length
         ? {
             states: mapValues(states, (state, key) =>
@@ -410,13 +464,13 @@ function toConfig(
           }
         : undefined),
       ...(transitionElements.length ? { on } : undefined),
-      ...(onEntry ? { onEntry } : undefined),
-      ...(onExit ? { onExit } : undefined),
+      ...(onEntry ? { entry: onEntry } : undefined),
+      ...(onExit ? { exit: onExit } : undefined),
       ...(invoke.length ? { invoke } : undefined)
     };
   }
 
-  return { id };
+  return { id, ...(nodeJson.name === 'final' ? { type: 'final' } : undefined) };
 }
 
 export interface ScxmlToMachineOptions {
@@ -426,7 +480,7 @@ export interface ScxmlToMachineOptions {
 function scxmlToMachine(
   scxmlJson: XMLElement,
   options: ScxmlToMachineOptions
-): StateNode {
+): StateMachine {
   const machineElement = scxmlJson.elements!.find(
     (element) => element.name === 'scxml'
   ) as XMLElement;
@@ -435,34 +489,39 @@ function scxmlToMachine(
     (element) => element.name === 'datamodel'
   )[0];
 
-  const extState = dataModelEl
+  const context = dataModelEl
     ? dataModelEl
         .elements!.filter((element) => element.name === 'data')
         .reduce((acc, element) => {
-          if (element.attributes!.src) {
+          const { src, expr, id } = element.attributes!;
+          if (src) {
             throw new Error(
               "Conversion of `src` attribute on datamodel's <data> elements is not supported."
             );
           }
-          acc[element.attributes!.id!] = element.attributes!.expr
-            ? // tslint:disable-next-line:no-eval
-              eval(`(${element.attributes!.expr})`)
-            : undefined;
+
+          if (expr === '_sessionid') {
+            acc[id!] = undefined;
+          } else {
+            acc[id!] = eval(`(${expr})`);
+          }
+
           return acc;
         }, {})
     : undefined;
 
-  return Machine({
+  return createMachine({
     ...toConfig(machineElement, '(machine)', options),
-    context: extState,
-    delimiter: options.delimiter
+    context,
+    delimiter: options.delimiter,
+    scxml: true
   });
 }
 
 export function toMachine(
   xml: string,
   options: ScxmlToMachineOptions
-): StateNode {
+): StateMachine {
   const json = xml2js(xml) as XMLElement;
   return scxmlToMachine(json, options);
 }

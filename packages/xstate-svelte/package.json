@@ -15,27 +15,18 @@
   "author": "David Khourshid <davidkpiano@gmail.com>",
   "homepage": "https://github.com/davidkpiano/xstate/tree/main/packages/xstate-svelte#readme",
   "license": "MIT",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "dist/xstate-svelte.cjs.js",
+  "module": "dist/xstate-svelte.esm.js",
   "sideEffects": false,
-  "directories": {
-    "lib": "lib",
-    "test": "test"
-  },
   "files": [
-    "lib/**/*.js",
-    "lib/**/*.d.ts"
+    "dist",
+    "fsm"
   ],
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/davidkpiano/xstate.git"
   },
-  "scripts": {
-    "clean": "rm -rf dist lib tsconfig.tsbuildinfo",
-    "build": "tsc",
-    "test": "jest",
-    "prepublish": "npm run build && npm run test"
-  },
+  "scripts": {},
   "bugs": {
     "url": "https://github.com/davidkpiano/xstate/issues"
   },
@@ -57,13 +48,16 @@
     "@tsconfig/svelte": "^1.0.8",
     "@types/jest": "^24.0.23",
     "@xstate/fsm": "*",
-    "jest": "^26.6.3",
-    "lerna-alias": "3.0.3-0",
     "svelte": "^3.24.1",
     "svelte-jester": "^1.1.2",
     "svelte-preprocess": "^4.0.10",
-    "ts-jest": "^26.5.6",
     "typescript": "^4.3.2",
     "xstate": "*"
+  },
+  "preconstruct": {
+    "entrypoints": [
+      "./index.ts",
+      "./fsm.ts"
+    ]
   }
 }

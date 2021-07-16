@@ -1,7 +1,8 @@
-import { Machine } from '../src/index';
+import { createMachine } from '../src/index';
+import { resolveStateValue } from '../src/stateUtils';
 
 // from parallel/test3.scxml
-const flatParallelMachine = Machine({
+const flatParallelMachine = createMachine({
   id: 'fp',
   initial: 'p1',
   states: {
@@ -57,11 +58,12 @@ const flatParallelMachine = Machine({
   }
 });
 
-describe('machine.resolve()', () => {
+describe('resolve()', () => {
   it('should resolve parallel states with flat child states', () => {
     const unresolvedStateValue = { p1: { s1: { p2: 's4' }, s2: { p4: 's8' } } };
 
-    const resolvedStateValue = flatParallelMachine.resolve(
+    const resolvedStateValue = resolveStateValue(
+      flatParallelMachine.root,
       unresolvedStateValue
     );
     expect(resolvedStateValue).toEqual({

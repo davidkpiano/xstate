@@ -1,41 +1,29 @@
 import {
   Event,
   StateValue,
-  ActionType,
-  Action,
   EventObject,
   PropertyMapper,
   Mapper,
   EventType,
-  HistoryValue,
-  AssignAction,
-  Condition,
   Subscribable,
-  StateMachine,
-  ConditionPredicate,
   SCXML,
   StateLike,
-  EventData,
   TransitionConfig,
   TransitionConfigTarget,
   NullEvent,
   SingleOrArray,
-  Guard,
-  GuardPredicate,
-  GuardMeta,
+  BehaviorCreator,
   InvokeSourceDefinition,
   Observer,
+  MachineContext,
   Behavior
 } from './types';
-import {
-  STATE_DELIMITER,
-  DEFAULT_GUARD_TYPE,
-  TARGETLESS_KEY
-} from './constants';
+import { STATE_DELIMITER, TARGETLESS_KEY } from './constants';
 import { IS_PRODUCTION } from './environment';
 import { StateNode } from './StateNode';
-import { State } from './State';
-import { Actor } from './Actor';
+import { InvokeConfig, SCXMLErrorEvent } from '.';
+import { StateMachine } from './StateMachine';
+import { errorExecution, errorPlatform } from './actionTypes';
 
 export function keys<T extends object>(value: T): Array<keyof T & string> {
   return Object.keys(value) as Array<keyof T & string>;
@@ -81,19 +69,6 @@ export function getEventType<TEvent extends EventObject = EventObject>(
   } catch (e) {
     throw new Error(
       'Events must be strings or objects with a string event.type property.'
-    );
-  }
-}
-export function getActionType(action: Action<any, any>): ActionType {
-  try {
-    return isString(action) || typeof action === 'number'
-      ? `${action}`
-      : isFunction(action)
-      ? action.name
-      : action.type;
-  } catch (e) {
-    throw new Error(
-      'Actions must be strings or objects with a string action.type property.'
     );
   }
 }
@@ -215,25 +190,6 @@ export const path = <T extends Record<string, any>>(props: string[]): any => (
   return result;
 };
 
-/**
- * Retrieves a value at the given path via the nested accessor prop.
- * @param props The deep path to the prop of the desired value
- */
-export function nestedPath<T extends Record<string, any>>(
-  props: string[],
-  accessorProp: keyof T
-): (object: T) => T {
-  return (object) => {
-    let result: T = object;
-
-    for (const prop of props) {
-      result = result[accessorProp][prop];
-    }
-
-    return result;
-  };
-}
-
 export function toStatePaths(stateValue: StateValue | undefined): string[][] {
   if (!stateValue) {
     return [[]];
@@ -263,31 +219,6 @@ export function toStatePaths(stateValue: StateValue | undefined): string[][] {
   return result;
 }
 
-export function pathsToStateValue(paths: string[][]): StateValue {
-  const result: StateValue = {};
-
-  if (paths && paths.length === 1 && paths[0].length === 1) {
-    return paths[0][0];
-  }
-
-  for (const currentPath of paths) {
-    let marker = result;
-    // tslint:disable-next-line:prefer-for-of
-    for (let i = 0; i < currentPath.length; i++) {
-      const subPath = currentPath[i];
-
-      if (i === currentPath.length - 2) {
-        marker[subPath] = currentPath[i + 1];
-        break;
-      }
-      marker[subPath] = marker[subPath] || {};
-      marker = marker[subPath] as {};
-    }
-  }
-
-  return result;
-}
-
 export function flatten<T>(array: Array<T | T[]>): T[] {
   return ([] as T[]).concat(...array);
 }
@@ -306,7 +237,10 @@ export function toArray<T>(value: T[] | T | undefined): T[] {
   return toArrayStrict(value);
 }
 
-export function mapContext<TContext, TEvent extends EventObject>(
+export function mapContext<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+>(
   mapper: Mapper<TContext, TEvent, any> | PropertyMapper<TContext, TEvent, any>,
   context: TContext,
   _event: SCXML.Event<TEvent>
@@ -349,106 +283,11 @@ export function isPromiseLike(value: any): value is PromiseLike<any> {
   return false;
 }
 
-export function isBehavior(value: any): value is Behavior<any, any> {
-  return (
-    value !== null &&
-    typeof value === 'object' &&
-    'transition' in value &&
-    typeof value.transition === 'function'
-  );
-}
-
-export function partition<T, A extends T, B extends T>(
-  items: T[],
-  predicate: (item: T) => item is A
-): [A[], B[]] {
-  const [truthy, falsy] = [[], []] as [A[], B[]];
-
-  for (const item of items) {
-    if (predicate(item)) {
-      truthy.push(item);
-    } else {
-      falsy.push(item as B);
-    }
-  }
-
-  return [truthy, falsy];
-}
-
-export function updateHistoryStates(
-  hist: HistoryValue,
-  stateValue: StateValue
-): Record<string, HistoryValue | undefined> {
-  return mapValues(hist.states, (subHist, key) => {
-    if (!subHist) {
-      return undefined;
-    }
-    const subStateValue =
-      (isString(stateValue) ? undefined : stateValue[key]) ||
-      (subHist ? subHist.current : undefined);
-
-    if (!subStateValue) {
-      return undefined;
-    }
-
-    return {
-      current: subStateValue,
-      states: updateHistoryStates(subHist, subStateValue)
-    };
-  });
-}
-
-export function updateHistoryValue(
-  hist: HistoryValue,
-  stateValue: StateValue
-): HistoryValue {
-  return {
-    current: stateValue,
-    states: updateHistoryStates(hist, stateValue)
-  };
-}
-
-export function updateContext<TContext, TEvent extends EventObject>(
-  context: TContext,
-  _event: SCXML.Event<TEvent>,
-  assignActions: Array<AssignAction<TContext, TEvent>>,
-  state?: State<TContext, TEvent>
-): TContext {
-  if (!IS_PRODUCTION) {
-    warn(!!context, 'Attempting to update undefined context');
-  }
-  const updatedContext = context
-    ? assignActions.reduce((acc, assignAction) => {
-        const { assignment } = assignAction as AssignAction<TContext, TEvent>;
-
-        const meta = {
-          state,
-          action: assignAction,
-          _event
-        };
-
-        let partialUpdate: Partial<TContext> = {};
-
-        if (isFunction(assignment)) {
-          partialUpdate = assignment(acc, _event.data, meta);
-        } else {
-          for (const key of keys(assignment)) {
-            const propAssignment = assignment[key];
-
-            partialUpdate[key] = isFunction(propAssignment)
-              ? propAssignment(acc, _event.data, meta)
-              : propAssignment;
-          }
-        }
-
-        return Object.assign({}, acc, partialUpdate);
-      }, context)
-    : context;
-  return updatedContext;
-}
-
 // tslint:disable-next-line:no-empty
-let warn: (condition: boolean | Error, message: string) => void = () => {};
+export let warn: (
+  condition: boolean | Error,
+  message: string
+) => void = () => {};
 
 if (!IS_PRODUCTION) {
   warn = (condition: boolean | Error, message: string) => {
@@ -468,8 +307,6 @@ if (!IS_PRODUCTION) {
   };
 }
 
-export { warn };
-
 export function isArray(value: any): value is any[] {
   return Array.isArray(value);
 }
@@ -481,45 +318,6 @@ export function isFunction(value: any): value is Function {
 
 export function isString(value: any): value is string {
   return typeof value === 'string';
-}
-
-// export function memoizedGetter<T, TP extends { prototype: object }>(
-//   o: TP,
-//   property: string,
-//   getter: () => T
-// ): void {
-//   Object.defineProperty(o.prototype, property, {
-//     get: getter,
-//     enumerable: false,
-//     configurable: false
-//   });
-// }
-
-export function toGuard<TContext, TEvent extends EventObject>(
-  condition?: Condition<TContext, TEvent>,
-  guardMap?: Record<string, ConditionPredicate<TContext, TEvent>>
-): Guard<TContext, TEvent> | undefined {
-  if (!condition) {
-    return undefined;
-  }
-
-  if (isString(condition)) {
-    return {
-      type: DEFAULT_GUARD_TYPE,
-      name: condition,
-      predicate: guardMap ? guardMap[condition] : undefined
-    };
-  }
-
-  if (isFunction(condition)) {
-    return {
-      type: DEFAULT_GUARD_TYPE,
-      name: condition.name,
-      predicate: condition
-    };
-  }
-
-  return condition;
 }
 
 export function isObservable<T>(value: any): value is Subscribable<T> {
@@ -534,16 +332,14 @@ export const symbolObservable = (() =>
   (typeof Symbol === 'function' && (Symbol as any).observable) ||
   '@@observable')();
 
-export function isMachine(value: any): value is StateMachine<any, any, any> {
+export function isMachineNode(
+  value: any
+): value is StateMachine<any, any, any> {
   try {
-    return '__xstatenode' in value;
+    return '__xstatenode' in value && value.parent === undefined;
   } catch (e) {
     return false;
   }
-}
-
-export function isActor(value: any): value is Actor {
-  return !!value && typeof value.send === 'function';
 }
 
 export const uniqueId = (() => {
@@ -557,21 +353,32 @@ export const uniqueId = (() => {
 
 export function toEventObject<TEvent extends EventObject>(
   event: Event<TEvent>,
-  payload?: EventData
-  // id?: TEvent['type']
+  payload?: Record<string, any>
 ): TEvent {
-  if (isString(event) || typeof event === 'number') {
+  if (isString(event)) {
     return { type: event, ...payload } as TEvent;
   }
 
   return event;
 }
 
+export function isSCXMLEvent<TEvent extends EventObject>(
+  event: Event<TEvent> | SCXML.Event<TEvent>
+): event is SCXML.Event<TEvent> {
+  return !isString(event) && '$$type' in event && event.$$type === 'scxml';
+}
+
+export function isSCXMLErrorEvent(
+  event: SCXML.Event<any>
+): event is SCXMLErrorEvent {
+  return event.name === errorExecution || event.name.startsWith(errorPlatform);
+}
+
 export function toSCXMLEvent<TEvent extends EventObject>(
   event: Event<TEvent> | SCXML.Event<TEvent>,
   scxmlEvent?: Partial<SCXML.Event<TEvent>>
 ): SCXML.Event<TEvent> {
-  if (!isString(event) && '$$type' in event && event.$$type === 'scxml') {
+  if (isSCXMLEvent(event)) {
     return event as SCXML.Event<TEvent>;
   }
 
@@ -586,7 +393,10 @@ export function toSCXMLEvent<TEvent extends EventObject>(
   };
 }
 
-export function toTransitionConfigArray<TContext, TEvent extends EventObject>(
+export function toTransitionConfigArray<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+>(
   event: TEvent['type'] | NullEvent['type'] | '*',
   configLike: SingleOrArray<
     | TransitionConfig<TContext, TEvent>
@@ -601,7 +411,7 @@ export function toTransitionConfigArray<TContext, TEvent extends EventObject>(
     if (
       typeof transitionLike === 'undefined' ||
       typeof transitionLike === 'string' ||
-      isMachine(transitionLike)
+      isMachineNode(transitionLike)
     ) {
       return { target: transitionLike, event };
     }
@@ -616,9 +426,12 @@ export function toTransitionConfigArray<TContext, TEvent extends EventObject>(
   return transitions;
 }
 
-export function normalizeTarget<TContext, TEvent extends EventObject>(
-  target: SingleOrArray<string | StateNode<TContext, any, TEvent>> | undefined
-): Array<string | StateNode<TContext, any, TEvent>> | undefined {
+export function normalizeTarget<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+>(
+  target: SingleOrArray<string | StateNode<TContext, TEvent>> | undefined
+): Array<string | StateNode<TContext, TEvent>> | undefined {
   if (target === undefined || target === TARGETLESS_KEY) {
     return undefined;
   }
@@ -652,38 +465,34 @@ export function reportUnhandledExceptionOnInvocation(
   }
 }
 
-export function evaluateGuard<TContext, TEvent extends EventObject>(
-  machine: StateNode<TContext, any, TEvent, any>,
-  guard: Guard<TContext, TEvent>,
-  context: TContext,
-  _event: SCXML.Event<TEvent>,
-  state: State<TContext, TEvent>
-): boolean {
-  const { guards } = machine.options;
-  const guardMeta: GuardMeta<TContext, TEvent> = {
-    state,
-    cond: guard,
-    _event
+export function toInvokeConfig<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+>(
+  invocable:
+    | InvokeConfig<TContext, TEvent>
+    | string
+    | BehaviorCreator<TContext, TEvent>
+    | Behavior<any, any>,
+  id: string
+): InvokeConfig<TContext, TEvent> {
+  if (typeof invocable === 'object') {
+    if ('src' in invocable) {
+      return invocable;
+    }
+
+    if ('transition' in invocable) {
+      return {
+        id,
+        src: () => invocable
+      };
+    }
+  }
+
+  return {
+    id,
+    src: invocable
   };
-
-  // TODO: do not hardcode!
-  if (guard.type === DEFAULT_GUARD_TYPE) {
-    return (guard as GuardPredicate<TContext, TEvent>).predicate(
-      context,
-      _event.data,
-      guardMeta
-    );
-  }
-
-  const condFn = guards[guard.type];
-
-  if (!condFn) {
-    throw new Error(
-      `Guard '${guard.type}' is not implemented on machine '${machine.id}'.`
-    );
-  }
-
-  return condFn(context, _event.data, guardMeta);
 }
 
 export function toInvokeSource(

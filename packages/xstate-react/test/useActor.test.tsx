@@ -1,20 +1,19 @@
 import * as React from 'react';
+import { useState } from 'react';
 import { useMachine } from '../src';
 import {
   createMachine,
   sendParent,
   assign,
-  spawn,
-  ActorRef,
+  spawnMachine,
   ActorRefFrom,
   interpret
 } from 'xstate';
-import { toActorRef } from 'xstate/lib/Actor';
-import { render, cleanup, fireEvent, act } from '@testing-library/react';
+import { render, fireEvent, act } from '@testing-library/react';
 import { useActor } from '../src/useActor';
-import { useState } from 'react';
+import { invokeMachine } from 'xstate/invoke';
 
-afterEach(cleanup);
+import { toActorRef } from 'xstate/actor';
 
 describe('useActor', () => {
   it('initial invoked actor should be immediately available', (done) => {
@@ -29,7 +28,7 @@ describe('useActor', () => {
       initial: 'active',
       invoke: {
         id: 'child',
-        src: childMachine
+        src: invokeMachine(childMachine)
       },
       states: {
         active: {}
@@ -81,7 +80,7 @@ describe('useActor', () => {
       initial: 'active',
       invoke: {
         id: 'child',
-        src: childMachine
+        src: invokeMachine(childMachine)
       },
       states: {
         active: {
@@ -147,7 +146,7 @@ describe('useActor', () => {
       states: {
         active: {
           entry: assign({
-            actorRef: () => spawn(childMachine)
+            actorRef: () => spawnMachine(childMachine)
           })
         }
       }
@@ -201,7 +200,7 @@ describe('useActor', () => {
       states: {
         active: {
           entry: assign({
-            actorRef: () => spawn(childMachine)
+            actorRef: () => spawnMachine(childMachine)
           }),
           on: { FINISH: 'success' }
         },
@@ -255,9 +254,7 @@ describe('useActor', () => {
           }
         };
       }
-    }) as ActorRef<any, number> & {
-      latestValue: number;
-    };
+    });
 
     const Test = () => {
       const [state] = useActor(simpleActor, (a) => a.latestValue);
@@ -274,7 +271,7 @@ describe('useActor', () => {
 
   it('should provide value from `actor.getSnapshot()`', () => {
     const simpleActor = toActorRef({
-      id: 'test',
+      name: 'test',
       send: () => {
         /* ... */
       },
@@ -315,7 +312,7 @@ describe('useActor', () => {
             }
           };
         }
-      }) as ActorRef<any> & { latestValue: number };
+      });
 
     const Test = () => {
       const [actor, setActor] = useState(createSimpleActor(42));
@@ -343,7 +340,6 @@ describe('useActor', () => {
   });
 
   it('send() should be stable', (done) => {
-    jest.useFakeTimers();
     const fakeSubscribe = () => {
       return {
         unsubscribe: () => {
@@ -372,7 +368,7 @@ describe('useActor', () => {
       React.useEffect(() => {
         setTimeout(() => {
           // The `send` here is closed-in
-          send({ type: 'anything' });
+          act(() => send({ type: 'anything' }));
         }, 10);
       }, []); // Intentionally omit `send` from dependency array
 
@@ -394,8 +390,6 @@ describe('useActor', () => {
     fireEvent.click(button);
 
     // At this point, `send` refers to the last actor
-
-    jest.advanceTimersByTime(20);
 
     // The effect will call the closed-in `send`, which originally
     // was the reference to the first actor. Now that `send` is stable,

@@ -1,15 +1,15 @@
 import { raise, assign } from '../src/actions';
-import { createMachine, interpret, Machine } from '../src';
+import { createMachine, interpret } from '../src';
 import { testMultiTransition } from './utils';
 
-const composerMachine = Machine({
+const composerMachine = createMachine({
   strict: true,
   initial: 'ReadOnly',
   states: {
     ReadOnly: {
       id: 'ReadOnly',
       initial: 'StructureEdit',
-      onEntry: ['selectNone'],
+      entry: ['selectNone'],
       states: {
         StructureEdit: {
           id: 'StructureEditRO',
@@ -40,10 +40,10 @@ const composerMachine = Machine({
               },
               states: {
                 SelectedNone: {
-                  onEntry: ['redraw']
+                  entry: ['redraw']
                 },
                 SelectedActivity: {
-                  onEntry: ['redraw'],
+                  entry: ['redraw'],
                   on: {
                     singleClickCanvas: [
                       {
@@ -54,7 +54,7 @@ const composerMachine = Machine({
                   }
                 },
                 SelectedLink: {
-                  onEntry: ['redraw'],
+                  entry: ['redraw'],
                   on: {
                     singleClickCanvas: [
                       {
@@ -70,7 +70,7 @@ const composerMachine = Machine({
               initial: 'Empty',
               states: {
                 Empty: {
-                  onEntry: ['emptyClipboard'],
+                  entry: ['emptyClipboard'],
                   on: {
                     cutInClipboardSuccess: [
                       {
@@ -155,10 +155,10 @@ const composerMachine = Machine({
               },
               states: {
                 SelectedNone: {
-                  onEntry: ['redraw']
+                  entry: ['redraw']
                 },
                 SelectedActivity: {
-                  onEntry: ['redraw'],
+                  entry: ['redraw'],
                   on: {
                     singleClickCanvas: [
                       {
@@ -169,7 +169,7 @@ const composerMachine = Machine({
                   }
                 },
                 SelectedLink: {
-                  onEntry: ['redraw'],
+                  entry: ['redraw'],
                   on: {
                     singleClickCanvas: [
                       {
@@ -188,7 +188,7 @@ const composerMachine = Machine({
   }
 });
 
-const wakMachine = Machine({
+const wakMachine = createMachine({
   id: 'wakMachine',
   type: 'parallel',
   strict: true,
@@ -197,42 +197,42 @@ const wakMachine = Machine({
       initial: 'wak1sonA',
       states: {
         wak1sonA: {
-          onEntry: 'wak1sonAenter',
-          onExit: 'wak1sonAexit'
+          entry: 'wak1sonAenter',
+          exit: 'wak1sonAexit'
         },
         wak1sonB: {
-          onEntry: 'wak1sonBenter',
-          onExit: 'wak1sonBexit'
+          entry: 'wak1sonBenter',
+          exit: 'wak1sonBexit'
         }
       },
       on: {
         WAK1: '.wak1sonB'
       },
-      onEntry: 'wak1enter',
-      onExit: 'wak1exit'
+      entry: 'wak1enter',
+      exit: 'wak1exit'
     },
     wak2: {
       initial: 'wak2sonA',
       states: {
         wak2sonA: {
-          onEntry: 'wak2sonAenter',
-          onExit: 'wak2sonAexit'
+          entry: 'wak2sonAenter',
+          exit: 'wak2sonAexit'
         },
         wak2sonB: {
-          onEntry: 'wak2sonBenter',
-          onExit: 'wak2sonBexit'
+          entry: 'wak2sonBenter',
+          exit: 'wak2sonBexit'
         }
       },
       on: {
         WAK2: '.wak2sonB'
       },
-      onEntry: 'wak2enter',
-      onExit: 'wak2exit'
+      entry: 'wak2enter',
+      exit: 'wak2exit'
     }
   }
 });
 
-const wordMachine = Machine({
+const wordMachine = createMachine({
   id: 'word',
   type: 'parallel',
   states: {
@@ -289,7 +289,7 @@ const wordMachine = Machine({
   }
 });
 
-const flatParallelMachine = Machine({
+const flatParallelMachine = createMachine({
   type: 'parallel',
   states: {
     foo: {},
@@ -304,7 +304,7 @@ const flatParallelMachine = Machine({
   }
 });
 
-const raisingParallelMachine = Machine({
+const raisingParallelMachine = createMachine({
   strict: true,
   type: 'parallel',
   states: {
@@ -312,21 +312,21 @@ const raisingParallelMachine = Machine({
       initial: 'C',
       states: {
         A: {
-          onEntry: [raise('TURN_OFF')],
+          entry: [raise('TURN_OFF')],
           on: {
             EVENT_OUTER1_B: 'B',
             EVENT_OUTER1_C: 'C'
           }
         },
         B: {
-          onEntry: [raise('TURN_ON')],
+          entry: [raise('TURN_ON')],
           on: {
             EVENT_OUTER1_A: 'A',
             EVENT_OUTER1_C: 'C'
           }
         },
         C: {
-          onEntry: [raise('CLEAR')],
+          entry: [raise('CLEAR')],
           on: {
             EVENT_OUTER1_A: 'A',
             EVENT_OUTER1_B: 'B'
@@ -372,7 +372,7 @@ const raisingParallelMachine = Machine({
   }
 });
 
-const nestedParallelState = Machine({
+const nestedParallelState = createMachine({
   type: 'parallel',
   states: {
     OUTER1: {
@@ -455,7 +455,7 @@ const nestedParallelState = Machine({
   }
 });
 
-const deepFlatParallelMachine = Machine({
+const deepFlatParallelMachine = createMachine({
   type: 'parallel',
   states: {
     X: {},
@@ -505,7 +505,7 @@ describe('parallel states', () => {
   });
 
   const expected = {
-    'bold.off': {
+    '{"bold": "off"}': {
       TOGGLE_BOLD: {
         bold: 'on',
         italics: 'off',
@@ -513,7 +513,7 @@ describe('parallel states', () => {
         list: 'none'
       }
     },
-    'bold.on': {
+    '{"bold": "on"}': {
       TOGGLE_BOLD: {
         bold: 'off',
         italics: 'off',
@@ -608,7 +608,7 @@ describe('parallel states', () => {
     });
   });
 
-  it('should properly transition according to onEntry events on an initial state', () => {
+  it('should properly transition according to entry events on an initial state', () => {
     expect(raisingParallelMachine.initialState.value).toEqual({
       OUTER1: 'C',
       OUTER2: {
@@ -633,9 +633,9 @@ describe('parallel states', () => {
     });
   });
 
-  xit('should handle simultaneous orthogonal transitions', () => {
+  it('should handle simultaneous orthogonal transitions', () => {
     type Events = { type: 'CHANGE'; value: string } | { type: 'SAVE' };
-    const simultaneousMachine = Machine<{ value: string }, Events>({
+    const simultaneousMachine = createMachine<{ value: string }, Events>({
       id: 'yamlEditor',
       type: 'parallel',
       context: {
@@ -681,7 +681,14 @@ describe('parallel states', () => {
       value: 'something'
     });
 
-    expect(unsavedState.value).toEqual({});
+    expect(unsavedState.value).toEqual({
+      editing: {},
+      status: 'unsaved'
+    });
+
+    expect(unsavedState.context).toEqual({
+      value: 'something'
+    });
   });
 
   describe('transitions with nested parallel states', () => {
@@ -737,7 +744,7 @@ describe('parallel states', () => {
 
   // https://github.com/davidkpiano/xstate/issues/191
   describe('nested flat parallel states', () => {
-    const machine = Machine({
+    const machine = createMachine({
       initial: 'A',
       states: {
         A: {
@@ -792,7 +799,7 @@ describe('parallel states', () => {
     });
 
     it('should not overlap resolved state configuration in state resolution', () => {
-      const machine = Machine({
+      const machine = createMachine({
         id: 'pipeline',
         type: 'parallel',
         states: {
@@ -827,7 +834,7 @@ describe('parallel states', () => {
   describe('other', () => {
     // https://github.com/davidkpiano/xstate/issues/518
     it('regions should be able to transition to orthogonal regions', () => {
-      const testMachine = Machine({
+      const testMachine = createMachine({
         id: 'app',
         type: 'parallel',
         states: {
@@ -863,7 +870,10 @@ describe('parallel states', () => {
                 id: 'Opened',
                 on: {
                   toggle: '#Closed',
-                  'go to dashboard': '#Dashboard'
+                  'go to dashboard': {
+                    // TODO: see if just '#Dashboard' conforms to SCXML spec
+                    target: ['#Dashboard', '#Opened']
+                  }
                 }
               }
             }
@@ -888,7 +898,7 @@ describe('parallel states', () => {
 
     // https://github.com/davidkpiano/xstate/issues/531
     it('should calculate the entry set for external transitions in parallel states', () => {
-      const testMachine = Machine<{ log: string[] }>({
+      const testMachine = createMachine<{ log: string[] }>({
         id: 'test',
         context: { log: [] },
         type: 'parallel',

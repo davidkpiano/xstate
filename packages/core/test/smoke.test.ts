@@ -1,9 +1,9 @@
-import { Machine } from '../src';
+import { createMachine } from '../src';
 
 describe('smoke test', () => {
   it('should work with built files', () => {
     expect(() => {
-      return Machine({
+      return createMachine({
         id: 'light',
         initial: 'green',
         context: {

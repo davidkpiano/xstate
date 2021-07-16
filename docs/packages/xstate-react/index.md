@@ -370,6 +370,9 @@ Existing machines can be configured by passing the machine options as the 2nd ar
 Example: the `'fetchData'` service and `'notifySuccess'` action are both configurable:
 
 ```js
+import { createMachine } from 'xstate';
+import { invokePromise } from 'xstate/invoke';
+
 const fetchMachine = createMachine({
   id: 'fetch',
   initial: 'idle',
@@ -415,9 +418,10 @@ const Fetcher = ({ onResolve }) => {
     actions: {
       notifySuccess: (ctx) => onResolve(ctx.data)
     },
-    services: {
-      fetchData: (_, e) =>
-        fetch(`some/api/${e.query}`).then((res) => res.json())
+    actors: {
+      fetchData: invokePromise((_, event) =>
+        fetch(`some/api/${event.query}`).then((res) => res.json())
+      )
     }
   });
 

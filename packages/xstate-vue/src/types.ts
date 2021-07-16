@@ -1,7 +1,10 @@
-import { EventObject, StateConfig } from 'xstate';
+import { EventObject, MachineContext, StateConfig } from 'xstate';
 
 export type MaybeLazy<T> = T | (() => T);
-export interface UseMachineOptions<TContext, TEvent extends EventObject> {
+export interface UseMachineOptions<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+> {
   /**
    * If provided, will be merged with machine's `context`.
    */

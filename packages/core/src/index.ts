@@ -2,8 +2,7 @@ import { matchesState } from './utils';
 import { mapState } from './mapState';
 import { StateNode } from './StateNode';
 import { State } from './State';
-import { Machine, createMachine } from './Machine';
-import { Actor } from './Actor';
+import { createMachine } from './Machine';
 import {
   raise,
   send,
@@ -11,7 +10,6 @@ import {
   sendUpdate,
   log,
   cancel,
-  start,
   stop,
   assign,
   after,
@@ -23,14 +21,19 @@ import {
   choose,
   pure
 } from './actions';
-import {
-  interpret,
-  Interpreter,
-  spawn,
-  InterpreterStatus
-} from './interpreter';
+import { interpret, Interpreter, InterpreterStatus } from './interpreter';
 import { matchState } from './match';
-import { createSchema } from './schema';
+export { StateMachine as MachineNode } from './StateMachine';
+export { SimulatedClock } from './SimulatedClock';
+export {
+  spawn,
+  spawnFrom,
+  spawnMachine,
+  spawnPromise,
+  spawnObservable,
+  spawnCallback
+} from './actor';
+export { createSchema } from './schema';
 
 const actions = {
   raise,
@@ -39,7 +42,6 @@ const actions = {
   sendUpdate,
   log,
   cancel,
-  start,
   stop,
   assign,
   after,
@@ -52,8 +54,6 @@ const actions = {
 };
 
 export {
-  Actor,
-  Machine,
   StateNode,
   State,
   matchesState,
@@ -68,10 +68,12 @@ export {
   Interpreter,
   InterpreterStatus,
   matchState,
-  spawn,
   doneInvoke,
-  createMachine,
-  createSchema
+  createMachine
 };
 
 export * from './types';
+
+// TODO: decide from where those should be exported
+export { pathToStateValue, flatten, keys } from './utils';
+export { getStateNodes } from './stateUtils';

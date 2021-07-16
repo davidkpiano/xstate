@@ -14,6 +14,7 @@
 import { defineComponent, PropType } from 'vue';
 import { useMachine } from '../src';
 import { createMachine, assign, State } from 'xstate';
+import { invokePromise } from 'xstate/invoke';
 
 const context = {
   data: undefined
@@ -28,13 +29,14 @@ const fetchMachine = createMachine<typeof context, any>({
     },
     loading: {
       invoke: {
+        id: 'fetchData',
         src: 'fetchData',
         onDone: {
           target: 'success',
           actions: assign({
             data: (_, e) => e.data
           }),
-          cond: (_, e) => e.data.length
+          guard: (_, e) => e.data.length
         }
       }
     },
@@ -55,8 +57,8 @@ export default defineComponent({
       new Promise((res) => setTimeout(() => res('some data'), 50));
 
     const { state, send, service } = useMachine(fetchMachine, {
-      services: {
-        fetchData: onFetch
+      actors: {
+        fetchData: invokePromise(onFetch)
       },
       state: persistedState
     });

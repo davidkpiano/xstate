@@ -1,6 +1,4 @@
 {
-  "private": true,
-  "main": "../lib/fsm.js",
-  "module": "../es/fsm.js",
-  "types": "../lib/fsm.d.ts"
+  "main": "dist/xstate-react-fsm.cjs.js",
+  "module": "dist/xstate-react-fsm.esm.js"
 }

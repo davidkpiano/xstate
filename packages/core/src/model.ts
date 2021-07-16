@@ -1,6 +1,6 @@
 import { assign } from './actions';
 import { createMachine } from './Machine';
-import type { EventObject } from './types';
+import type { EventObject, MachineContext } from './types';
 import { mapValues } from './utils';
 import {
   Cast,
@@ -11,11 +11,12 @@ import {
   Prop
 } from './model.types';
 
-export function createModel<TContext, TEvent extends EventObject>(
-  initialContext: TContext
-): Model<TContext, TEvent, void>;
 export function createModel<
-  TContext,
+  TContext extends MachineContext,
+  TEvent extends EventObject
+>(initialContext: TContext): Model<TContext, TEvent, void>;
+export function createModel<
+  TContext extends MachineContext,
   TModelCreators extends ModelCreators<TModelCreators>,
   TFinalModelCreators = FinalModelCreators<TModelCreators>
 >(

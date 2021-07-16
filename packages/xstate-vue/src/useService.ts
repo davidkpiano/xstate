@@ -3,7 +3,8 @@ import {
   State,
   Interpreter,
   Typestate,
-  PayloadSender
+  PayloadSender,
+  MachineContext
 } from 'xstate';
 
 import { Ref, isRef } from 'vue';
@@ -17,15 +18,15 @@ import { useActor } from './useActor';
  * @returns A tuple of the current `state` of the service and the service's `send(event)` method
  */
 export function useService<
-  TContext,
+  TContext extends MachineContext,
   TEvent extends EventObject,
   TTypestate extends Typestate<TContext> = { value: any; context: TContext }
 >(
   service:
-    | Interpreter<TContext, any, TEvent, TTypestate>
-    | Ref<Interpreter<TContext, any, TEvent, TTypestate>>
+    | Interpreter<TContext, TEvent, TTypestate>
+    | Ref<Interpreter<TContext, TEvent, TTypestate>>
 ): {
-  state: Ref<State<TContext, TEvent, any, TTypestate>>;
+  state: Ref<State<TContext, TEvent, TTypestate>>;
   send: PayloadSender<TEvent>;
 } {
   if (

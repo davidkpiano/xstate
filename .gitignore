@@ -37,7 +37,7 @@ _examples/
 __examples/
 .vscode/
 !.vscode/settings.json
-src/invoke.ts
+!.vscode/launch.json
 *.tsbuildinfo
 
 # Documentation

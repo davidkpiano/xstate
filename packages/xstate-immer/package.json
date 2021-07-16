@@ -12,26 +12,17 @@
   "author": "David Khourshid <davidkpiano@gmail.com>",
   "homepage": "https://github.com/davidkpiano/xstate/tree/main/packages/xstate-immer#readme",
   "license": "MIT",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "dist/xstate-immer.cjs.js",
+  "module": "dist/xstate-immer.esm.js",
   "sideEffects": false,
-  "directories": {
-    "lib": "lib",
-    "test": "__tests__"
-  },
   "files": [
-    "lib/**/*.js",
-    "lib/**/*.d.ts"
+    "dist"
   ],
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/davidkpiano/xstate.git"
   },
-  "scripts": {
-    "clean": "rm -rf dist lib tsconfig.tsbuildinfo",
-    "build": "tsc",
-    "test": "jest"
-  },
+  "scripts": {},
   "bugs": {
     "url": "https://github.com/davidkpiano/xstate/issues"
   },

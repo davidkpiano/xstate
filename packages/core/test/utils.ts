@@ -1,25 +1,27 @@
-import { StateNode, State } from '../src/index';
+import { State } from '../src/index';
 import { matchesState } from '../src';
+import { StateMachine } from '../src/StateMachine';
+import { MachineContext } from '../src/types';
 
-export function testMultiTransition<TExt>(
-  machine: StateNode<TExt>,
+export function testMultiTransition<TContext extends MachineContext>(
+  machine: StateMachine<TContext>,
   fromState: string,
   eventTypes: string
 ) {
   const resultState = eventTypes
     .split(/,\s?/)
-    .reduce((state: State<TExt> | string, eventType) => {
+    .reduce((state: State<TContext> | string, eventType) => {
       if (typeof state === 'string' && state[0] === '{') {
         state = JSON.parse(state);
       }
       const nextState = machine.transition(state, eventType);
       return nextState;
-    }, fromState) as State<TExt>;
+    }, fromState) as State<TContext>;
 
   return resultState;
 }
 
-export function testAll(machine: StateNode, expected: {}): void {
+export function testAll(machine: StateMachine, expected: {}): void {
   Object.keys(expected).forEach((fromState) => {
     Object.keys(expected[fromState]).forEach((eventTypes) => {
       const toState = expected[fromState][eventTypes];

@@ -1,6 +1,5 @@
-// import { Machine, StateNode } from 'xstate';
 import { createAnalyzer } from '../src';
-import { Machine, interpret } from 'xstate';
+import { createMachine, interpret } from 'xstate';
 
 const pedestrianStates = {
   initial: 'walk',
@@ -26,7 +25,7 @@ const pedestrianStates = {
   }
 };
 
-const lightMachine = Machine({
+const lightMachine = createMachine({
   key: 'light',
   initial: 'green',
   states: {
@@ -86,25 +85,25 @@ describe('@xstate/analytics', () => {
               "count": 1,
               "currentWeight": 1,
               "relativeWeight": 1,
-              "state": "{\\"value\\":\\"green\\"}",
+              "state": "{\\"value\\":\\"green\\",\\"context\\":{}}",
               "weight": 0.3333333333333333,
             },
           },
-          "{\\"value\\":\\"green\\"}": Object {
+          "{\\"value\\":\\"green\\",\\"context\\":{}}": Object {
             "{\\"type\\":\\"TIMER\\"}": Object {
               "count": 1,
               "currentWeight": 1,
               "relativeWeight": 1,
-              "state": "{\\"value\\":\\"yellow\\"}",
+              "state": "{\\"value\\":\\"yellow\\",\\"context\\":{}}",
               "weight": 0.3333333333333333,
             },
           },
-          "{\\"value\\":\\"yellow\\"}": Object {
+          "{\\"value\\":\\"yellow\\",\\"context\\":{}}": Object {
             "{\\"type\\":\\"TIMER\\"}": Object {
               "count": 1,
               "currentWeight": 1,
               "relativeWeight": 1,
-              "state": "{\\"value\\":{\\"red\\":\\"walk\\"}}",
+              "state": "{\\"value\\":{\\"red\\":\\"walk\\"},\\"context\\":{}}",
               "weight": 0.3333333333333333,
             },
           },

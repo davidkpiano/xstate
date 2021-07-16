@@ -4,57 +4,6 @@ import { toSCXMLEvent } from '../src/utils';
 const { actionTypes } = actions;
 
 describe('action creators', () => {
-  ['start', 'stop'].forEach((actionKey) => {
-    describe(`${actionKey}()`, () => {
-      it('should accept a string action', () => {
-        const action = actions[actionKey]('test');
-        expect(action.type).toEqual(actionTypes[actionKey]);
-        expect(action).toEqual({
-          type: actionTypes[actionKey],
-          exec: undefined,
-          activity: {
-            type: 'test',
-            exec: undefined,
-            id: 'test'
-          }
-        });
-      });
-
-      it('should accept an action object', () => {
-        const action = actions[actionKey]({ type: 'test', foo: 'bar' });
-        expect(action.type).toEqual(actionTypes[actionKey]);
-        expect(action).toEqual({
-          type: actionTypes[actionKey],
-          exec: undefined,
-          activity: {
-            type: 'test',
-            id: undefined,
-            foo: 'bar'
-          }
-        });
-      });
-
-      it('should accept an activity definition', () => {
-        const action = actions[actionKey]({
-          type: 'test',
-          foo: 'bar',
-          src: 'someSrc'
-        });
-        expect(action.type).toEqual(actionTypes[actionKey]);
-        expect(action).toEqual({
-          type: actionTypes[actionKey],
-          exec: undefined,
-          activity: {
-            type: 'test',
-            id: undefined,
-            foo: 'bar',
-            src: 'someSrc'
-          }
-        });
-      });
-    });
-  });
-
   describe('send()', () => {
     it('should accept a string event', () => {
       const action = actions.send('foo');

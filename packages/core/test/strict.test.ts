@@ -1,4 +1,4 @@
-import { Machine } from '../src/index';
+import { createMachine } from '../src/index';
 
 describe('strict mode', () => {
   const pedestrianStates = {
@@ -8,25 +8,25 @@ describe('strict mode', () => {
         on: {
           PED_COUNTDOWN: 'wait'
         },
-        onEntry: 'enter_walk',
-        onExit: 'exit_walk'
+        entry: 'enter_walk',
+        exit: 'exit_walk'
       },
       wait: {
         on: {
           PED_COUNTDOWN: 'stop'
         },
-        onEntry: 'enter_wait',
-        onExit: 'exit_wait'
+        entry: 'enter_wait',
+        exit: 'exit_wait'
       },
       stop: {
         type: 'final' as const,
-        onEntry: 'enter_stop',
-        onExit: 'exit_stop'
+        entry: 'enter_stop',
+        exit: 'exit_stop'
       }
     }
   };
 
-  const lightMachine = Machine({
+  const lightMachine = createMachine({
     strict: true,
     key: 'light',
     initial: 'green',
@@ -37,16 +37,16 @@ describe('strict mode', () => {
           POWER_OUTAGE: 'red',
           NOTHING: 'green'
         },
-        onEntry: 'enter_green',
-        onExit: 'exit_green'
+        entry: 'enter_green',
+        exit: 'exit_green'
       },
       yellow: {
         on: {
           TIMER: 'red',
           POWER_OUTAGE: 'red'
         },
-        onEntry: 'enter_yellow',
-        onExit: 'exit_yellow'
+        entry: 'enter_yellow',
+        exit: 'exit_yellow'
       },
       red: {
         on: {
@@ -54,8 +54,8 @@ describe('strict mode', () => {
           POWER_OUTAGE: 'red',
           NOTHING: 'red'
         },
-        onEntry: 'enter_red',
-        onExit: 'exit_red',
+        entry: 'enter_red',
+        exit: 'exit_red',
         ...pedestrianStates
       }
     }
@@ -69,7 +69,7 @@ describe('strict mode', () => {
 
   it('should not throw for built-in events', () => {
     expect(() => {
-      lightMachine.transition('red.wait', 'PED_COUNTDOWN');
+      lightMachine.transition({ red: 'wait' }, 'PED_COUNTDOWN');
     }).not.toThrow();
   });
 });

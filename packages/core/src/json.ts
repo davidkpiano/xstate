@@ -1,4 +1,4 @@
-import { StateNode, ActionObject, Guard, InvokeDefinition } from './';
+import { StateNode, ActionObject, GuardObject, InvokeDefinition } from './';
 import { mapValues, isFunction } from './utils';
 
 interface JSONFunction {
@@ -20,7 +20,7 @@ interface TransitionConfig {
   target: string[];
   source: string;
   actions: Array<ActionObject<any, any>>;
-  cond: Guard<any, any> | undefined;
+  guard: GuardObject<any, any> | undefined;
   eventType: string;
 }
 
@@ -46,15 +46,15 @@ export function machineToJSON(stateNode: StateNode): StateNodeConfig {
       stateNode.initial === undefined ? undefined : String(stateNode.initial),
     id: stateNode.id,
     key: stateNode.key,
-    entry: stateNode.onEntry,
-    exit: stateNode.onExit,
+    entry: stateNode.entry,
+    exit: stateNode.exit,
     on: mapValues(stateNode.on, (transition) => {
       return transition.map((t) => {
         return {
           target: t.target ? t.target.map(getStateNodeId) : [],
           source: getStateNodeId(t.source),
           actions: t.actions,
-          cond: t.cond,
+          guard: t.guard,
           eventType: t.eventType
         };
       });
@@ -71,12 +71,16 @@ export function machineToJSON(stateNode: StateNode): StateNodeConfig {
 }
 
 export function stringify(machine: StateNode): string {
-  return JSON.stringify(machineToJSON(machine), (_, value) => {
-    if (isFunction(value)) {
-      return { $function: value.toString() };
-    }
-    return value;
-  });
+  return JSON.stringify(
+    machineToJSON(machine),
+    (_, value) => {
+      if (isFunction(value)) {
+        return { $function: value.toString() };
+      }
+      return value;
+    },
+    2
+  );
 }
 
 export function parse(machineString: string): StateNodeConfig {

@@ -128,48 +128,6 @@ red: {
 Then you cannot target the `'walking'` state via `'#redLight.walking'`, because its ID is resolved to `'#light.red.walking'`. A target that starts with `'#'` will always refer to the _exact match_ for the `'#[state node ID]'`.
 :::
 
-## Avoiding strings
-
-If you don't want to use strings for identifying states, [object getters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get) can be used to directly reference the target state:
-
-```js
-const lightMachine = createMachine({
-  id: 'light',
-  initial: 'green',
-  states: {
-    green: {
-      on: {
-        // Use a getter to directly reference the target state node:
-        get TIMER() {
-          return { target: lightMachine.states.yellow };
-        }
-      }
-    },
-    yellow: {
-      on: {
-        get TIMER() {
-          return { target: lightMachine.states.red };
-        }
-      }
-    },
-    red: {
-      on: {
-        TIMER: {
-          // Also works with target as a getter
-          get target() {
-            return { target: lightMachine.states.green };
-          }
-        }
-      }
-    }
-  }
-});
-```
-
-::: warning
-The getter _must_ be a pure function that always returns the same value, which is a `StateNode` instance. Using getters to reference state nodes is completely optional, and useful if you want to avoid strings or have stricter typings. This getter will only be called once.
-:::
-
 ## SCXML
 
 IDs correspond to the definition of IDs in the SCXML spec:

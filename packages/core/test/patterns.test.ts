@@ -1,5 +1,5 @@
 import { toggle, sequence } from '../src/patterns';
-import { Machine } from '../src';
+import { createMachine } from '../src';
 
 describe('patterns', () => {
   describe('toggle pattern', () => {
@@ -15,7 +15,7 @@ describe('patterns', () => {
     it('should work with an array', () => {
       const seq = ['one', 'two', 'three', 'last'];
 
-      const sequenceMachine = Machine({
+      const sequenceMachine = createMachine({
         id: 'sequence',
         ...sequence(seq)
       });
@@ -34,7 +34,7 @@ describe('patterns', () => {
     it('should customize the next/prev events', () => {
       const seq = ['one', 'two', 'three', 'last'];
 
-      const sequenceMachine = Machine({
+      const sequenceMachine = createMachine({
         id: 'sequence',
         ...sequence(seq, {
           nextEvent: 'FORWARD',
@@ -56,7 +56,7 @@ describe('patterns', () => {
     it('should allow next/prev events to be undefined', () => {
       const seq = ['one', 'two', 'three', 'last'];
 
-      const sequenceMachine = Machine({
+      const sequenceMachine = createMachine({
         id: 'sequence',
         ...sequence(seq, {
           nextEvent: 'FORWARD',
@@ -70,7 +70,7 @@ describe('patterns', () => {
 
       expect(sequenceMachine.transition(seq[1], 'BACK').value).toEqual(seq[1]);
 
-      const backSequenceMachine = Machine({
+      const backSequenceMachine = createMachine({
         id: 'backSequence',
         ...sequence(seq, {
           nextEvent: undefined,

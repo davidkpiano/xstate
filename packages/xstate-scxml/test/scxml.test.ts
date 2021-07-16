@@ -1,9 +1,14 @@
-import { Machine, StateNode, State, interpret } from 'xstate';
+import {
+  createMachine,
+  State,
+  interpret,
+  MachineNode,
+  SimulatedClock,
+  getStateNodes
+} from 'xstate';
+import { toMachine } from 'xstate/src/scxml';
 import { xml2js } from 'xml-js';
 import { transitionToSCXML, toSCXML } from '../src';
-import { toMachine } from 'xstate/lib/scxml';
-import { pathsToStateValue } from 'xstate/lib/utils';
-import { SimulatedClock } from 'xstate/lib/SimulatedClock';
 import * as fs from 'fs';
 
 interface SCIONTest {
@@ -16,22 +21,11 @@ interface SCIONTest {
 }
 
 async function runTestToCompletion(
-  machine: StateNode,
+  machine: MachineNode,
   test: SCIONTest
 ): Promise<void> {
-  const stateValue = test.events.length
-    ? pathsToStateValue(
-        test.initialConfiguration.map((id) => machine.getStateNodeById(id).path)
-      )
-    : machine.initialState.value;
-
-  const resolvedStateValue = machine.resolve(stateValue);
-
   let done = false;
-  let nextState: State<any> = machine.getInitialState(
-    resolvedStateValue,
-    machine.initialState.context
-  );
+  let nextState: State<any> = machine.initialState;
 
   const service = interpret(machine, {
     clock: new SimulatedClock()
@@ -44,9 +38,6 @@ async function runTestToCompletion(
     })
     .start(nextState);
 
-  // @ts-ignore
-  // service._state = nextState;
-
   test.events.forEach(({ event, nextConfiguration, after }) => {
     if (done) {
       return;
@@ -56,17 +47,12 @@ async function runTestToCompletion(
     }
     service.send(event.name);
 
-    const stateIds = machine
-      .getStateNodes(nextState)
-      .map((stateNode) => stateNode.id);
+    const stateIds = getStateNodes(machine.root, nextState).map(
+      (stateNode) => stateNode.id
+    );
 
     expect(stateIds).toContain(nextConfiguration[0]);
   });
-
-  if (!test.events.length) {
-    const stateIds = machine.getStateNodes(nextState).map((sn) => sn.id);
-    expect(stateIds).toContain(test.initialConfiguration[0]);
-  }
 }
 
 const testGroups = {
@@ -122,7 +108,7 @@ describe('scxml', () => {
           delimiter: '$'
         });
 
-        await runTestToCompletion(machine, scxmlTest);
+        await runTestToCompletion(machine as any, scxmlTest); // TODO: fix
       }, 2000);
     });
   });
@@ -181,7 +167,7 @@ const pedestrianStates = {
   }
 };
 
-const lightMachine = Machine({
+const lightMachine = createMachine({
   key: 'light',
   initial: 'green',
   states: {
@@ -244,7 +230,7 @@ xdescribe('transition to SCXML', () => {
   });
 
   it('converts a full transition', () => {
-    const machine = Machine({
+    const machine = createMachine({
       initial: 'test',
       states: {
         test: {
@@ -253,8 +239,7 @@ xdescribe('transition to SCXML', () => {
             SOME_EVENT: {
               target: 'next',
               internal: true,
-              cond: () => true,
-              in: '#test',
+              guard: () => true,
               actions: ['foo', 'bar']
             }
           }

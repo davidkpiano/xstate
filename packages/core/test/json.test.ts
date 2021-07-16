@@ -1,14 +1,18 @@
 import { createMachine, assign } from '../src/index';
 import * as machineSchema from '../src/machine.schema.json';
 
-import * as Ajv from 'ajv';
+import Ajv from 'ajv';
 
 const ajv = new Ajv();
 const validate = ajv.compile(machineSchema);
 
 describe('json', () => {
   it('should serialize the machine', () => {
-    const machine = createMachine<{ [key: string]: any }>({
+    interface Context {
+      [key: string]: any;
+    }
+
+    const machine = createMachine<Context>({
       initial: 'foo',
       version: '1.0.0',
       context: {
@@ -34,11 +38,12 @@ describe('json', () => {
             function actionFunction() {
               return true;
             },
+            // TODO: investigate why this had to be casted to any to satisfy TS
             assign({
               number: 10,
               string: 'test',
               evalNumber: () => 42
-            }),
+            }) as any,
             assign((ctx) => ({
               ...ctx
             }))
@@ -46,7 +51,7 @@ describe('json', () => {
           on: {
             TO_FOO: {
               target: ['foo', 'bar'],
-              cond: (ctx) => !!ctx.string
+              guard: (ctx) => !!ctx.string
             }
           },
           after: {
@@ -113,6 +118,7 @@ describe('json', () => {
       initial: 'active',
       states: {
         active: {
+          id: 'active',
           invoke: {
             src: 'someSrc',
             onDone: 'foo',
@@ -133,50 +139,11 @@ describe('json', () => {
 
     const revivedMachine = createMachine(machineObject);
 
-    expect(revivedMachine.states.active.transitions).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          "actions": Array [],
-          "cond": undefined,
-          "event": "done.invoke.someSrc",
-          "eventType": "done.invoke.someSrc",
-          "internal": false,
-          "source": "#(machine).active",
-          "target": Array [
-            "#(machine).foo",
-          ],
-          "toJSON": [Function],
-        },
-        Object {
-          "actions": Array [],
-          "cond": undefined,
-          "event": "error.platform.someSrc",
-          "eventType": "error.platform.someSrc",
-          "internal": false,
-          "source": "#(machine).active",
-          "target": Array [
-            "#(machine).bar",
-          ],
-          "toJSON": [Function],
-        },
-        Object {
-          "actions": Array [],
-          "cond": undefined,
-          "event": "EVENT",
-          "eventType": "EVENT",
-          "internal": false,
-          "source": "#(machine).active",
-          "target": Array [
-            "#(machine).foo",
-          ],
-          "toJSON": [Function],
-        },
-      ]
-    `);
-
     // 1. onDone
     // 2. onError
     // 3. EVENT
-    expect(revivedMachine.states.active.transitions.length).toBe(3);
+    expect(revivedMachine.getStateNodeById('active').transitions.length).toBe(
+      3
+    );
   });
 });

@@ -1,6 +1,6 @@
-import { Machine, actions } from 'xstate';
+import { createMachine, actions } from 'xstate';
 
-export default Machine<any>({
+export default createMachine({
   initial: 'a',
   states: {
     a: {

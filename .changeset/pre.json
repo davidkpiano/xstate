@@ -1,0 +1,17 @@
+{
+  "mode": "pre",
+  "tag": "next",
+  "initialVersions": {
+    "xstate": "4.7.3",
+    "@xstate/analytics": "0.0.1",
+    "@xstate/fsm": "1.1.0",
+    "@xstate/graph": "1.0.0",
+    "@xstate/immer": "0.0.1",
+    "@xstate/react": "1.0.0-rc.0",
+    "@xstate/scxml": "0.2.1",
+    "@xstate/test": "0.1.0",
+    "@xstate/viz": "0.1.0",
+    "@xstate/viz-example": "1.0.0"
+  },
+  "changesets": []
+}

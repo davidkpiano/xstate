@@ -1,5 +1,5 @@
 import { createMachine, assign, SCXML, ActorRef, Interpreter } from 'xstate';
-import { XStateDevInterface } from 'xstate/lib/devTools';
+import { XStateDevInterface } from 'xstate/dev';
 import { ReceiverEvent } from './types';
 import { stringify } from './utils';
 
@@ -51,7 +51,7 @@ export function createInspectMachine(
             actions: (_, e) => {
               const { event } = e;
               const scxmlEventObject = JSON.parse(event) as SCXML.Event<any>;
-              const service = serviceMap.get(scxmlEventObject.origin!);
+              const service = serviceMap.get(scxmlEventObject.origin?.name!);
               service?.send(scxmlEventObject);
             }
           },

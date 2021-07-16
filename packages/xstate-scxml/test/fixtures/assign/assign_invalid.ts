@@ -1,7 +1,7 @@
-import { Machine, assign } from 'xstate';
-import { log } from 'xstate/lib/actions';
+import { createMachine, assign } from 'xstate';
+import { log } from 'xstate/actions';
 
-export default Machine<any>({
+export default createMachine<{ o1: any }>({
   initial: 'uber',
   context: {
     o1: undefined

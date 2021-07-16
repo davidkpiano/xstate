@@ -4,13 +4,14 @@
   import { useMachine } from '../src';
   import { fetchMachine } from './fetchMachine';
   import type { State } from 'xstate';
+  import { invokePromise } from 'xstate/invoke';
 
   const onFetch = () =>
     new Promise((res) => setTimeout(() => res('some data'), 50));
 
   const { state, send } = useMachine(fetchMachine, {
-    services: {
-      fetchData: onFetch
+    actors: {
+      fetchData: invokePromise(onFetch)
     },
     state: persistedState
   });

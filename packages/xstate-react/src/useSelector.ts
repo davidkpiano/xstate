@@ -3,7 +3,7 @@ import { ActorRef, Interpreter, Subscribable } from 'xstate';
 import { isActorWithState } from './useActor';
 import { getServiceSnapshot } from './useService';
 
-function isService(actor: any): actor is Interpreter<any, any, any, any> {
+function isService(actor: any): actor is Interpreter<any, any, any> {
   return 'state' in actor && 'machine' in actor;
 }
 

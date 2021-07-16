@@ -1,30 +1,12 @@
-import { Machine, assign, createMachine, interpret } from '../src/index';
+import { assign, createMachine, interpret } from '../src/index';
 import { raise } from '../src/actions';
+import { createModel } from '../src/model';
 
 function noop(_x) {
   return;
 }
 
 describe('StateSchema', () => {
-  interface LightStateSchema {
-    meta: {
-      interval: number;
-    };
-    states: {
-      green: {
-        meta: { name: string };
-      };
-      yellow: {};
-      red: {
-        states: {
-          walk: {};
-          wait: {};
-          stop: {};
-        };
-      };
-    };
-  }
-
   type LightEvent =
     | { type: 'TIMER' }
     | { type: 'POWER_OUTAGE' }
@@ -34,7 +16,7 @@ describe('StateSchema', () => {
     elapsed: number;
   }
 
-  const lightMachine = Machine<LightContext, LightStateSchema, LightEvent>({
+  const lightMachine = createMachine<LightContext, LightEvent>({
     key: 'light',
     initial: 'green',
     meta: { interval: 1000 },
@@ -70,7 +52,10 @@ describe('StateSchema', () => {
             on: {
               PED_COUNTDOWN: {
                 target: 'stop',
-                cond: (ctx, e: { type: 'PED_COUNTDOWN'; duration: number }) => {
+                guard: (
+                  ctx,
+                  e: { type: 'PED_COUNTDOWN'; duration: number }
+                ) => {
                   return e.duration === 0 && ctx.elapsed > 0;
                 }
               }
@@ -92,19 +77,6 @@ describe('StateSchema', () => {
 });
 
 describe('Parallel StateSchema', () => {
-  interface ParallelStateSchema {
-    states: {
-      foo: {};
-      bar: {};
-      baz: {
-        states: {
-          one: {};
-          two: {};
-        };
-      };
-    };
-  }
-
   type ParallelEvent =
     | { type: 'TIMER' }
     | { type: 'POWER_OUTAGE' }
@@ -115,11 +87,7 @@ describe('Parallel StateSchema', () => {
     elapsed: number;
   }
 
-  const parallelMachine = Machine<
-    ParallelContext,
-    ParallelStateSchema,
-    ParallelEvent
-  >({
+  const parallelMachine = createMachine<ParallelContext, ParallelEvent>({
     type: 'parallel',
     states: {
       foo: {},
@@ -142,19 +110,6 @@ describe('Parallel StateSchema', () => {
 });
 
 describe('Nested parallel stateSchema', () => {
-  interface ParallelStateSchema {
-    states: {
-      foo: {};
-      bar: {};
-      baz: {
-        states: {
-          blockUpdates: {};
-          activeParallelNode: {};
-        };
-      };
-    };
-  }
-
   interface ParallelEvent {
     type: 'UPDATE.CONTEXT';
   }
@@ -163,11 +118,7 @@ describe('Nested parallel stateSchema', () => {
     lastDate: Date;
   }
 
-  const nestedParallelMachine = Machine<
-    ParallelContext,
-    ParallelStateSchema,
-    ParallelEvent
-  >({
+  const nestedParallelMachine = createMachine<ParallelContext, ParallelEvent>({
     initial: 'foo',
     states: {
       foo: {},
@@ -202,17 +153,6 @@ describe('Nested parallel stateSchema', () => {
 
 describe('Raise events', () => {
   it('should work with all the ways to raise events', () => {
-    interface GreetingStateSchema {
-      states: {
-        pending: {};
-        morning: {};
-        lunchTime: {};
-        afternoon: {};
-        evening: {};
-        night: {};
-      };
-    }
-
     type GreetingEvent =
       | { type: 'DECIDE'; aloha?: boolean }
       | { type: 'MORNING' }
@@ -228,11 +168,7 @@ describe('Raise events', () => {
 
     const greetingContext: GreetingContext = { hour: 10 };
 
-    const raiseGreetingMachine = Machine<
-      GreetingContext,
-      GreetingStateSchema,
-      GreetingEvent
-    >({
+    const raiseGreetingMachine = createMachine<GreetingContext, GreetingEvent>({
       key: 'greeting',
       context: greetingContext,
       initial: 'pending',
@@ -243,24 +179,24 @@ describe('Raise events', () => {
               {
                 actions: raise({
                   type: 'ALOHA'
-                }) as any /* TODO: FIX */,
-                cond: (_ctx, ev) => !!ev.aloha
+                }),
+                guard: (_ctx, ev) => !!ev.aloha
               },
               {
                 actions: raise({
                   type: 'MORNING'
-                }) as any /* TODO: FIX */,
-                cond: (ctx) => ctx.hour < 12
+                }),
+                guard: (ctx) => ctx.hour < 12
               },
               {
                 actions: raise({
                   type: 'AFTERNOON'
-                }) as any /* TODO: FIX */,
-                cond: (ctx) => ctx.hour < 18
+                }),
+                guard: (ctx) => ctx.hour < 18
               },
               {
-                actions: raise({ type: 'EVENING' }) as any /* TODO: FIX */,
-                cond: (ctx) => ctx.hour < 22
+                actions: raise({ type: 'EVENING' }),
+                guard: (ctx) => ctx.hour < 22
               }
             ]
           }
@@ -287,7 +223,9 @@ describe('Raise events', () => {
 
 describe('Typestates', () => {
   // Using "none" because undefined and null are unavailable when not in strict mode.
-  type None = { type: 'none' };
+  interface None {
+    type: 'none';
+  }
   const none: None = { type: 'none' };
 
   const taskMachineConfiguration = {
@@ -359,30 +297,18 @@ describe('Typestates', () => {
       : { result: none, error: 'oops' };
     expect(failed).toEqual({ result: none, error: 'oops' });
   });
+});
 
-  it('should preserve typestate for state node returned by StateNode.withConfig.', () => {
-    const machine2 = machine.withConfig({});
-    const service = interpret(machine2);
-    service.start();
+describe('types', () => {
+  it('defined context in createMachine() should be an object', () => {
+    createMachine({
+      // @ts-expect-error
+      context: 'string'
+    });
+  });
 
-    const idle: Idle = service.state.matches('idle')
-      ? service.state.context
-      : { result: none, error: none };
-    expect(idle).toEqual({ result: none, error: none });
-
-    const running: Running = service.state.matches('running')
-      ? service.state.context
-      : { result: none, error: none };
-    expect(running).toEqual({ result: none, error: none });
-
-    const succeeded: Succeeded = service.state.matches('succeeded')
-      ? service.state.context
-      : { result: 12, error: none };
-    expect(succeeded).toEqual({ result: 12, error: none });
-
-    const failed: Failed = service.state.matches('failed')
-      ? service.state.context
-      : { result: none, error: 'oops' };
-    expect(failed).toEqual({ result: none, error: 'oops' });
+  it('defined context passed to createModel() should be an object', () => {
+    // @ts-expect-error
+    createModel('string');
   });
 });

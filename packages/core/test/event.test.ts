@@ -1,9 +1,10 @@
-import { Machine, sendParent, interpret, assign } from '../src';
+import { createMachine, sendParent, interpret, assign } from '../src';
 import { respond, send } from '../src/actions';
+import { invokeCallback, invokeMachine } from '../src/invoke';
 
 describe('SCXML events', () => {
   it('should have the origin (id) from the sending machine service', (done) => {
-    const childMachine = Machine({
+    const childMachine = createMachine({
       initial: 'active',
       states: {
         active: {
@@ -12,19 +13,19 @@ describe('SCXML events', () => {
       }
     });
 
-    const parentMachine = Machine({
+    const parentMachine = createMachine({
       initial: 'active',
       states: {
         active: {
           invoke: {
             id: 'child',
-            src: childMachine
+            src: invokeMachine(childMachine)
           },
           on: {
             EVENT: {
               target: 'success',
-              cond: (_, __, { _event }) => {
-                return !!(_event.origin && _event.origin.length > 0);
+              guard: (_, __, { _event }) => {
+                return !!_event.origin;
               }
             }
           }
@@ -41,20 +42,20 @@ describe('SCXML events', () => {
   });
 
   it('should have the origin (id) from the sending callback service', () => {
-    const machine = Machine<{ childOrigin?: string }>({
+    const machine = createMachine<{ childOrigin?: string }>({
       initial: 'active',
       context: {},
       states: {
         active: {
           invoke: {
             id: 'callback_child',
-            src: () => (send) => send({ type: 'EVENT' })
+            src: invokeCallback(() => (sendBack) => sendBack({ type: 'EVENT' }))
           },
           on: {
             EVENT: {
               target: 'success',
               actions: assign({
-                childOrigin: (_, __, { _event }) => _event.origin
+                childOrigin: (_, __, { _event }) => _event.origin?.name
               })
             }
           }
@@ -71,7 +72,7 @@ describe('SCXML events', () => {
   });
 
   it('respond() should be able to respond to sender', (done) => {
-    const authServerMachine = Machine({
+    const authServerMachine = createMachine({
       initial: 'waitingForCode',
       states: {
         waitingForCode: {
@@ -86,7 +87,7 @@ describe('SCXML events', () => {
       }
     });
 
-    const authClientMachine = Machine({
+    const authClientMachine = createMachine({
       initial: 'idle',
       states: {
         idle: {
@@ -95,7 +96,7 @@ describe('SCXML events', () => {
         authorizing: {
           invoke: {
             id: 'auth-server',
-            src: authServerMachine
+            src: invokeMachine(authServerMachine)
           },
           entry: send('CODE', {
             to: 'auth-server'
@@ -128,7 +129,7 @@ interface ChangePassword {
   password: string;
 }
 
-const authMachine = Machine<SignInContext, ChangePassword>(
+const authMachine = createMachine<SignInContext, ChangePassword>(
   {
     context: { email: '', password: '' },
     initial: 'passwordField',
@@ -151,7 +152,7 @@ const authMachine = Machine<SignInContext, ChangePassword>(
         on: {
           changePassword: [
             {
-              cond: (_, event) => event.password.length >= 10,
+              guard: (_, event) => event.password.length >= 10,
               target: '.invalid',
               actions: ['assignPassword']
             },

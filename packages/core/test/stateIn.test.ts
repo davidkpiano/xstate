@@ -1,6 +1,7 @@
-import { Machine } from '../src/index';
+import { createMachine } from '../src/index';
+import { stateIn } from '../src/guards';
 
-const machine = Machine({
+const machine = createMachine({
   type: 'parallel',
   states: {
     a: {
@@ -8,21 +9,19 @@ const machine = Machine({
       states: {
         a1: {
           on: {
-            EVENT1: {
-              target: 'a2',
-              in: 'b.b2'
-            },
             EVENT2: {
               target: 'a2',
-              in: { b: 'b2' }
+              guard: stateIn({ b: 'b2' })
             },
             EVENT3: {
               target: 'a2',
-              in: '#b_b2'
+              guard: stateIn('#b_b2')
             }
           }
         },
-        a2: {}
+        a2: {
+          id: 'a_a2'
+        }
       }
     },
     b: {
@@ -32,7 +31,7 @@ const machine = Machine({
           on: {
             EVENT: {
               target: 'b2',
-              in: 'a.a2'
+              guard: stateIn('#a_a2')
             }
           }
         },
@@ -45,7 +44,7 @@ const machine = Machine({
               states: {
                 foo1: {
                   on: {
-                    EVENT_DEEP: { target: 'foo2', in: 'bar.bar1' }
+                    EVENT_DEEP: { target: 'foo2', guard: stateIn('#bar1') }
                   }
                 },
                 foo2: {}
@@ -54,7 +53,9 @@ const machine = Machine({
             bar: {
               initial: 'bar1',
               states: {
-                bar1: {},
+                bar1: {
+                  id: 'bar1'
+                },
                 bar2: {}
               }
             }
@@ -65,7 +66,7 @@ const machine = Machine({
   }
 });
 
-const lightMachine = Machine({
+const lightMachine = createMachine({
   id: 'light',
   initial: 'green',
   states: {
@@ -82,7 +83,7 @@ const lightMachine = Machine({
         TIMER: [
           {
             target: 'green',
-            in: { red: 'stop' }
+            guard: stateIn({ red: 'stop' })
           }
         ]
       }
@@ -103,7 +104,7 @@ describe('transition "in" check', () => {
             }
           }
         },
-        'EVENT1'
+        'EVENT2'
       ).value
     ).toEqual({
       a: 'a2',
@@ -208,15 +209,15 @@ describe('transition "in" check', () => {
   });
 
   it('should work to forbid events', () => {
-    const walkState = lightMachine.transition('red.walk', 'TIMER');
+    const walkState = lightMachine.transition({ red: 'walk' }, 'TIMER');
 
     expect(walkState.value).toEqual({ red: 'walk' });
 
-    const waitState = lightMachine.transition('red.wait', 'TIMER');
+    const waitState = lightMachine.transition({ red: 'wait' }, 'TIMER');
 
     expect(waitState.value).toEqual({ red: 'wait' });
 
-    const stopState = lightMachine.transition('red.stop', 'TIMER');
+    const stopState = lightMachine.transition({ red: 'stop' }, 'TIMER');
 
     expect(stopState.value).toEqual('green');
   });

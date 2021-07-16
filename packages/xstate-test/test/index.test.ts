@@ -1,6 +1,6 @@
 // nothing yet
 import { createModel } from '../src';
-import { Machine, assign } from 'xstate';
+import { createMachine, assign } from 'xstate';
 import stripAnsi from 'strip-ansi';
 
 interface DieHardContext {
@@ -31,7 +31,7 @@ const fill5 = assign<DieHardContext>({ five: 5 });
 const empty3 = assign<DieHardContext>({ three: 0 });
 const empty5 = assign<DieHardContext>({ five: 0 });
 
-const dieHardMachine = Machine<DieHardContext>(
+const dieHardMachine = createMachine<DieHardContext>(
   {
     id: 'dieHard',
     initial: 'pending',
@@ -41,7 +41,7 @@ const dieHardMachine = Machine<DieHardContext>(
         on: {
           '': {
             target: 'success',
-            cond: 'weHave4Gallons'
+            guard: 'weHave4Gallons'
           },
           POUR_3_TO_5: {
             actions: pour3to5
@@ -209,7 +209,7 @@ describe('path.test()', () => {
 
 describe('error path trace', () => {
   describe('should return trace for failed state', () => {
-    const machine = Machine({
+    const machine = createMachine({
       initial: 'first',
       states: {
         first: {
@@ -261,7 +261,7 @@ describe('coverage', () => {
   });
 
   it('tests missing state node coverage', async () => {
-    const machine = Machine({
+    const machine = createMachine({
       id: 'missing',
       initial: 'first',
       states: {
@@ -327,7 +327,7 @@ describe('coverage', () => {
   });
 
   it('skips filtered states (filter option)', async () => {
-    const TestBug = Machine({
+    const TestBug = createMachine({
       id: 'testbug',
       initial: 'idle',
       context: {
@@ -395,7 +395,7 @@ describe('events', () => {
       | { type: 'CLOSE' }
       | { type: 'ESC' }
       | { type: 'SUBMIT'; value: string };
-    const feedbackMachine = Machine<void, Events>({
+    const feedbackMachine = createMachine<any, Events>({
       id: 'feedback',
       initial: 'question',
       states: {
@@ -417,7 +417,7 @@ describe('events', () => {
             SUBMIT: [
               {
                 target: 'thanks',
-                cond: (_, e) => !!e.value.length
+                guard: (_, e) => !!e.value.length
               },
               {
                 target: '.invalid'
@@ -496,7 +496,7 @@ describe('events', () => {
   });
 
   it('should not throw an error for unimplemented events', () => {
-    const testMachine = Machine({
+    const testMachine = createMachine({
       initial: 'idle',
       states: {
         idle: {
@@ -520,7 +520,7 @@ describe('events', () => {
 
 describe('state limiting', () => {
   it('should limit states with filter option', () => {
-    const machine = Machine<{ count: number }>({
+    const machine = createMachine<{ count: number }>({
       initial: 'counting',
       context: { count: 0 },
       states: {
@@ -548,7 +548,7 @@ describe('state limiting', () => {
 });
 
 describe('plan description', () => {
-  const machine = Machine({
+  const machine = createMachine({
     id: 'test',
     initial: 'atomic',
     context: { count: 0 },

@@ -1,6 +1,6 @@
-import { Machine } from '../../src';
+import { createMachine } from '../../src';
 
-export const machine = Machine({
+export const machine = createMachine({
   initial: 'A',
   states: {
     A: {
@@ -41,28 +41,6 @@ export const machine = Machine({
         dot_custom: {
           id: 'B.dot'
         }
-      }
-    },
-    getter: {
-      on: {
-        get NEXT() {
-          return machine.states.A;
-        },
-        get NEXT_DEEP() {
-          return machine.states.A.states.foo;
-        },
-        NEXT_TARGET: {
-          get target() {
-            return machine.states.B;
-          }
-        },
-        NEXT_TARGET_ARRAY: [
-          {
-            get target() {
-              return machine.states.B;
-            }
-          }
-        ]
       }
     }
   }

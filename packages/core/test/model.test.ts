@@ -228,7 +228,7 @@ describe('createModel', () => {
     const toggleModel = createModel({ count: 0 });
 
     // @ts-expect-error
-    const m = createMachine<typeof toggleModel>({
+    const m = toggleModel.createMachine({
       id: 'machine',
       initial: 'inactive',
       // missing context:

@@ -1,4 +1,4 @@
-import { Machine, interpret, createMachine, assign } from '../src/index';
+import { interpret, createMachine, assign } from '../src/index';
 import { State } from '../src/State';
 
 const pedestrianStates = {
@@ -18,15 +18,7 @@ const pedestrianStates = {
   }
 };
 
-interface LightStateSchema {
-  states: {
-    green: any;
-    yellow: any;
-    red: any;
-  };
-}
-
-const lightMachine = Machine<undefined, LightStateSchema>({
+const lightMachine = createMachine({
   key: 'light',
   initial: 'green',
   states: {
@@ -53,7 +45,7 @@ const lightMachine = Machine<undefined, LightStateSchema>({
   }
 });
 
-const configMachine = Machine(
+const configMachine = createMachine(
   {
     id: 'config',
     initial: 'foo',
@@ -62,11 +54,11 @@ const configMachine = Machine(
     },
     states: {
       foo: {
-        onEntry: 'entryAction',
+        entry: 'entryAction',
         on: {
           EVENT: {
             target: 'bar',
-            cond: 'someCondition'
+            guard: 'someCondition'
           }
         }
       },
@@ -126,7 +118,7 @@ describe('machine', () => {
 
   describe('machine.config', () => {
     it('state node config should reference original machine config', () => {
-      const machine = Machine({
+      const machine = createMachine({
         initial: 'one',
         states: {
           one: {
@@ -138,11 +130,11 @@ describe('machine', () => {
         }
       });
 
-      const oneState = machine.getStateNodeByPath(['one']);
+      const oneState = machine.states.one;
 
       expect(oneState.config).toBe(machine.config.states!.one);
 
-      const deepState = machine.getStateNodeByPath(['one', 'deep']);
+      const deepState = machine.states.one.states.deep;
 
       expect(deepState.config).toBe(machine.config.states!.one.states!.deep);
 
@@ -156,7 +148,7 @@ describe('machine', () => {
 
   describe('machine.withConfig', () => {
     it('should override guards and actions', () => {
-      const differentMachine = configMachine.withConfig({
+      const differentMachine = configMachine.provide({
         actions: {
           entryAction: () => {
             throw new Error('new entry');
@@ -177,39 +169,100 @@ describe('machine', () => {
     });
 
     it('should not override context if not defined', () => {
-      const differentMachine = configMachine.withConfig({});
+      const differentMachine = configMachine.provide({});
 
       expect(differentMachine.initialState.context).toEqual(
         configMachine.context
       );
     });
 
-    it('should override context (second argument)', () => {
-      const differentMachine = configMachine.withConfig(
-        {},
-        { foo: 'different' }
-      );
+    it.skip('should override context (second argument)', () => {
+      // const differentMachine = configMachine.withConfig(
+      //   {},
+      //   { foo: 'different' }
+      // );
+      // expect(differentMachine.initialState.context).toEqual({
+      //   foo: 'different'
+      // });
+    });
 
-      expect(differentMachine.initialState.context).toEqual({
-        foo: 'different'
+    // https://github.com/davidkpiano/xstate/issues/674
+    it('should throw if initial state is missing in a compound state', () => {
+      expect(() => {
+        createMachine({
+          initial: 'first',
+          states: {
+            first: {
+              states: {
+                second: {},
+                third: {}
+              }
+            }
+          }
+        });
+      }).toThrow();
+    });
+
+    it('machines defined without context should have a default empty object for context', () => {
+      const machine = createMachine({});
+
+      expect(machine.initialState.context).toEqual({});
+    });
+  });
+
+  describe('machine.withContext', () => {
+    it('should partially override context', () => {
+      const fooBarMachine = createMachine({
+        initial: 'active',
+        context: {
+          foo: 1,
+          bar: 2
+        },
+        states: {
+          active: {}
+        }
       });
+
+      const changedBarMachine = fooBarMachine.withContext({
+        bar: 42
+      });
+
+      expect(changedBarMachine.initialState.context).toEqual({
+        foo: 1,
+        bar: 42
+      });
+    });
+
+    it('should override undefined context', () => {
+      const fooBarMachine = createMachine({
+        initial: 'active',
+        states: {
+          active: {}
+        }
+      });
+
+      const changedBarMachine = fooBarMachine.withContext({
+        bar: 42
+      });
+
+      expect(changedBarMachine.initialState.context).toEqual({ bar: 42 });
     });
   });
 
   describe('machine function context', () => {
-    it('context from a function should be lazily evaluated', () => {
-      const testMachineConfig = {
-        initial: 'active',
-        context: () => ({
-          foo: { bar: 'baz' }
-        }),
-        states: {
-          active: {}
-        }
-      };
+    const testMachineConfig = {
+      initial: 'active',
+      context: () => ({
+        foo: { bar: 'baz' }
+      }),
+      states: {
+        active: {}
+      }
+    };
 
-      const testMachine1 = Machine(testMachineConfig);
-      const testMachine2 = Machine(testMachineConfig);
+    it.skip('context from a function should be lazily evaluated', () => {
+      const testMachine1 = createMachine(testMachineConfig);
+      const testMachine2 = createMachine(testMachineConfig);
 
       expect(testMachine1.initialState.context).not.toBe(
         testMachine2.initialState.context
@@ -226,7 +279,7 @@ describe('machine', () => {
   });
 
   describe('machine.resolveState()', () => {
-    const resolveMachine = Machine({
+    const resolveMachine = createMachine({
       id: 'resolve',
       initial: 'foo',
       states: {
@@ -266,7 +319,7 @@ describe('machine', () => {
     });
 
     it('should resolve the state value', () => {
-      const tempState = State.from<any>('foo');
+      const tempState = State.from('foo');
 
       const resolvedState = resolveMachine.resolveState(tempState);
 
@@ -276,7 +329,7 @@ describe('machine', () => {
     });
 
     it('should resolve the state configuration (implicit via events)', () => {
-      const tempState = State.from<any>('foo');
+      const tempState = State.from('foo');
 
       const resolvedState = resolveMachine.resolveState(tempState);
 
@@ -295,7 +348,7 @@ describe('machine', () => {
           }
         }
       });
-      const tempState = State.from<any>('bar');
+      const tempState = State.from('bar');
 
       const resolvedState = machine.resolveState(tempState);
 
@@ -305,7 +358,7 @@ describe('machine', () => {
 
   describe('versioning', () => {
     it('should allow a version to be specified', () => {
-      const versionMachine = Machine({
+      const versionMachine = createMachine({
         id: 'version',
         version: '1.0.4',
         states: {}
@@ -313,37 +366,21 @@ describe('machine', () => {
 
       expect(versionMachine.version).toEqual('1.0.4');
     });
-
-    it('should show the version on state nodes', () => {
-      const versionMachine = Machine({
-        id: 'version',
-        version: '1.0.4',
-        states: {
-          foo: {
-            id: 'foo'
-          }
-        }
-      });
-
-      const fooStateNode = versionMachine.getStateNodeById('foo');
-
-      expect(fooStateNode.version).toEqual('1.0.4');
-    });
   });
 
   describe('id', () => {
     it('should represent the ID', () => {
-      const idMachine = Machine({
+      const idMachine = createMachine({
         id: 'some-id',
         initial: 'idle',
         states: { idle: {} }
       });
 
-      expect(idMachine.id).toEqual('some-id');
+      expect(idMachine.key).toEqual('some-id');
     });
 
     it('should represent the ID (state node)', () => {
-      const idMachine = Machine({
+      const idMachine = createMachine({
         id: 'some-id',
         initial: 'idle',
         states: {
@@ -353,29 +390,27 @@ describe('machine', () => {
         }
       });
 
-      expect(idMachine.getStateNode('idle').id).toEqual('idle');
+      expect(idMachine.states.idle.id).toEqual('idle');
     });
 
     it('should use the key as the ID if no ID is provided', () => {
-      const noIDMachine = Machine({
+      const noIDMachine = createMachine({
         key: 'some-key',
         initial: 'idle',
         states: { idle: {} }
       });
 
-      expect(noIDMachine.id).toEqual('some-key');
+      expect(noIDMachine.key).toEqual('some-key');
     });
 
     it('should use the key as the ID if no ID is provided (state node)', () => {
-      const noStateNodeIDMachine = Machine({
+      const noStateNodeIDMachine = createMachine({
         id: 'some-id',
         initial: 'idle',
         states: { idle: {} }
       });
 
-      expect(noStateNodeIDMachine.getStateNode('idle').id).toEqual(
-        'some-id.idle'
-      );
+      expect(noStateNodeIDMachine.states.idle.id).toEqual('some-id.idle');
     });
   });
 

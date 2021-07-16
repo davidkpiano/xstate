@@ -1,7 +1,7 @@
-import { Machine, assign } from 'xstate';
-import { log } from 'xstate/lib/actions';
+import { createMachine, assign } from 'xstate';
+import { log } from 'xstate/actions';
 
-export default Machine<any>({
+export default createMachine<any>({
   initial: 'a',
   context: {
     i: undefined
@@ -21,7 +21,7 @@ export default Machine<any>({
         '': [
           {
             target: 'b',
-            cond: (ctx) => {
+            guard: (ctx) => {
               return ctx.i < 10;
             },
             actions: [
@@ -33,7 +33,7 @@ export default Machine<any>({
           },
           {
             target: '#c',
-            cond: (ctx) => ctx.i === 10
+            guard: (ctx) => ctx.i === 10
           }
         ]
       }

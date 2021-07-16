@@ -1,8 +1,8 @@
-import { Machine } from '../../src/index';
+import { createMachine } from '../../src/index';
 import { testAll } from '../utils';
 
 describe('Example: CD Player', () => {
-  const machine = Machine({
+  const machine = createMachine({
     key: 'cd',
     initial: 'not_loaded',
     states: {
@@ -57,12 +57,12 @@ describe('Example: CD Player', () => {
       EJECT: 'not_loaded',
       FAKE: undefined
     },
-    'loaded.stopped': {
+    '{"loaded":"stopped"}': {
       PLAY: 'loaded.playing',
       EJECT: 'not_loaded',
       FAKE: undefined
     },
-    'loaded.playing': {
+    '{"loaded":"playing"}': {
       EXPIRED_MID: 'loaded.playing',
       EXPIRED_END: 'loaded.stopped',
       STOP: 'loaded.stopped',
@@ -70,14 +70,14 @@ describe('Example: CD Player', () => {
       PAUSE: 'loaded.paused.not_blank',
       FAKE: undefined
     },
-    'loaded.paused': {
+    '{"loaded":"paused"}': {
       PAUSE: 'loaded.playing',
       PLAY: 'loaded.playing',
       TIMER: 'loaded.paused.blank',
       EJECT: 'not_loaded',
       STOP: 'loaded.stopped'
     },
-    'loaded.paused.blank': {
+    '{"loaded":{"paused": "blank"}}': {
       PAUSE: 'loaded.playing',
       PLAY: 'loaded.playing',
       TIMER: 'loaded.paused.not_blank',

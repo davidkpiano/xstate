@@ -1,7 +1,10 @@
-import { Machine, actions, assign } from 'xstate';
+import { createMachine, actions, assign } from 'xstate';
 
-export default Machine<any>({
-  initial: 'uber',
+export default createMachine({
+  initial: 's1',
+  context: {
+    o1: null
+  },
   states: {
     uber: {
       id: 'uber',

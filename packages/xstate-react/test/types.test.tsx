@@ -1,12 +1,11 @@
 import * as React from 'react';
 import { render } from '@testing-library/react';
 import {
-  Machine,
   interpret,
   assign,
-  spawn,
   createMachine,
-  ActorRefFrom
+  ActorRefFrom,
+  spawnMachine
 } from 'xstate';
 import { useService, useMachine, useActor } from '../src';
 
@@ -19,7 +18,7 @@ describe('useService', () => {
       todos: Array<ActorRefFrom<typeof todoMachine>>;
     }
 
-    const todoMachine = Machine<TodoCtx>({
+    const todoMachine = createMachine<TodoCtx>({
       context: {
         completed: false
       },
@@ -36,7 +35,7 @@ describe('useService', () => {
       }
     });
 
-    const todosMachine = Machine<TodosCtx, any, { type: 'CREATE' }>({
+    const todosMachine = createMachine<TodosCtx, { type: 'CREATE' }>({
       context: { todos: [] },
       initial: 'working',
       states: { working: {} },
@@ -44,7 +43,7 @@ describe('useService', () => {
         CREATE: {
           actions: assign((ctx) => ({
             ...ctx,
-            todos: ctx.todos.concat(spawn(todoMachine))
+            todos: [...ctx.todos, spawnMachine(todoMachine)]
           }))
         }
       }
@@ -159,7 +158,7 @@ describe('useMachine', () => {
       {
         actions: {
           spawnActor: assign({
-            actor: () => spawn(child)
+            actor: () => spawnMachine(child)
           })
         }
       }

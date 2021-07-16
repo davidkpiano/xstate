@@ -1,16 +1,17 @@
 import {
   interpret,
   EventObject,
-  StateMachine,
   State,
   Interpreter,
   InterpreterOptions,
-  MachineOptions,
+  MachineImplementations,
   Typestate,
-  Observer
+  Observer,
+  MachineNode
 } from 'xstate';
 import { UseMachineOptions, MaybeLazy } from './types';
 import { onBeforeUnmount, onMounted } from 'vue';
+import { MachineContext } from '../../core/src';
 
 // copied from core/src/utils.ts
 // it avoids a breaking change between this package and XState which is its peer dep
@@ -33,26 +34,25 @@ function toObserver<T>(
 }
 
 export function useInterpret<
-  TContext,
+  TContext extends MachineContext,
   TEvent extends EventObject,
   TTypestate extends Typestate<TContext> = { value: any; context: TContext }
 >(
-  getMachine: MaybeLazy<StateMachine<TContext, any, TEvent, TTypestate>>,
+  getMachine: MaybeLazy<MachineNode<TContext, TEvent, TTypestate>>,
   options: Partial<InterpreterOptions> &
     Partial<UseMachineOptions<TContext, TEvent>> &
-    Partial<MachineOptions<TContext, TEvent>> = {},
+    Partial<MachineImplementations<TContext, TEvent>> = {},
   observerOrListener?:
-    | Observer<State<TContext, TEvent, any, TTypestate>>
-    | ((value: State<TContext, TEvent, any, TTypestate>) => void)
-): Interpreter<TContext, any, TEvent, TTypestate> {
+    | Observer<State<TContext, TEvent, TTypestate>>
+    | ((value: State<TContext, TEvent, TTypestate>) => void)
+): Interpreter<TContext, TEvent, TTypestate> {
   const machine = typeof getMachine === 'function' ? getMachine() : getMachine;
 
   const {
     context,
     guards,
     actions,
-    activities,
-    services,
+    actors,
     delays,
     state: rehydratedState,
     ...interpreterOptions
@@ -62,15 +62,11 @@ export function useInterpret<
     context,
     guards,
     actions,
-    activities,
-    services,
+    actors,
     delays
   };
 
-  const machineWithConfig = machine.withConfig(machineConfig, {
-    ...machine.context,
-    ...context
-  } as TContext);
+  const machineWithConfig = machine.provide({ ...machineConfig, context });
 
   const service = interpret(machineWithConfig, interpreterOptions).start(
     rehydratedState ? (State.create(rehydratedState) as any) : undefined

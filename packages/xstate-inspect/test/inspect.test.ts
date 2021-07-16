@@ -10,8 +10,9 @@ describe('@xstate/inspect', () => {
     };
 
     const machine = createMachine({
-      initial: 'active',
+      id: 'whatever',
       context: circularStructure,
+      initial: 'active',
       states: {
         active: {}
       }

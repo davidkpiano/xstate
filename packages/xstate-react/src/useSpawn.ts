@@ -1,5 +1,5 @@
 import { ActorRef, Behavior, EventObject } from 'xstate';
-import { spawnBehavior } from 'xstate/lib/behaviors';
+import { spawnBehavior } from 'xstate/behaviors';
 import useConstant from './useConstant';
 
 /**

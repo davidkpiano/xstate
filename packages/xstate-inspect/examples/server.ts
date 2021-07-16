@@ -1,7 +1,9 @@
+// @ts-nocheck
 import * as WebSocket from 'ws';
 import { createMachine, interpret, send } from 'xstate';
-import { toSCXMLEvent } from 'xstate/lib/utils';
-import { inspect } from '@xstate/inspect/lib/server';
+import { toSCXMLEvent } from 'xstate/src/utils';
+import { inspect } from '@xstate/inspect/src/server';
+import { invokeCallback } from 'xstate/src/invoke';
 
 inspect({
   server: new WebSocket.Server({
@@ -13,21 +15,18 @@ const machine = createMachine({
   initial: 'inactive',
   invoke: {
     id: 'ponger',
-    src: () => (cb, receive) => {
+    src: invokeCallback(() => (cb, receive) => {
       receive((event) => {
         if (event.type === 'PING') {
           cb(
-            toSCXMLEvent(
-              {
-                type: 'PONG',
-                arr: [1, 2, 3]
-              },
-              { origin: 'ponger' }
-            )
+            toSCXMLEvent({
+              type: 'PONG',
+              arr: [1, 2, 3]
+            })
           );
         }
       });
-    }
+    })
   },
   states: {
     inactive: {

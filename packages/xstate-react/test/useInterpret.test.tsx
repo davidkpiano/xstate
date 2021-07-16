@@ -1,9 +1,7 @@
 import * as React from 'react';
 import { createMachine } from 'xstate';
-import { render, cleanup, fireEvent } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import { useInterpret } from '../src';
-
-afterEach(cleanup);
 
 describe('useInterpret', () => {
   it('observer should be called with initial state', (done) => {

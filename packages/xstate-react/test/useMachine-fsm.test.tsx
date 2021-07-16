@@ -1,14 +1,7 @@
 import * as React from 'react';
 import { useMachine } from '../src/fsm';
 import { createMachine, assign, interpret, StateMachine } from '@xstate/fsm';
-import {
-  render,
-  fireEvent,
-  cleanup,
-  waitForElement
-} from '@testing-library/react';
-
-afterEach(cleanup);
+import { render, fireEvent, waitForElement } from '@testing-library/react';
 
 describe('useMachine hook for fsm', () => {
   const context = {

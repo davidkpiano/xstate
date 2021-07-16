@@ -1,4 +1,4 @@
-import { Machine } from '../src/Machine';
+import { createMachine } from '../src/Machine';
 
 describe('deterministic machine', () => {
   const pedestrianStates = {
@@ -20,7 +20,7 @@ describe('deterministic machine', () => {
     }
   };
 
-  const lightMachine = Machine({
+  const lightMachine = createMachine({
     key: 'light',
     initial: 'green',
     states: {
@@ -46,7 +46,7 @@ describe('deterministic machine', () => {
     }
   });
 
-  const testMachine = Machine({
+  const testMachine = createMachine({
     key: 'test',
     initial: 'a',
     states: {
@@ -66,7 +66,7 @@ describe('deterministic machine', () => {
     }
   });
 
-  const deepMachine = Machine({
+  const deepMachine = createMachine({
     key: 'deep',
     initial: 'a',
     states: {
@@ -129,10 +129,6 @@ describe('deterministic machine', () => {
       expect(() => testMachine.transition('fake', 'T')).toThrow();
     });
 
-    xit('should throw an error for transitions to invalid states', () => {
-      expect(() => testMachine.transition('a', 'F')).toThrow();
-    });
-
     it('should throw an error for transitions from invalid substates', () => {
       expect(() => testMachine.transition('a.fake', 'T')).toThrow();
     });
@@ -153,7 +149,7 @@ describe('deterministic machine', () => {
   describe('machine.transition() with nested states', () => {
     it('should properly transition a nested state', () => {
       expect(
-        lightMachine.transition('red.walk', 'PED_COUNTDOWN').value
+        lightMachine.transition({ red: 'walk' }, 'PED_COUNTDOWN').value
       ).toEqual({ red: 'wait' });
     });
 
@@ -170,18 +166,18 @@ describe('deterministic machine', () => {
     });
 
     it('should bubble up events that nested states cannot handle', () => {
-      expect(lightMachine.transition('red.stop', 'TIMER').value).toEqual(
+      expect(lightMachine.transition({ red: 'stop' }, 'TIMER').value).toEqual(
         'green'
       );
     });
 
     it('should not transition from illegal events', () => {
-      expect(lightMachine.transition('red.walk', 'FAKE').value).toEqual({
+      expect(lightMachine.transition({ red: 'walk' }, 'FAKE').value).toEqual({
         red: 'walk'
       });
-      expect(lightMachine.transition('red.walk', 'FAKE').actions).toHaveLength(
-        0
-      );
+      expect(
+        lightMachine.transition({ red: 'walk' }, 'FAKE').actions
+      ).toHaveLength(0);
 
       expect(deepMachine.transition('a1', 'FAKE').value).toEqual({
         a1: { a2: { a3: 'a4' } }
@@ -209,7 +205,7 @@ describe('deterministic machine', () => {
 
   describe('machine.transition() with array `.on` configs', () => {
     it('should properly transition based on an event', () => {
-      const machine = Machine({
+      const machine = createMachine({
         initial: 'a',
         states: {
           a: {
@@ -223,17 +219,17 @@ describe('deterministic machine', () => {
   });
 
   describe('state key names', () => {
-    const machine = Machine({
+    const machine = createMachine({
       key: 'test',
       initial: 'test',
       states: {
         test: {
-          activities: ['activity'],
-          onEntry: ['onEntry'],
+          invoke: ['activity'],
+          entry: ['onEntry'],
           on: {
             NEXT: 'test'
           },
-          onExit: ['onExit']
+          exit: ['onExit']
         }
       }
     });
@@ -247,7 +243,7 @@ describe('deterministic machine', () => {
 
   describe('forbidden events', () => {
     it('undefined transitions should forbid events', () => {
-      const walkState = lightMachine.transition('red.walk', 'TIMER');
+      const walkState = lightMachine.transition({ red: 'walk' }, 'TIMER');
 
       expect(walkState.value).toEqual({ red: 'walk' });
     });

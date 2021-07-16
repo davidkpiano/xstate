@@ -1,7 +1,7 @@
 import { testAll } from './utils';
-import { Machine } from '../src';
+import { createMachine } from '../src';
 
-const idMachine = Machine({
+const idMachine = createMachine({
   initial: 'A',
   states: {
     A: {
@@ -46,28 +46,6 @@ const idMachine = Machine({
           id: 'B.dot'
         }
       }
-    },
-    getter: {
-      on: {
-        get NEXT() {
-          return idMachine.states.A;
-        },
-        get NEXT_DEEP() {
-          return idMachine.states.A.states.foo;
-        },
-        NEXT_TARGET: {
-          get target() {
-            return idMachine.states.B;
-          }
-        },
-        NEXT_TARGET_ARRAY: [
-          {
-            get target() {
-              return idMachine.states.B;
-            }
-          }
-        ]
-      }
     }
   }
 });
@@ -75,45 +53,25 @@ const idMachine = Machine({
 describe('State node IDs', () => {
   const expected = {
     A: {
-      NEXT: 'A.bar',
-      NEXT_DOT_RESOLVE: 'B.bar'
+      NEXT: { A: 'bar' },
+      NEXT_DOT_RESOLVE: { B: 'bar' }
     },
-    '#A': {
-      NEXT: 'A.bar'
+    '{"A":"foo"}': {
+      NEXT: { A: 'bar' }
     },
-    'A.foo': {
-      NEXT: 'A.bar'
+    '{"A":"bar"}': {
+      NEXT: { B: 'foo' }
     },
-    '#A_foo': {
-      NEXT: 'A.bar'
-    },
-    'A.bar': {
-      NEXT: 'B.foo'
-    },
-    '#A_bar': {
-      NEXT: 'B.foo'
-    },
-    'B.foo': {
-      'NEXT,NEXT': 'A.foo',
-      NEXT_DOT: 'B.dot'
-    },
-    '#B_foo': {
-      'NEXT,NEXT': 'A.foo'
-    },
-
-    // With getters
-    getter: {
-      NEXT: 'A',
-      NEXT_DEEP: 'A.foo',
-      NEXT_TARGET: 'B',
-      NEXT_TARGET_ARRAY: 'B'
+    '{"B":"foo"}': {
+      'NEXT,NEXT': { A: 'foo' },
+      NEXT_DOT: { B: 'dot' }
     }
   };
 
   testAll(idMachine, expected);
 
   it('should work with ID + relative path', () => {
-    const brokenMachine = Machine({
+    const brokenMachine = createMachine({
       initial: 'foo',
       on: {
         ACTION: '#bar.qux.quux'
@@ -124,9 +82,11 @@ describe('State node IDs', () => {
         },
         bar: {
           id: 'bar',
+          initial: 'baz',
           states: {
             baz: {},
             qux: {
+              initial: 'quux',
               states: {
                 quux: {
                   id: '#bar.qux.quux'

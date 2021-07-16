@@ -1,6 +1,6 @@
-import { Machine } from '../../src';
+import { createMachine } from '../../src';
 
-const omniMachine = Machine({
+const omniMachine = createMachine({
   id: 'omni',
   initial: 'compound',
   context: {
@@ -63,15 +63,15 @@ const omniMachine = Machine({
             two: {
               after: {
                 2000: [
-                  { target: 'three', cond: (ctx) => ctx.count === 3 },
-                  { target: 'four', cond: (ctx) => ctx.count === 4 },
+                  { target: 'three', guard: (ctx) => ctx.count === 3 },
+                  { target: 'four', guard: (ctx) => ctx.count === 4 },
                   { target: 'one' }
                 ]
               }
             },
             three: {
               after: {
-                1000: [{ target: 'one', cond: (ctx) => ctx.count === -1 }],
+                1000: [{ target: 'one', guard: (ctx) => ctx.count === -1 }],
                 2000: 'four'
               }
             },
@@ -86,8 +86,8 @@ const omniMachine = Machine({
             },
             transientCond: {
               always: [
-                { target: 'two', cond: (ctx) => ctx.count === 2 },
-                { target: 'three', cond: (ctx) => ctx.count === 3 },
+                { target: 'two', guard: (ctx) => ctx.count === 2 },
+                { target: 'three', guard: (ctx) => ctx.count === 3 },
                 { target: 'one' }
               ]
             },

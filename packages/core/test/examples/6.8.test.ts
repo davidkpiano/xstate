@@ -1,8 +1,8 @@
-import { Machine } from '../../src/index';
+import { createMachine } from '../../src/index';
 import { testAll } from '../utils';
 
 describe('Example 6.8', () => {
-  const machine = Machine({
+  const machine = createMachine({
     initial: 'A',
     states: {
       A: {
@@ -39,22 +39,22 @@ describe('Example 6.8', () => {
       1: 'A.C',
       6: 'F'
     },
-    'A.B': {
+    '{"A":"B"}': {
       1: 'A.C',
       6: 'F',
       FAKE: undefined
     },
-    'A.C': {
+    '{"A":"C"}': {
       2: 'A.E',
       6: 'F',
       FAKE: undefined
     },
-    'A.D': {
+    '{"A":"D"}': {
       3: 'A.B',
       6: 'F',
       FAKE: undefined
     },
-    'A.E': {
+    '{"A":"E"}': {
       4: 'A.B',
       5: 'A.D',
       6: 'F',
@@ -68,7 +68,7 @@ describe('Example 6.8', () => {
   testAll(machine, expected);
 
   it('should respect the history mechanism', () => {
-    const stateC = machine.transition('A.B', '1');
+    const stateC = machine.transition({ A: 'B' }, '1');
     const stateF = machine.transition(stateC, '6');
     const stateActual = machine.transition(stateF, '5');
 

@@ -1,12 +1,7 @@
 import * as WebSocket from 'ws';
-import {
-  ActorRef,
-  EventData,
-  EventObject,
-  interpret,
-  Interpreter
-} from 'xstate';
-import { toEventObject, toSCXMLEvent } from 'xstate/lib/utils';
+import { ActorRef, EventObject, interpret, Interpreter } from 'xstate';
+import { toEventObject, toSCXMLEvent } from 'xstate/src/utils';
+import { toActorRef } from 'xstate/actor';
 
 import { createInspectMachine } from './inspectMachine';
 import { Inspector } from './types';
@@ -55,7 +50,7 @@ export function inspect(options: ServerInspectorOptions): Inspector {
   let client: ActorRef<any>;
 
   server.on('connection', function connection(wss) {
-    client = {
+    client = toActorRef({
       send: (event: any) => {
         server.clients.forEach((ws) => {
           if (ws.readyState === ws.OPEN) {
@@ -66,7 +61,7 @@ export function inspect(options: ServerInspectorOptions): Inspector {
       subscribe: () => {
         return { unsubscribe: () => void 0 };
       }
-    };
+    });
 
     wss.on('message', function incoming(message) {
       if (typeof message !== 'string') {
@@ -100,10 +95,7 @@ export function inspect(options: ServerInspectorOptions): Inspector {
     // while the sent one is being processed, which throws the order off
     const originalSend = service.send.bind(service);
 
-    service.send = function inspectSend(
-      event: EventObject,
-      payload?: EventData
-    ) {
+    service.send = function inspectSend(event: EventObject, payload?: any) {
       inspectService.send({
         type: 'service.event',
         event: stringify(
@@ -140,6 +132,8 @@ export function inspect(options: ServerInspectorOptions): Inspector {
   });
 
   const inspector: Inspector = {
+    name: 'inspector',
+    getSnapshot: () => undefined,
     send: (event) => {
       inspectService.send(event);
     },

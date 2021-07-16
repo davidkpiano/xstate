@@ -23,8 +23,11 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      - name: Build
-        run: yarn build
+      - name: Typecheck
+        run: yarn typecheck
 
       - name: Test
         run: yarn test --silent
+
+      - name: Build
+        run: yarn build

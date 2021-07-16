@@ -2,9 +2,8 @@
   "name": "xstate",
   "version": "4.23.0",
   "description": "Finite State Machines and Statecharts for the Modern Web.",
-  "main": "lib/index.js",
-  "module": "es/index.js",
-  "types": "lib/index.d.ts",
+  "main": "dist/xstate.cjs.js",
+  "module": "dist/xstate.esm.js",
   "sideEffects": false,
   "funding": {
     "type": "opencollective",
@@ -12,10 +11,12 @@
   },
   "files": [
     "dist",
-    "lib/**/*.js",
-    "lib/**/*.d.ts",
-    "es/**/*.js",
-    "es/**/*.d.ts"
+    "actor",
+    "actions",
+    "invoke",
+    "behaviors",
+    "guards",
+    "dev"
   ],
   "keywords": [
     "statechart",
@@ -26,16 +27,7 @@
     "state",
     "interpreter"
   ],
-  "scripts": {
-    "clean": "rm -rf lib es dist tsconfig.tsbuildinfo",
-    "test": "jest",
-    "build": "rollup -c",
-    "preversion": "npm run test",
-    "version": "npm run build",
-    "postversion": "git push --follow-tags",
-    "prepublishOnly": "npm run build",
-    "publish:next": "npm version prerelease && npm publish --tag next"
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/davidkpiano/xstate.git"
@@ -47,26 +39,23 @@
   },
   "homepage": "https://github.com/davidkpiano/xstate/tree/main/packages/core#readme",
   "devDependencies": {
-    "@babel/cli": "^7.10.5",
-    "@babel/core": "^7.10.5",
-    "@rollup/plugin-babel": "^5.3.0",
     "@scion-scxml/test-framework": "^2.0.15",
-    "babel-plugin-annotate-pure-calls": "^0.4.0",
-    "jest": "^26.6.3",
     "jsdom": "^14.0.0",
     "jsdom-global": "^3.0.2",
-    "lerna-alias": "3.0.3-0",
     "pkg-up": "^3.1.0",
-    "rollup": "^2.35.1",
-    "rollup-plugin-filesize": "^6.2.1",
-    "rollup-plugin-replace": "^2.2.0",
-    "rollup-plugin-terser": "^5.1.2",
-    "rollup-plugin-typescript2": "^0.30.0",
-    "rollup-plugin-uglify": "^6.0.2",
     "rxjs": "^7.1.0",
-    "ts-jest": "^26.5.6",
-    "tslib": "^2.2.0",
-    "typescript": "^4.3.2",
     "xml-js": "^1.6.11"
+  },
+  "preconstruct": {
+    "umdName": "XState",
+    "entrypoints": [
+      "./index.ts",
+      "./actor.ts",
+      "./actions.ts",
+      "./invoke.ts",
+      "./behaviors.ts",
+      "./guards.ts",
+      "./dev/index.ts"
+    ]
   }
 }

@@ -1,8 +1,8 @@
 import 'react-app-polyfill/ie11';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { MachineViz, ServiceViz, ExtViz } from '../src/index';
-import { createMachine, interpret } from 'xstate';
+import { ExtViz } from '../src/index';
+import { createMachine } from 'xstate';
 import { useMachine } from '@xstate/react';
 
 const machine = createMachine({

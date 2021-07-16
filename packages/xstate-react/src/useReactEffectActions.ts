@@ -1,12 +1,15 @@
 import { useEffect, useRef } from 'react';
 import useIsomorphicLayoutEffect from 'use-isomorphic-layout-effect';
-import { EventObject, State, Interpreter } from 'xstate';
+import { EventObject, State, Interpreter, MachineContext } from 'xstate';
 import { ReactActionObject, ReactEffectType, ActionStateTuple } from './types';
 import { partition } from './utils';
 
-function executeEffect<TContext, TEvent extends EventObject>(
+function executeEffect<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+>(
   action: ReactActionObject<TContext, TEvent>,
-  state: State<TContext, TEvent, any, any>
+  state: State<TContext, TEvent, any>
 ): void {
   const { exec } = action;
   const originalExec = exec!(state.context, state._event.data, {
@@ -18,18 +21,15 @@ function executeEffect<TContext, TEvent extends EventObject>(
   originalExec();
 }
 
-export function useReactEffectActions<TContext, TEvent extends EventObject>(
-  service: Interpreter<TContext, any, TEvent, any>
-) {
+export function useReactEffectActions<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+>(service: Interpreter<TContext, TEvent, any>) {
   const effectActionsRef = useRef<
-    Array<
-      [ReactActionObject<TContext, TEvent>, State<TContext, TEvent, any, any>]
-    >
+    Array<[ReactActionObject<TContext, TEvent>, State<TContext, TEvent, any>]>
   >([]);
   const layoutEffectActionsRef = useRef<
-    Array<
-      [ReactActionObject<TContext, TEvent>, State<TContext, TEvent, any, any>]
-    >
+    Array<[ReactActionObject<TContext, TEvent>, State<TContext, TEvent, any>]>
   >([]);
 
   useIsomorphicLayoutEffect(() => {

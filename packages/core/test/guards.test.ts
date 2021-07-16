@@ -1,9 +1,10 @@
-import { Machine, interpret } from '../src';
+import { interpret, State, createMachine } from '../src';
+import { and, not, or } from '../src/guards';
 
 describe('guard conditions', () => {
-  type LightMachineCtx = {
+  interface LightMachineCtx {
     elapsed: number;
-  };
+  }
   type LightMachineEvents =
     | { type: 'TIMER'; elapsed: number }
     | {
@@ -13,7 +14,7 @@ describe('guard conditions', () => {
     | { type: 'TIMER_COND_OBJ' }
     | { type: 'BAD_COND' };
 
-  const lightMachine = Machine<LightMachineCtx, LightMachineEvents>(
+  const lightMachine = createMachine<LightMachineCtx, LightMachineEvents>(
     {
       key: 'light',
       initial: 'green',
@@ -23,16 +24,16 @@ describe('guard conditions', () => {
             TIMER: [
               {
                 target: 'green',
-                cond: ({ elapsed }) => elapsed < 100
+                guard: ({ elapsed }) => elapsed < 100
               },
               {
                 target: 'yellow',
-                cond: ({ elapsed }) => elapsed >= 100 && elapsed < 200
+                guard: ({ elapsed }) => elapsed >= 100 && elapsed < 200
               }
             ],
             EMERGENCY: {
               target: 'red',
-              cond: (_, event) => !!event.isEmergency
+              guard: (_, event) => !!event.isEmergency
             }
           }
         },
@@ -40,11 +41,11 @@ describe('guard conditions', () => {
           on: {
             TIMER: {
               target: 'red',
-              cond: 'minTimeElapsed'
+              guard: 'minTimeElapsed'
             },
             TIMER_COND_OBJ: {
               target: 'red',
-              cond: {
+              guard: {
                 type: 'minTimeElapsed'
               }
             }
@@ -54,7 +55,7 @@ describe('guard conditions', () => {
           on: {
             BAD_COND: {
               target: 'red',
-              cond: 'doesNotExist'
+              guard: 'doesNotExist'
             }
           }
         }
@@ -69,15 +70,21 @@ describe('guard conditions', () => {
 
   it('should transition only if condition is met', () => {
     expect(
-      lightMachine.transition('green', 'TIMER', {
-        elapsed: 50
-      }).value
+      lightMachine.transition(
+        State.from('green', {
+          elapsed: 50
+        }),
+        'TIMER'
+      ).value
     ).toEqual('green');
 
     expect(
-      lightMachine.transition('green', 'TIMER', {
-        elapsed: 120
-      }).value
+      lightMachine.transition(
+        State.from('green', {
+          elapsed: 120
+        }),
+        'TIMER'
+      ).value
     ).toEqual('yellow');
   });
 
@@ -99,31 +106,43 @@ describe('guard conditions', () => {
   });
 
   it('should not transition if no condition is met', () => {
-    const nextState = lightMachine.transition('green', 'TIMER', {
-      elapsed: 9000
-    });
+    const nextState = lightMachine.transition(
+      State.from('green', {
+        elapsed: 9000
+      }),
+      'TIMER'
+    );
     expect(nextState.value).toEqual('green');
     expect(nextState.actions).toEqual([]);
   });
 
   it('should work with defined string transitions', () => {
-    const nextState = lightMachine.transition('yellow', 'TIMER', {
-      elapsed: 150
-    });
+    const nextState = lightMachine.transition(
+      State.from('yellow', {
+        elapsed: 150
+      }),
+      'TIMER'
+    );
     expect(nextState.value).toEqual('red');
   });
 
   it('should work with guard objects', () => {
-    const nextState = lightMachine.transition('yellow', 'TIMER_COND_OBJ', {
-      elapsed: 150
-    });
+    const nextState = lightMachine.transition(
+      State.from('yellow', {
+        elapsed: 150
+      }),
+      'TIMER_COND_OBJ'
+    );
     expect(nextState.value).toEqual('red');
   });
 
   it('should work with defined string transitions (condition not met)', () => {
-    const nextState = lightMachine.transition('yellow', 'TIMER', {
-      elapsed: 10
-    });
+    const nextState = lightMachine.transition(
+      State.from('yellow', {
+        elapsed: 10
+      }),
+      'TIMER'
+    );
     expect(nextState.value).toEqual('yellow');
   });
 
@@ -133,7 +152,7 @@ describe('guard conditions', () => {
 });
 
 describe('guard conditions', () => {
-  const machine = Machine({
+  const machine = createMachine({
     key: 'microsteps',
     type: 'parallel',
     states: {
@@ -171,26 +190,26 @@ describe('guard conditions', () => {
             always: [
               {
                 target: 'B4',
-                cond: (_state, _event, { state: s }) => s.matches('A.A4')
+                guard: (_state, _event, { state: s }) => s.matches('A.A4')
               }
             ],
             on: {
               T1: [
                 {
                   target: 'B1',
-                  cond: (_state, _event, { state: s }) => s.matches('A.A1')
+                  guard: (_state, _event, { state: s }) => s.matches('A.A1')
                 }
               ],
               T2: [
                 {
                   target: 'B2',
-                  cond: (_state, _event, { state: s }) => s.matches('A.A2')
+                  guard: (_state, _event, { state: s }) => s.matches('A.A2')
                 }
               ],
               T3: [
                 {
                   target: 'B3',
-                  cond: (_state, _event, { state: s }) => s.matches('A.A3')
+                  guard: (_state, _event, { state: s }) => s.matches('A.A3')
                 }
               ]
             }
@@ -227,9 +246,14 @@ describe('guard conditions', () => {
 });
 
 describe('custom guards', () => {
-  type Ctx = { count: number };
-  type Events = { type: 'EVENT'; value: number };
-  const machine = Machine<Ctx, Events>(
+  interface Ctx {
+    count: number;
+  }
+  interface Events {
+    type: 'EVENT';
+    value: number;
+  }
+  const machine = createMachine<Ctx, Events>(
     {
       id: 'custom',
       initial: 'inactive',
@@ -241,11 +265,9 @@ describe('custom guards', () => {
           on: {
             EVENT: {
               target: 'active',
-              cond: {
+              guard: {
                 type: 'custom',
-                prop: 'count',
-                op: 'greaterThan',
-                compare: 3
+                params: { prop: 'count', op: 'greaterThan', compare: 3 }
               }
             }
           }
@@ -256,7 +278,7 @@ describe('custom guards', () => {
     {
       guards: {
         custom: (ctx, e: Extract<Events, { type: 'EVENT' }>, meta) => {
-          const { prop, compare, op } = meta.cond as any; // TODO: fix
+          const { prop, compare, op } = meta.guard.params;
           if (op === 'greaterThan') {
             return ctx[prop] + e.value > compare;
           }
@@ -286,7 +308,7 @@ describe('custom guards', () => {
 
 describe('referencing guards', () => {
   const stringGuardFn = () => true;
-  const guardsMachine = Machine(
+  const guardsMachine = createMachine(
     {
       id: 'guards',
       initial: 'active',
@@ -294,16 +316,16 @@ describe('referencing guards', () => {
         active: {
           on: {
             EVENT: [
-              { cond: 'string' },
+              { guard: 'string' },
               {
-                cond: function guardFn() {
+                guard: function guardFn() {
                   return true;
                 }
               },
               {
-                cond: {
+                guard: {
                   type: 'object',
-                  foo: 'bar'
+                  params: { foo: 'bar' }
                 }
               }
             ]
@@ -322,31 +344,33 @@ describe('referencing guards', () => {
   const [stringGuard, functionGuard, objectGuard] = def.states.active.on.EVENT;
 
   it('guard predicates should be able to be referenced from a string', () => {
-    expect(stringGuard.cond!.predicate).toBeDefined();
-    expect(stringGuard.cond!.name).toEqual('string');
+    expect(stringGuard.guard!.predicate).toBeDefined();
+    expect(stringGuard.guard!.type).toEqual('string');
   });
 
   it('guard predicates should be able to be referenced from a function', () => {
-    expect(functionGuard.cond!.predicate).toBeDefined();
-    expect(functionGuard.cond!.name).toEqual('guardFn');
+    expect(functionGuard.guard!.predicate).toBeDefined();
+    expect(functionGuard.guard!.type).toEqual('guardFn');
   });
 
   it('guard predicates should be able to be referenced from an object', () => {
-    expect(objectGuard.cond).toBeDefined();
-    expect(objectGuard.cond).toEqual({
-      type: 'object',
-      foo: 'bar'
-    });
+    expect(objectGuard.guard).toBeDefined();
+    expect(objectGuard.guard).toEqual(
+      expect.objectContaining({
+        type: 'object',
+        params: expect.objectContaining({ foo: 'bar' })
+      })
+    );
   });
 
   it('should throw for guards with missing predicates', () => {
-    const machine = Machine({
+    const machine = createMachine({
       id: 'invalid-predicate',
       initial: 'active',
       states: {
         active: {
           on: {
-            EVENT: { target: 'inactive', cond: 'missing-predicate' }
+            EVENT: { target: 'inactive', guard: 'missing-predicate' }
           }
         },
         inactive: {}
@@ -361,12 +385,12 @@ describe('referencing guards', () => {
 
 describe('guards - other', () => {
   it('should allow for a fallback target to be a simple string', () => {
-    const machine = Machine({
+    const machine = createMachine({
       initial: 'a',
       states: {
         a: {
           on: {
-            EVENT: [{ target: 'b', cond: () => false }, 'c']
+            EVENT: [{ target: 'b', guard: () => false }, 'c']
           }
         },
         b: {},
@@ -378,5 +402,400 @@ describe('guards - other', () => {
     service.send('EVENT');
 
     expect(service.state.value).toBe('c');
+  });
+});
+
+describe('guards with child guards', () => {
+  it('guards can contain child guards', () => {
+    expect.assertions(3);
+
+    const machine = createMachine(
+      {
+        initial: 'a',
+        states: {
+          a: {
+            on: {
+              EVENT: {
+                target: 'b',
+                guard: {
+                  type: 'testGuard',
+                  children: [
+                    {
+                      type: 'customGuard',
+                      predicate: () => true
+                    },
+                    { type: 'customGuard' }
+                  ],
+                  predicate: (_, __, { guard }) => {
+                    expect(guard.children).toHaveLength(2);
+                    expect(
+                      guard.children?.find(
+                        (childGuard) => childGuard.type === 'customGuard'
+                      )?.predicate
+                    ).toBeInstanceOf(Function);
+
+                    return true;
+                  }
+                }
+              }
+            }
+          },
+          b: {}
+        }
+      },
+      {
+        guards: {
+          customGuard: () => true
+        }
+      }
+    );
+
+    const nextState = machine.transition(undefined, 'EVENT');
+    expect(nextState.matches('b')).toBeTruthy();
+  });
+});
+
+describe('not() guard', () => {
+  it('should guard with inline function', () => {
+    const machine = createMachine({
+      initial: 'a',
+      states: {
+        a: {
+          on: {
+            EVENT: {
+              target: 'b',
+              guard: not(() => false)
+            }
+          }
+        },
+        b: {}
+      }
+    });
+
+    const nextState = machine.transition(undefined, 'EVENT');
+
+    expect(nextState.matches('b')).toBeTruthy();
+  });
+
+  it('should guard with string', () => {
+    const machine = createMachine(
+      {
+        initial: 'a',
+        states: {
+          a: {
+            on: {
+              EVENT: {
+                target: 'b',
+                guard: not('falsy')
+              }
+            }
+          },
+          b: {}
+        }
+      },
+      {
+        guards: {
+          falsy: () => false
+        }
+      }
+    );
+
+    const nextState = machine.transition(undefined, 'EVENT');
+
+    expect(nextState.matches('b')).toBeTruthy();
+  });
+
+  it('should guard with object', () => {
+    const machine = createMachine(
+      {
+        initial: 'a',
+        states: {
+          a: {
+            on: {
+              EVENT: {
+                target: 'b',
+                guard: not({ type: 'greaterThan10', params: { value: 5 } })
+              }
+            }
+          },
+          b: {}
+        }
+      },
+      {
+        guards: {
+          greaterThan10: (_, __, { guard }) => {
+            return guard.params.value > 10;
+          }
+        }
+      }
+    );
+
+    const nextState = machine.transition(undefined, 'EVENT');
+
+    expect(nextState.matches('b')).toBeTruthy();
+  });
+
+  it('should guard with nested built-in guards', () => {
+    const machine = createMachine(
+      {
+        initial: 'a',
+        states: {
+          a: {
+            on: {
+              EVENT: {
+                target: 'b',
+                guard: not(and([not('truthy'), 'truthy']))
+              }
+            }
+          },
+          b: {}
+        }
+      },
+      {
+        guards: {
+          truthy: () => true,
+          falsy: () => false
+        }
+      }
+    );
+
+    const nextState = machine.transition(undefined, 'EVENT');
+
+    expect(nextState.matches('b')).toBeTruthy();
+  });
+});
+
+describe('and() guard', () => {
+  it('should guard with inline function', () => {
+    const machine = createMachine({
+      initial: 'a',
+      states: {
+        a: {
+          on: {
+            EVENT: {
+              target: 'b',
+              guard: and([() => true, () => 1 + 1 === 2])
+            }
+          }
+        },
+        b: {}
+      }
+    });
+
+    const nextState = machine.transition(undefined, 'EVENT');
+
+    expect(nextState.matches('b')).toBeTruthy();
+  });
+
+  it('should guard with string', () => {
+    const machine = createMachine(
+      {
+        initial: 'a',
+        states: {
+          a: {
+            on: {
+              EVENT: {
+                target: 'b',
+                guard: and(['truthy', 'truthy'])
+              }
+            }
+          },
+          b: {}
+        }
+      },
+      {
+        guards: {
+          truthy: () => true
+        }
+      }
+    );
+
+    const nextState = machine.transition(undefined, 'EVENT');
+
+    expect(nextState.matches('b')).toBeTruthy();
+  });
+
+  it('should guard with object', () => {
+    const machine = createMachine(
+      {
+        initial: 'a',
+        states: {
+          a: {
+            on: {
+              EVENT: {
+                target: 'b',
+                guard: and([
+                  { type: 'greaterThan10', params: { value: 11 } },
+                  { type: 'greaterThan10', params: { value: 50 } }
+                ])
+              }
+            }
+          },
+          b: {}
+        }
+      },
+      {
+        guards: {
+          greaterThan10: (_, __, { guard }) => {
+            return guard.params.value > 10;
+          }
+        }
+      }
+    );
+
+    const nextState = machine.transition(undefined, 'EVENT');
+
+    expect(nextState.matches('b')).toBeTruthy();
+  });
+
+  it('should guard with nested built-in guards', () => {
+    const machine = createMachine(
+      {
+        initial: 'a',
+        states: {
+          a: {
+            on: {
+              EVENT: {
+                target: 'b',
+                guard: and([
+                  () => true,
+                  not('falsy'),
+                  and([not('falsy'), 'truthy'])
+                ])
+              }
+            }
+          },
+          b: {}
+        }
+      },
+      {
+        guards: {
+          truthy: () => true,
+          falsy: () => false
+        }
+      }
+    );
+
+    const nextState = machine.transition(undefined, 'EVENT');
+
+    expect(nextState.matches('b')).toBeTruthy();
+  });
+});
+
+describe('or() guard', () => {
+  it('should guard with inline function', () => {
+    const machine = createMachine({
+      initial: 'a',
+      states: {
+        a: {
+          on: {
+            EVENT: {
+              target: 'b',
+              guard: or([() => false, () => 1 + 1 === 2])
+            }
+          }
+        },
+        b: {}
+      }
+    });
+
+    const nextState = machine.transition(undefined, 'EVENT');
+
+    expect(nextState.matches('b')).toBeTruthy();
+  });
+
+  it('should guard with string', () => {
+    const machine = createMachine(
+      {
+        initial: 'a',
+        states: {
+          a: {
+            on: {
+              EVENT: {
+                target: 'b',
+                guard: or(['falsy', 'truthy'])
+              }
+            }
+          },
+          b: {}
+        }
+      },
+      {
+        guards: {
+          falsy: () => false,
+          truthy: () => true
+        }
+      }
+    );
+
+    const nextState = machine.transition(undefined, 'EVENT');
+
+    expect(nextState.matches('b')).toBeTruthy();
+  });
+
+  it('should guard with object', () => {
+    const machine = createMachine(
+      {
+        initial: 'a',
+        states: {
+          a: {
+            on: {
+              EVENT: {
+                target: 'b',
+                guard: or([
+                  { type: 'greaterThan10', params: { value: 4 } },
+                  { type: 'greaterThan10', params: { value: 50 } }
+                ])
+              }
+            }
+          },
+          b: {}
+        }
+      },
+      {
+        guards: {
+          greaterThan10: (_, __, { guard }) => {
+            return guard.params.value > 10;
+          }
+        }
+      }
+    );
+
+    const nextState = machine.transition(undefined, 'EVENT');
+
+    expect(nextState.matches('b')).toBeTruthy();
+  });
+
+  it('should guard with nested built-in guards', () => {
+    const machine = createMachine(
+      {
+        initial: 'a',
+        states: {
+          a: {
+            on: {
+              EVENT: {
+                target: 'b',
+                guard: or([
+                  () => false,
+                  not('truthy'),
+                  and([not('falsy'), 'truthy'])
+                ])
+              }
+            }
+          },
+          b: {}
+        }
+      },
+      {
+        guards: {
+          truthy: () => true,
+          falsy: () => false
+        }
+      }
+    );
+
+    const nextState = machine.transition(undefined, 'EVENT');
+
+    expect(nextState.matches('b')).toBeTruthy();
   });
 });

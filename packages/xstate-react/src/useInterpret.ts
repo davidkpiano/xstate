@@ -3,14 +3,15 @@ import useIsomorphicLayoutEffect from 'use-isomorphic-layout-effect';
 import {
   interpret,
   EventObject,
-  StateMachine,
+  MachineNode,
   State,
   Interpreter,
   InterpreterOptions,
-  MachineOptions,
+  MachineImplementations,
   Typestate,
   Observer
 } from 'xstate';
+import { MachineContext } from '../../core/src';
 import { MaybeLazy } from './types';
 import useConstant from './useConstant';
 import { UseMachineOptions } from './useMachine';
@@ -37,18 +38,18 @@ function toObserver<T>(
 }
 
 export function useInterpret<
-  TContext,
+  TContext extends MachineContext,
   TEvent extends EventObject,
   TTypestate extends Typestate<TContext> = { value: any; context: TContext }
 >(
-  getMachine: MaybeLazy<StateMachine<TContext, any, TEvent, TTypestate>>,
+  getMachine: MaybeLazy<MachineNode<TContext, TEvent, TTypestate>>,
   options: Partial<InterpreterOptions> &
     Partial<UseMachineOptions<TContext, TEvent>> &
-    Partial<MachineOptions<TContext, TEvent>> = {},
+    Partial<MachineImplementations<TContext, TEvent>> = {},
   observerOrListener?:
-    | Observer<State<TContext, TEvent, any, TTypestate>>
-    | ((value: State<TContext, TEvent, any, TTypestate>) => void)
-): Interpreter<TContext, any, TEvent, TTypestate> {
+    | Observer<State<TContext, TEvent, TTypestate>>
+    | ((value: State<TContext, TEvent, TTypestate>) => void)
+): Interpreter<TContext, TEvent, TTypestate> {
   const machine = useConstant(() => {
     return typeof getMachine === 'function' ? getMachine() : getMachine;
   });
@@ -71,8 +72,7 @@ export function useInterpret<
     context,
     guards,
     actions,
-    activities,
-    services,
+    actors,
     delays,
     state: rehydratedState,
     ...interpreterOptions
@@ -83,14 +83,10 @@ export function useInterpret<
       context,
       guards,
       actions,
-      activities,
-      services,
+      actors,
       delays
     };
-    const machineWithConfig = machine.withConfig(machineConfig, {
-      ...machine.context,
-      ...context
-    } as TContext);
+    const machineWithConfig = machine.provide(machineConfig);
 
     return interpret(machineWithConfig, {
       deferEvents: true,
@@ -127,8 +123,8 @@ export function useInterpret<
   }, [actions]);
 
   useIsomorphicLayoutEffect(() => {
-    Object.assign(service.machine.options.services, services);
-  }, [services]);
+    Object.assign(service.machine.options.actors, actors);
+  }, [actors]);
 
   useReactEffectActions(service);
 

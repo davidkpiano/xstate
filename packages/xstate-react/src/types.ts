@@ -2,6 +2,7 @@ import {
   ActionMeta,
   ActionObject,
   EventObject,
+  MachineContext,
   State,
   StateConfig
 } from 'xstate';
@@ -77,7 +78,10 @@ export enum ReactEffectType {
   LayoutEffect = 2
 }
 
-export interface ReactActionFunction<TContext, TEvent extends EventObject> {
+export interface ReactActionFunction<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+> {
   (
     context: TContext,
     event: TEvent,
@@ -86,12 +90,17 @@ export interface ReactActionFunction<TContext, TEvent extends EventObject> {
   __effect: ReactEffectType;
 }
 
-export interface ReactActionObject<TContext, TEvent extends EventObject>
-  extends ActionObject<TContext, TEvent> {
+export interface ReactActionObject<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+> extends ActionObject<TContext, TEvent> {
   exec: ReactActionFunction<TContext, TEvent>;
 }
 
-export interface UseMachineOptions<TContext, TEvent extends EventObject> {
+export interface UseMachineOptions<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+> {
   /**
    * If provided, will be merged with machine's `context`.
    */
@@ -103,7 +112,7 @@ export interface UseMachineOptions<TContext, TEvent extends EventObject> {
   state?: StateConfig<TContext, TEvent>;
 }
 
-export type ActionStateTuple<TContext, TEvent extends EventObject> = [
-  ReactActionObject<TContext, TEvent>,
-  State<TContext, TEvent>
-];
+export type ActionStateTuple<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+> = [ReactActionObject<TContext, TEvent>, State<TContext, TEvent>];

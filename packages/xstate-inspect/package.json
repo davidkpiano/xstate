@@ -14,39 +14,29 @@
   "author": "David Khourshid <davidkpiano@gmail.com>",
   "homepage": "https://github.com/davidkpiano/xstate/tree/main/packages/xstate-inspect#readme",
   "license": "MIT",
-  "main": "lib/index.js",
-  "module": "es/index.js",
-  "types": "lib/index.d.ts",
+  "main": "dist/xstate-inspect.cjs.js",
+  "module": "dist/xstate-inspect.esm.js",
   "sideEffects": false,
   "files": [
-    "lib/**/*.js",
-    "lib/**/*.d.ts",
-    "es/**/*.js",
-    "es/**/*.d.ts"
+    "dist"
   ],
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/davidkpiano/xstate.git"
   },
-  "scripts": {
-    "clean": "rm -rf dist lib es tsconfig.tsbuildinfo",
-    "test": "jest --passWithNoTests",
-    "build": "rollup -c",
-    "prepublish": "npm run build"
-  },
+  "scripts": {},
   "bugs": {
     "url": "https://github.com/davidkpiano/xstate/issues"
   },
   "devDependencies": {
     "@types/ws": "^7.2.6",
-    "rollup": "^2.35.1",
-    "rollup-plugin-typescript2": "^0.30.0",
     "typescript": "^4.3.2",
     "ws": "^7.3.1",
     "xstate": "*"
   },
   "peerDependencies": {
-    "ws": "^7.3.1"
+    "ws": "^7.3.1",
+    "xstate": "^4.11.0"
   },
   "dependencies": {
     "fast-safe-stringify": "^2.0.7"

@@ -1,19 +1,23 @@
 import { useCallback, useState } from 'react';
 import {
   EventObject,
-  StateMachine,
+  MachineNode,
   State,
-  Interpreter,
   InterpreterOptions,
-  MachineOptions,
+  MachineImplementations,
   StateConfig,
   Typestate,
-  ActionFunction
+  ActionFunction,
+  InterpreterOf,
+  MachineContext
 } from 'xstate';
 import { MaybeLazy, ReactActionFunction, ReactEffectType } from './types';
 import { useInterpret } from './useInterpret';
 
-function createReactActionFunction<TContext, TEvent extends EventObject>(
+function createReactActionFunction<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+>(
   exec: ActionFunction<TContext, TEvent>,
   tag: ReactEffectType
 ): ReactActionFunction<TContext, TEvent> {
@@ -32,19 +36,28 @@ function createReactActionFunction<TContext, TEvent extends EventObject>(
   return effectExec as ReactActionFunction<TContext, TEvent>;
 }
 
-export function asEffect<TContext, TEvent extends EventObject>(
+export function asEffect<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+>(
   exec: ActionFunction<TContext, TEvent>
 ): ReactActionFunction<TContext, TEvent> {
   return createReactActionFunction(exec, ReactEffectType.Effect);
 }
 
-export function asLayoutEffect<TContext, TEvent extends EventObject>(
+export function asLayoutEffect<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+>(
   exec: ActionFunction<TContext, TEvent>
 ): ReactActionFunction<TContext, TEvent> {
   return createReactActionFunction(exec, ReactEffectType.LayoutEffect);
 }
 
-export interface UseMachineOptions<TContext, TEvent extends EventObject> {
+export interface UseMachineOptions<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+> {
   /**
    * If provided, will be merged with machine's `context`.
    */
@@ -57,21 +70,21 @@ export interface UseMachineOptions<TContext, TEvent extends EventObject> {
 }
 
 export function useMachine<
-  TContext,
+  TContext extends MachineContext,
   TEvent extends EventObject,
   TTypestate extends Typestate<TContext> = { value: any; context: TContext }
 >(
-  getMachine: MaybeLazy<StateMachine<TContext, any, TEvent, TTypestate>>,
+  getMachine: MaybeLazy<MachineNode<TContext, TEvent, TTypestate>>,
   options: Partial<InterpreterOptions> &
     Partial<UseMachineOptions<TContext, TEvent>> &
-    Partial<MachineOptions<TContext, TEvent>> = {}
+    Partial<MachineImplementations<TContext, TEvent>> = {}
 ): [
-  State<TContext, TEvent, any, TTypestate>,
-  Interpreter<TContext, any, TEvent, TTypestate>['send'],
-  Interpreter<TContext, any, TEvent, TTypestate>
+  State<TContext, TEvent, TTypestate>,
+  InterpreterOf<MachineNode<TContext, TEvent, TTypestate>>['send'],
+  InterpreterOf<MachineNode<TContext, TEvent, TTypestate>>
 ] {
   const listener = useCallback(
-    (nextState: State<TContext, TEvent, any, TTypestate>) => {
+    (nextState: State<TContext, TEvent, TTypestate>) => {
       // Only change the current state if:
       // - the incoming state is the "live" initial state (since it might have new actors)
       // - OR the incoming state actually changed.
@@ -94,7 +107,7 @@ export function useMachine<
     const { initialState } = service.machine;
     return (options.state
       ? State.create(options.state)
-      : initialState) as State<TContext, TEvent, any, TTypestate>;
+      : initialState) as State<TContext, TEvent, TTypestate>;
   });
 
   return [state, service.send, service];

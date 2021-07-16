@@ -1,6 +1,6 @@
-import { Machine } from '../src/index';
+import { createMachine } from '../src/index';
 
-const machine = Machine({
+const machine = createMachine({
   type: 'parallel',
   states: {
     A: {
@@ -42,15 +42,6 @@ describe('invalid or resolved states', () => {
 
   it('should resolve transitioning from partially valid states', () => {
     expect(machine.transition({ A: 'A1', B: {} }, 'E').value).toEqual({
-      A: 'A1',
-      B: 'B1'
-    });
-  });
-
-  it("should resolve transitioning from regions that don't exist (remove region)", () => {
-    expect(
-      machine.transition({ A: 'A1', B: 'B1', Z: 'Z1' }, 'E').value
-    ).toEqual({
       A: 'A1',
       B: 'B1'
     });

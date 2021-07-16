@@ -1,11 +1,13 @@
 import {
-  Machine,
   interpret,
   assign,
   send,
   sendParent,
+  State,
   createMachine
 } from '../src';
+import { invokeMachine } from '../src/invoke';
+import { ActorRef } from '../src/types';
 
 interface CounterContext {
   count: number;
@@ -13,7 +15,7 @@ interface CounterContext {
   maybe?: string;
 }
 
-const counterMachine = Machine<CounterContext>({
+const counterMachine = createMachine<CounterContext>({
   initial: 'counting',
   context: { count: 0, foo: 'bar' },
   states: {
@@ -164,9 +166,8 @@ describe('assign', () => {
 
   it('applies the assignment to the explicit external state (property assignment)', () => {
     const oneState = counterMachine.transition(
-      counterMachine.initialState,
-      'DEC',
-      { count: 50, foo: 'bar' }
+      State.from(counterMachine.initialState, { count: 50, foo: 'bar' }),
+      'DEC'
     );
 
     expect(oneState.value).toEqual('counting');
@@ -177,10 +178,10 @@ describe('assign', () => {
     expect(twoState.value).toEqual('counting');
     expect(twoState.context).toEqual({ count: 48, foo: 'bar' });
 
-    const threeState = counterMachine.transition(twoState, 'DEC', {
-      count: 100,
-      foo: 'bar'
-    });
+    const threeState = counterMachine.transition(
+      State.from(twoState, { count: 100, foo: 'bar' }),
+      'DEC'
+    );
 
     expect(threeState.value).toEqual('counting');
     expect(threeState.context).toEqual({ count: 99, foo: 'bar' });
@@ -188,9 +189,8 @@ describe('assign', () => {
 
   it('applies the assignment to the explicit external state', () => {
     const oneState = counterMachine.transition(
-      counterMachine.initialState,
-      'INC',
-      { count: 50, foo: 'bar' }
+      State.from(counterMachine.initialState, { count: 50, foo: 'bar' }),
+      'INC'
     );
 
     expect(oneState.value).toEqual('counting');
@@ -201,10 +201,10 @@ describe('assign', () => {
     expect(twoState.value).toEqual('counting');
     expect(twoState.context).toEqual({ count: 52, foo: 'bar' });
 
-    const threeState = counterMachine.transition(twoState, 'INC', {
-      count: 102,
-      foo: 'bar'
-    });
+    const threeState = counterMachine.transition(
+      State.from(twoState, { count: 102, foo: 'bar' }),
+      'INC'
+    );
 
     expect(threeState.value).toEqual('counting');
     expect(threeState.context).toEqual({ count: 103, foo: 'bar' });
@@ -261,7 +261,7 @@ describe('assign', () => {
 });
 
 describe('assign meta', () => {
-  const machine = Machine<{ count: number }>({
+  const machine = createMachine<{ count: number }>({
     id: 'assign',
     initial: 'start',
     context: { count: 0 },
@@ -332,7 +332,7 @@ describe('assign meta', () => {
 
   it('should provide meta._event to assigner', () => {
     interface Ctx {
-      eventLog: Array<{ event: string; origin: string | undefined }>;
+      eventLog: Array<{ event: string; origin?: ActorRef<any> }>;
     }
 
     const assignEventLog = assign<Ctx>((ctx, event, meta) => ({
@@ -342,7 +342,7 @@ describe('assign meta', () => {
       })
     }));
 
-    const childMachine = Machine({
+    const childMachine = createMachine({
       initial: 'bar',
       states: {
         bar: {}
@@ -354,7 +354,7 @@ describe('assign meta', () => {
       }
     });
 
-    const parentMachine = Machine<Ctx>({
+    const parentMachine = createMachine<Ctx>({
       initial: 'foo',
       context: {
         eventLog: []
@@ -363,7 +363,7 @@ describe('assign meta', () => {
         foo: {
           invoke: {
             id: 'child',
-            src: childMachine
+            src: invokeMachine(childMachine)
           }
         }
       },
@@ -388,13 +388,31 @@ describe('assign meta', () => {
     service.send('PING_CHILD');
     service.send('PING_CHILD');
 
-    expect(state.context).toEqual({
-      eventLog: [
-        { event: 'PING_CHILD', origin: undefined },
-        { event: 'PONG', origin: expect.stringMatching(/.+/) },
-        { event: 'PING_CHILD', origin: undefined },
-        { event: 'PONG', origin: expect.stringMatching(/.+/) }
-      ]
-    });
+    expect(state.context).toMatchInlineSnapshot(`
+      Object {
+        "eventLog": Array [
+          Object {
+            "event": "PING_CHILD",
+            "origin": undefined,
+          },
+          Object {
+            "event": "PONG",
+            "origin": Object {
+              "id": "child",
+            },
+          },
+          Object {
+            "event": "PING_CHILD",
+            "origin": undefined,
+          },
+          Object {
+            "event": "PONG",
+            "origin": Object {
+              "id": "child",
+            },
+          },
+        ],
+      }
+    `);
   });
 });

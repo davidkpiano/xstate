@@ -8,19 +8,26 @@
       "packages/xstate-viz/example"
     ]
   },
+  "preconstruct": {
+    "packages": [
+      "packages/!(xstate-dev)"
+    ],
+    "globals": {
+      "react": "React"
+    }
+  },
   "scripts": {
     "preinstall": "node ./scripts/ensure-yarn.js",
-    "postinstall": "manypkg check",
-    "clean:packages": "yarn workspaces run clean",
-    "build": "tsc -b ./tsconfig.monorepo.json",
+    "postinstall": "patch-package && manypkg check && preconstruct dev",
+    "build": "preconstruct build",
+    "fix": "manypkg fix",
+    "typecheck": "tsc",
     "test": "jest",
-    "test:core": "npm test --prefix packages/core",
-    "dev": "node ./scripts/dev.js",
-    "ci": "npm run build && npm run test",
+    "test:core": "jest packages/core",
     "typedoc": "cd ./packages/core && typedoc --excludePrivate --mode file --out ./api --target es6 --moduleResolution node ./src",
     "typedoc:publish": "npm run typedoc && gh-pages --dist ./packages/core/api --dest ./api",
     "changeset": "changeset",
-    "prerelease": "npm run build && npm run test",
+    "prerelease": "npm run typecheck && npm run test && npm run build",
     "release": "changeset publish"
   },
   "repository": {
@@ -34,15 +41,29 @@
   },
   "homepage": "https://github.com/davidkpiano/xstate#readme",
   "dependencies": {
+    "@actions/exec": "^1.0.2",
+    "@babel/core": "^7.8.4",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/preset-env": "^7.8.4",
+    "@babel/preset-react": "^7.8.3",
+    "@babel/preset-typescript": "^7.8.3",
     "@changesets/changelog-github": "^0.2.6",
     "@changesets/cli": "^2.9.1",
     "@manypkg/cli": "^0.16.1",
+    "@preconstruct/cli": "^2.1.0",
+    "@testing-library/jest-dom": "^5.11.9",
+    "@testing-library/vue": "^6.4.0",
     "@types/jest": "^24.0.23",
+    "@types/json-schema": "^7.0.7",
     "@types/node": "^12.11.1",
     "@types/use-subscription": "^1.0.0",
+    "@vue/compiler-sfc": "^3.0.11",
+    "babel-core": "^7.0.0-bridge.0",
     "gh-pages": "^2.0.1",
     "husky": "^3.1.0",
     "jest": "^26.6.3",
+    "jest-config": "^25.1.0",
+    "jest-regex-util": "^25.1.0",
     "jest-watch-typeahead": "^0.6.1",
     "jsdom": "^14.0.0",
     "jsdom-global": "^3.0.2",
@@ -57,6 +78,8 @@
     "tslint": "^5.11.0",
     "typedoc": "^0.17.4",
     "typescript": "^4.3.2",
+    "vue": "^3.0.11",
+    "vue-jest": "5.0.0-alpha.7",
     "webpack-dev-middleware": "^3.6.0"
   },
   "resolutions": {
@@ -72,6 +95,5 @@
       "prettier --write",
       "git add"
     ]
-  },
-  "version": "1.19.1"
+  }
 }

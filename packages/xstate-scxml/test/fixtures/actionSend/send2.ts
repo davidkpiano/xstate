@@ -1,6 +1,6 @@
-import { Machine, actions } from 'xstate';
+import { createMachine, actions } from 'xstate';
 
-const m = Machine({
+const m = createMachine({
   initial: 'a',
   states: {
     a: {

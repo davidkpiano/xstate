@@ -1,7 +1,7 @@
-import { Machine } from '../src/index';
+import { createMachine } from '../src/index';
 
 describe('deep transitions', () => {
-  const deepMachine = Machine({
+  const deepMachine = createMachine({
     key: 'deep',
     initial: 'A',
     on: {
@@ -17,24 +17,24 @@ describe('deep transitions', () => {
           A_S: '#deep.P.Q.R.S',
           A_P: '#deep.P'
         },
-        onEntry: 'ENTER_A',
-        onExit: 'EXIT_A',
+        entry: 'ENTER_A',
+        exit: 'EXIT_A',
         initial: 'B',
         states: {
           B: {
             on: {
               B_EVENT: '#deep.DONE'
             },
-            onEntry: 'ENTER_B',
-            onExit: 'EXIT_B',
+            entry: 'ENTER_B',
+            exit: 'EXIT_B',
             initial: 'C',
             states: {
               C: {
                 on: {
                   C_EVENT: '#deep.DONE'
                 },
-                onEntry: 'ENTER_C',
-                onExit: 'EXIT_C',
+                entry: 'ENTER_C',
+                exit: 'EXIT_C',
                 initial: 'D',
                 states: {
                   D: {
@@ -43,8 +43,8 @@ describe('deep transitions', () => {
                       D_S: '#deep.P.Q.R.S',
                       D_P: '#deep.P'
                     },
-                    onEntry: 'ENTER_D',
-                    onExit: 'EXIT_D'
+                    entry: 'ENTER_D',
+                    exit: 'EXIT_D'
                   }
                 }
               }
@@ -57,32 +57,32 @@ describe('deep transitions', () => {
           P_EVENT: '#deep.DONE',
           Q_EVENT: 'FAIL' // shielded by Q's Q_EVENT
         },
-        onEntry: 'ENTER_P',
-        onExit: 'EXIT_P',
+        entry: 'ENTER_P',
+        exit: 'EXIT_P',
         initial: 'Q',
         states: {
           Q: {
             on: {
               Q_EVENT: '#deep.DONE'
             },
-            onEntry: 'ENTER_Q',
-            onExit: 'EXIT_Q',
+            entry: 'ENTER_Q',
+            exit: 'EXIT_Q',
             initial: 'R',
             states: {
               R: {
                 on: {
                   R_EVENT: '#deep.DONE'
                 },
-                onEntry: 'ENTER_R',
-                onExit: 'EXIT_R',
+                entry: 'ENTER_R',
+                exit: 'EXIT_R',
                 initial: 'S',
                 states: {
                   S: {
                     on: {
                       S_EVENT: '#deep.DONE'
                     },
-                    onEntry: 'ENTER_S',
-                    onExit: 'EXIT_S'
+                    entry: 'ENTER_S',
+                    exit: 'EXIT_S'
                   }
                 }
               }

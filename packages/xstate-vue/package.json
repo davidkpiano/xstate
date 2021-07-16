@@ -15,31 +15,18 @@
   "author": "David Khourshid <davidkpiano@gmail.com>",
   "homepage": "https://github.com/davidkpiano/xstate/tree/main/packages/xstate-vue#readme",
   "license": "MIT",
-  "main": "lib/index.js",
-  "module": "es/index.js",
-  "types": "lib/index.d.ts",
+  "main": "dist/xstate-vue.cjs.js",
+  "module": "dist/xstate-vue.esm.js",
   "sideEffects": false,
-  "directories": {
-    "lib": "lib",
-    "test": "test"
-  },
   "files": [
-    "lib/**/*.js",
-    "lib/**/*.d.ts",
-    "dist/**/*.js",
-    "es/**/*.js",
-    "es/**/*.d.ts"
+    "dist",
+    "fsm"
   ],
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/davidkpiano/xstate.git"
   },
-  "scripts": {
-    "clean": "rm -rf dist lib es tsconfig.tsbuildinfo",
-    "build": "tsc && tsc --outDir es --module es2015 && rollup -c",
-    "test": "jest",
-    "prepublish": "npm run build && npm run test"
-  },
+  "scripts": {},
   "bugs": {
     "url": "https://github.com/davidkpiano/xstate/issues"
   },
@@ -59,18 +46,15 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^5.11.9",
     "@testing-library/vue": "^6.4.0",
-    "@vue/compiler-sfc": "^3.0.7",
+    "@vue/compiler-sfc": "^3.0.11",
     "@xstate/fsm": "*",
-    "babel-core": "^6.26.3",
-    "jest": "^26.6.3",
-    "lerna-alias": "3.0.3-0",
-    "rollup": "^2.35.1",
-    "rollup-plugin-terser": "^5.1.2",
-    "rollup-plugin-typescript2": "^0.30.0",
-    "ts-jest": "^26.5.6",
-    "typescript": "^4.3.2",
-    "vue": "^3.0.7",
-    "vue-jest": "5.0.0-alpha.7",
+    "vue": "^3.0.11",
     "xstate": "*"
+  },
+  "preconstruct": {
+    "entrypoints": [
+      "./index.ts",
+      "./fsm.ts"
+    ]
   }
 }

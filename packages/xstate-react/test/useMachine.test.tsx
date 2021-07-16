@@ -1,33 +1,26 @@
 import * as React from 'react';
 import { useMachine, useService, useActor } from '../src';
 import {
-  Machine,
   assign,
   Interpreter,
-  spawn,
   doneInvoke,
   State,
   createMachine,
-  send
+  send,
+  spawnPromise,
+  ActorRefFrom
 } from 'xstate';
-import {
-  render,
-  fireEvent,
-  cleanup,
-  waitForElement,
-  act
-} from '@testing-library/react';
+import { render, fireEvent, waitForElement, act } from '@testing-library/react';
 import { useState } from 'react';
+import { invokePromise, invokeCallback, invokeMachine } from 'xstate/invoke';
 import { asEffect, asLayoutEffect } from '../src/useMachine';
 import { DoneEventObject } from 'xstate';
-
-afterEach(cleanup);
 
 describe('useMachine hook', () => {
   const context = {
     data: undefined
   };
-  const fetchMachine = Machine<
+  const fetchMachine = createMachine<
     typeof context,
     { type: 'FETCH' } | DoneEventObject
   >({
@@ -46,7 +39,7 @@ describe('useMachine hook', () => {
             actions: assign({
               data: (_, e) => e.data
             }),
-            cond: (_, e) => e.data.length
+            guard: (_, e) => e.data.length
           }
         }
       },
@@ -56,10 +49,10 @@ describe('useMachine hook', () => {
     }
   });
 
-  const persistedFetchState = fetchMachine.transition(
-    'loading',
-    doneInvoke('fetchData', 'persisted data')
-  );
+  const persistedFetchState = fetchMachine.transition('loading', {
+    type: 'done.invoke.fetch.loading:invocation[0]',
+    data: 'persisted data'
+  });
 
   const Fetcher: React.FC<{
     onFetch: () => Promise<any>;
@@ -69,8 +62,8 @@ describe('useMachine hook', () => {
     persistedState
   }) => {
     const [current, send] = useMachine(fetchMachine, {
-      services: {
-        fetchData: onFetch
+      actors: {
+        fetchData: invokePromise(onFetch)
       },
       state: persistedState
     });
@@ -161,7 +154,7 @@ describe('useMachine hook', () => {
   });
 
   it('should merge machine context with options.context', () => {
-    const testMachine = Machine<{ foo: string; test: boolean }>({
+    const testMachine = createMachine<{ foo: string; test: boolean }>({
       context: {
         foo: 'bar',
         test: false
@@ -173,7 +166,9 @@ describe('useMachine hook', () => {
     });
 
     const Test = () => {
-      const [state] = useMachine(testMachine, { context: { test: true } });
+      const [state] = useMachine(testMachine, {
+        context: { test: true }
+      });
 
       expect(state.context).toEqual({
         foo: 'bar',
@@ -187,14 +182,15 @@ describe('useMachine hook', () => {
   });
 
   it('should not spawn actors until service is started', async (done) => {
-    const spawnMachine = Machine<any>({
+    const spawnMachine = createMachine<any>({
       id: 'spawn',
       initial: 'start',
       context: { ref: undefined },
       states: {
         start: {
           entry: assign({
-            ref: () => spawn(() => new Promise((res) => res(42)), 'my-promise')
+            ref: () =>
+              spawnPromise(() => new Promise((res) => res(42)), 'my-promise')
           }),
           on: {
             [doneInvoke('my-promise')]: 'success'
@@ -225,7 +221,7 @@ describe('useMachine hook', () => {
   });
 
   it('actions should not have stale data', async (done) => {
-    const toggleMachine = Machine<any, { type: 'TOGGLE' }>({
+    const toggleMachine = createMachine<any, { type: 'TOGGLE' }>({
       initial: 'inactive',
       states: {
         inactive: {
@@ -309,7 +305,7 @@ describe('useMachine hook', () => {
     });
 
     const ServiceApp: React.FC<{
-      service: Interpreter<TestContext, any, any, TestState>;
+      service: Interpreter<TestContext, any, TestState>;
     }> = ({ service }) => {
       const [state] = useService(service);
 
@@ -540,6 +536,145 @@ describe('useMachine hook', () => {
     );
     done();
   });
+
+  it('should accept a lazily created machine', () => {
+    const App = () => {
+      const [state] = useMachine(() =>
+        createMachine({
+          initial: 'idle',
+          states: {
+            idle: {}
+          }
+        })
+      );
+
+      expect(state.matches('idle')).toBeTruthy();
+
+      return null;
+    };
+
+    render(<App />);
+  });
+
+  it('should not miss initial synchronous updates', () => {
+    const m = createMachine<{ count: number }>({
+      initial: 'idle',
+      context: {
+        count: 0
+      },
+      entry: [assign({ count: 1 }), send('INC')],
+      on: {
+        INC: {
+          actions: [assign({ count: (ctx) => ++ctx.count }), send('UNHANDLED')]
+        }
+      },
+      states: {
+        idle: {}
+      }
+    });
+
+    const App = () => {
+      const [state] = useMachine(m);
+      return <>{state.context.count}</>;
+    };
+
+    const { container } = render(<App />);
+
+    expect(container.textContent).toBe('2');
+  });
+
+  // TODO
+  it.skip('should only render once when initial microsteps are involved', () => {
+    let rerenders = 0;
+
+    const m = createMachine<{ stuff: number[] }>(
+      {
+        initial: 'init',
+        context: { stuff: [1, 2, 3] },
+        states: {
+          init: {
+            entry: 'setup',
+            always: 'ready'
+          },
+          ready: {}
+        }
+      },
+      {
+        actions: {
+          setup: assign({
+            stuff: (context) => [...context.stuff, 4]
+          })
+        }
+      }
+    );
+
+    const App = () => {
+      useMachine(m);
+      rerenders++;
+      return null;
+    };
+
+    render(<App />);
+
+    expect(rerenders).toBe(1);
+  });
+
+  // TODO
+  it.skip('should maintain the same reference for objects created when resolving initial state', () => {
+    let effectsFired = 0;
+
+    const m = createMachine<{ counter: number; stuff: number[] }>(
+      {
+        initial: 'init',
+        context: { counter: 0, stuff: [1, 2, 3] },
+        states: {
+          init: {
+            entry: 'setup'
+          }
+        },
+        on: {
+          INC: {
+            actions: 'increase'
+          }
+        }
+      },
+      {
+        actions: {
+          setup: assign({
+            stuff: (context) => [...context.stuff, 4]
+          }),
+          increase: assign({
+            counter: (context) => ++context.counter
+          })
+        }
+      }
+    );
+
+    const App = () => {
+      const [state, send] = useMachine(m);
+
+      // this effect should only fire once since `stuff` never changes
+      React.useEffect(() => {
+        effectsFired++;
+      }, [state.context.stuff]);
+
+      return (
+        <>
+          <div>{`Counter: ${state.context.counter}`}</div>
+          <button onClick={() => send('INC')}>Increase</button>
+        </>
+      );
+    };
+
+    const { getByRole } = render(<App />);
+
+    expect(effectsFired).toBe(1);
+
+    const button = getByRole('button');
+    fireEvent.click(button);
+
+    expect(effectsFired).toBe(1);
+  });
 });
 
 describe('useMachine (strict mode)', () => {
@@ -548,10 +683,12 @@ describe('useMachine (strict mode)', () => {
     const machine = createMachine({
       initial: 'active',
       invoke: {
-        src: () => {
+        src: invokeCallback(() => {
           activatedCount++;
-          return () => {};
-        }
+          return () => {
+            /* empty */
+          };
+        })
       },
       states: {
         active: {}
@@ -612,7 +749,7 @@ describe('useMachine (strict mode)', () => {
   });
 
   it('custom data should be available right away for the invoked actor', (done) => {
-    const childMachine = Machine({
+    const childMachine = createMachine({
       initial: 'intitial',
       context: {
         value: 100
@@ -622,13 +759,13 @@ describe('useMachine (strict mode)', () => {
       }
     });
 
-    const machine = Machine({
+    const machine = createMachine({
       initial: 'active',
       states: {
         active: {
           invoke: {
             id: 'test',
-            src: childMachine,
+            src: invokeMachine(childMachine),
             data: {
               value: () => 42
             }
@@ -639,7 +776,9 @@ describe('useMachine (strict mode)', () => {
 
     const Test = () => {
       const [state] = useMachine(machine);
-      const [childState] = useActor(state.children.test);
+      const [childState] = useActor(
+        state.children.test as ActorRefFrom<typeof childMachine> // TODO: introduce typing for this in machine schema
+      );
 
       expect(childState.context.value).toBe(42);
 
@@ -658,7 +797,7 @@ describe('useMachine (strict mode)', () => {
   it('delayed transitions should work when initializing from a rehydrated state', () => {
     jest.useFakeTimers();
     try {
-      const testMachine = Machine<any, { type: 'START' }>({
+      const testMachine = createMachine<any, { type: 'START' }>({
         id: 'app',
         initial: 'idle',
         states: {
@@ -709,51 +848,5 @@ describe('useMachine (strict mode)', () => {
     } finally {
       jest.useRealTimers();
     }
-  });
-
-  it('should accept a lazily created machine', () => {
-    const App = () => {
-      const [state] = useMachine(() =>
-        createMachine({
-          initial: 'idle',
-          states: {
-            idle: {}
-          }
-        })
-      );
-
-      expect(state.matches('idle')).toBeTruthy();
-
-      return null;
-    };
-
-    render(<App />);
-  });
-
-  it('should not miss initial synchronous updates', () => {
-    const m = createMachine<{ count: number }>({
-      initial: 'idle',
-      context: {
-        count: 0
-      },
-      entry: [assign({ count: 1 }), send('INC')],
-      on: {
-        INC: {
-          actions: [assign({ count: (ctx) => ++ctx.count }), send('UNHANDLED')]
-        }
-      },
-      states: {
-        idle: {}
-      }
-    });
-
-    const App = () => {
-      const [state] = useMachine(m);
-      return <>{state.context.count}</>;
-    };
-
-    const { container } = render(<App />);
-
-    expect(container.textContent).toBe('2');
   });
 });

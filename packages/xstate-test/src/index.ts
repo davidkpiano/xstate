@@ -5,7 +5,13 @@ import {
   StatePathsMap,
   ValueAdjMapOptions
 } from '@xstate/graph';
-import { StateMachine, EventObject, State, StateValue } from 'xstate';
+import {
+  MachineNode,
+  EventObject,
+  State,
+  StateValue,
+  MachineContext
+} from 'xstate';
 import slimChalk from './slimChalk';
 import {
   TestModelCoverage,
@@ -39,7 +45,7 @@ import {
  * ```
  *
  */
-export class TestModel<TTestContext, TContext> {
+export class TestModel<TTestContext, TContext extends MachineContext> {
   public coverage: TestModelCoverage = {
     stateNodes: new Map(),
     transitions: new Map()
@@ -50,7 +56,7 @@ export class TestModel<TTestContext, TContext> {
   };
 
   constructor(
-    public machine: StateMachine<TContext, any, any>,
+    public machine: MachineNode<TContext, any, any>,
     options?: Partial<TestModelOptions<TTestContext>>
   ) {
     this.options = {
@@ -350,7 +356,9 @@ export class TestModel<TTestContext, TContext> {
   }
 }
 
-function getDescription<T, TContext>(state: State<TContext, any>): string {
+function getDescription<T, TContext extends MachineContext>(
+  state: State<TContext, any>
+): string {
   const contextString =
     state.context === undefined ? '' : `(${JSON.stringify(state.context)})`;
 
@@ -430,8 +438,8 @@ function getEventSamples<T>(eventsOptions: TestModelOptions<T>['events']) {
  * - `events`: an object mapping string event types (e.g., `SUBMIT`)
  * to an event test config (e.g., `{exec: () => {...}, cases: [...]}`)
  */
-export function createModel<TestContext, TContext = any>(
-  machine: StateMachine<TContext, any, any>,
+export function createModel<TestContext, TContext extends MachineContext = any>(
+  machine: MachineNode<TContext, any, any>,
   options?: TestModelOptions<TestContext>
 ): TestModel<TestContext, TContext> {
   return new TestModel<TestContext, TContext>(machine, options);

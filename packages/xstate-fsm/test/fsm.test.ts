@@ -57,7 +57,7 @@ describe('@xstate/fsm', () => {
           INC: { actions: assign({ count: (ctx) => ctx.count + 1 }) },
           EMERGENCY: {
             target: 'red',
-            cond: (ctx, e) => ctx.count + e.value === 2
+            guard: (ctx, e) => ctx.count + e.value === 2
           }
         }
       },

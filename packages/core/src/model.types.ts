@@ -1,3 +1,4 @@
+import { MachineContext, MachineNode } from '.';
 import {
   EventObject,
   Assigner,
@@ -5,8 +6,7 @@ import {
   PropertyAssigner,
   AssignAction,
   MachineConfig,
-  MachineOptions,
-  StateMachine
+  MachineImplementations
 } from './types';
 
 export type AnyFunction = (...args: any[]) => any;
@@ -16,7 +16,7 @@ export type Compute<A extends any> = { [K in keyof A]: A[K] } & unknown;
 export type Prop<T, K> = K extends keyof T ? T[K] : never;
 
 export interface Model<
-  TContext,
+  TContext extends MachineContext,
   TEvent extends EventObject,
   TModelCreators = void
 > {
@@ -30,9 +30,9 @@ export interface Model<
   events: Prop<TModelCreators, 'events'>;
   reset: () => AssignAction<TContext, any>;
   createMachine: (
-    config: MachineConfig<TContext, any, TEvent>,
-    implementations?: Partial<MachineOptions<TContext, TEvent>>
-  ) => StateMachine<TContext, any, TEvent, any>;
+    config: MachineConfig<TContext, TEvent>,
+    implementations?: Partial<MachineImplementations<TContext, TEvent>>
+  ) => MachineNode<TContext, TEvent, any>;
 }
 
 export type ModelContextFrom<

@@ -1,8 +1,8 @@
-import { Machine } from '../src';
+import { createMachine } from '../src';
 
 describe('definition', () => {
   it('should provide invoke definitions', () => {
-    const invokeMachine = Machine({
+    const invokeMachine = createMachine({
       id: 'invoke',
       invoke: [{ src: 'foo' }, { src: 'bar' }],
       initial: 'idle',
@@ -11,6 +11,6 @@ describe('definition', () => {
       }
     });
 
-    expect(invokeMachine.definition.invoke.length).toBe(2);
+    expect(invokeMachine.root.definition.invoke.length).toBe(2);
   });
 });

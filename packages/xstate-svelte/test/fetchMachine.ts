@@ -1,10 +1,10 @@
-import { Machine, assign } from 'xstate';
+import { createMachine, assign } from 'xstate';
 
 const context = {
   data: undefined
 };
 
-export const fetchMachine = Machine<typeof context, any>({
+export const fetchMachine = createMachine<typeof context, any>({
   id: 'fetch',
   initial: 'idle',
   context,
@@ -15,12 +15,13 @@ export const fetchMachine = Machine<typeof context, any>({
     loading: {
       invoke: {
         src: 'fetchData',
+        id: 'fetchData',
         onDone: {
           target: 'success',
           actions: assign({
             data: (_, e) => e.data
           }),
-          cond: (_, e) => e.data.length
+          guard: (_, e) => e.data.length
         }
       }
     },

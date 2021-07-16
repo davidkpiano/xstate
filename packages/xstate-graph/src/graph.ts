@@ -1,13 +1,14 @@
 import {
   StateNode,
   State,
-  DefaultContext,
+  MachineContext,
   Event,
   EventObject,
-  StateMachine,
-  AnyEventObject
+  AnyEventObject,
+  MachineNode,
+  flatten,
+  keys
 } from 'xstate';
-import { flatten, keys } from 'xstate/lib/utils';
 import {
   StatePathsMap,
   StatePaths,
@@ -35,7 +36,7 @@ const EMPTY_MAP = {};
  * @param stateNode State node to recursively get child state nodes from
  */
 export function getStateNodes(
-  stateNode: StateNode | StateMachine<any, any, any>
+  stateNode: StateNode | MachineNode<any, any, any>
 ): StateNode[] {
   const { states } = stateNode;
   const nodes = keys(states).reduce((accNodes: StateNode[], stateKey) => {
@@ -61,9 +62,11 @@ export function getChildren(stateNode: StateNode): StateNode[] {
   return children;
 }
 
-export function serializeState<TContext>(state: State<TContext, any>): string {
+export function serializeState<TContext extends MachineContext>(
+  state: State<TContext, any>
+): string {
   const { value, context } = state;
-  return context === undefined
+  return Object.keys(context).length === 0
     ? JSON.stringify(value)
     : JSON.stringify(value) + ' | ' + JSON.stringify(context);
 }
@@ -87,7 +90,10 @@ const defaultValueAdjMapOptions: Required<ValueAdjMapOptions<any, any>> = {
   eventSerializer: serializeEvent
 };
 
-function getValueAdjMapOptions<TContext, TEvent extends EventObject>(
+function getValueAdjMapOptions<
+  TContext extends MachineContext,
+  TEvent extends EventObject
+>(
   options?: ValueAdjMapOptions<TContext, TEvent>
 ): Required<ValueAdjMapOptions<TContext, TEvent>> {
   return {
@@ -99,10 +105,10 @@ function getValueAdjMapOptions<TContext, TEvent extends EventObject>(
 }
 
 export function getAdjacencyMap<
-  TContext = DefaultContext,
+  TContext extends MachineContext,
   TEvent extends EventObject = AnyEventObject
 >(
-  node: StateNode<TContext, any, TEvent> | StateMachine<TContext, any, TEvent>,
+  node: MachineNode<TContext, TEvent>,
   options?: ValueAdjMapOptions<TContext, TEvent>
 ): AdjacencyMap<TContext, TEvent> {
   const optionsWithDefaults = getValueAdjMapOptions(options);
@@ -169,10 +175,10 @@ export function getAdjacencyMap<
 }
 
 export function getShortestPaths<
-  TContext = DefaultContext,
+  TContext extends MachineContext,
   TEvent extends EventObject = EventObject
 >(
-  machine: StateMachine<TContext, any, TEvent>,
+  machine: MachineNode<TContext, TEvent>,
   options?: ValueAdjMapOptions<TContext, TEvent>
 ): StatePathsMap<TContext, TEvent> {
   if (!machine.states) {
@@ -258,10 +264,10 @@ export function getShortestPaths<
 }
 
 export function getSimplePaths<
-  TContext = DefaultContext,
+  TContext extends MachineContext,
   TEvent extends EventObject = EventObject
 >(
-  machine: StateMachine<TContext, any, TEvent>,
+  machine: MachineNode<TContext, TEvent>,
   options?: ValueAdjMapOptions<TContext, TEvent>
 ): StatePathsMap<TContext, TEvent> {
   const optionsWithDefaults = getValueAdjMapOptions(options);
@@ -331,17 +337,22 @@ export function getSimplePaths<
 }
 
 export function getSimplePathsAsArray<
-  TContext = DefaultContext,
+  TContext extends MachineContext,
   TEvent extends EventObject = EventObject
 >(
-  machine: StateNode<TContext, any, TEvent>,
+  machine: MachineNode<TContext, TEvent>,
   options?: ValueAdjMapOptions<TContext, TEvent>
 ): Array<StatePaths<TContext, TEvent>> {
   const result = getSimplePaths(machine, options);
   return keys(result).map((key) => result[key]);
 }
 
-export function toDirectedGraph(stateNode: StateNode): DirectedGraphNode {
+export function toDirectedGraph(
+  machineNode: MachineNode | StateNode
+): DirectedGraphNode {
+  const stateNode =
+    machineNode instanceof StateNode ? machineNode : machineNode.root; // TODO: accept only machines
+
   const edges: DirectedGraphEdge[] = flatten(
     stateNode.transitions.map((t, transitionIndex) => {
       const targets = t.target ? t.target : [stateNode];

@@ -57,7 +57,7 @@
               }
             },
             "initial": {
-              "type": "string"
+              "$ref": "#/definitions/initialTransitionObject"
             },
             "invoke": {
               "$ref": "#/definitions/invokeArray"
@@ -192,37 +192,62 @@
         }
       }
     },
+    "transitionObject": {
+      "type": "object",
+      "properties": {
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/actionObject"
+          }
+        },
+        "cond": {
+          "type": "object"
+        },
+        "eventType": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["actions", "eventType", "source", "target"]
+    },
+    "initialTransitionObject": {
+      "type": "object",
+      "properties": {
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/actionObject"
+          }
+        },
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      },
+      "required": ["actions", "eventType", "source", "target"]
+    },
     "transitionsObject": {
       "type": "object",
       "patternProperties": {
         "^.*$": {
           "type": "array",
           "items": {
-            "type": "object",
-            "properties": {
-              "actions": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/actionObject"
-                }
-              },
-              "cond": {
-                "type": "object"
-              },
-              "eventType": {
-                "type": "string"
-              },
-              "source": {
-                "type": "string"
-              },
-              "target": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            },
-            "required": ["actions", "eventType", "source", "target"]
+            "$ref": "#/definitions/transitionObject"
           }
         }
       }
@@ -274,7 +299,7 @@
       "type": "string"
     },
     "initial": {
-      "type": "string"
+      "$ref": "#/definitions/initialTransitionObject"
     },
     "key": {
       "type": "string"

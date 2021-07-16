@@ -187,7 +187,7 @@ describe('@xstate/immer', () => {
           on: {
             '': {
               target: 'success',
-              cond: (ctx) => {
+              guard: (ctx) => {
                 return ctx.name === 'David' && ctx.age === 0;
               }
             }

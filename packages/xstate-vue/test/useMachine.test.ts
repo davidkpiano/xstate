@@ -17,13 +17,14 @@ describe('useMachine composition function', () => {
       },
       loading: {
         invoke: {
+          id: 'fetchData',
           src: 'fetchData',
           onDone: {
             target: 'success',
             actions: assign({
               data: (_, e) => e.data
             }),
-            cond: (_, e) => e.data.length
+            guard: (_, e) => e.data.length
           }
         }
       },
@@ -37,6 +38,7 @@ describe('useMachine composition function', () => {
     'loading',
     doneInvoke('fetchData', 'persisted data')
   );
+
   it('should work with a component ', async () => {
     const { getByText, getByTestId } = render(UseMachine as any);
     const button = getByText('Fetch');
@@ -53,6 +55,7 @@ describe('useMachine composition function', () => {
     });
     await waitFor(() => getByText(/Success/));
     const dataEl = getByTestId('data');
+
     expect(dataEl.textContent).toBe('persisted data');
   });
 

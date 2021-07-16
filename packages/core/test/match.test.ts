@@ -1,11 +1,4 @@
-import {
-  State,
-  matchState,
-  matchesState,
-  Machine,
-  createMachine,
-  assign
-} from '../src';
+import { State, matchState, matchesState, createMachine, assign } from '../src';
 
 describe('matchState()', () => {
   it('should match a value from a pattern with the state (simple)', () => {
@@ -288,7 +281,7 @@ describe('matchesState()', () => {
 
 describe('matches() method', () => {
   it('should execute matchesState on a State given the parent state value', () => {
-    const machine = Machine({
+    const machine = createMachine({
       initial: 'foo',
       states: {
         foo: {

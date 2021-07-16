@@ -17,40 +17,19 @@
   "author": "David Khourshid <davidkpiano@gmail.com>",
   "homepage": "https://github.com/davidkpiano/xstate/tree/main/packages/xstate-fsm#readme",
   "license": "MIT",
-  "main": "dist/xstate.fsm.js",
-  "types": "lib/index.d.ts",
-  "module": "es/index.js",
+  "main": "dist/xstate-fsm.cjs.js",
+  "module": "dist/xstate-fsm.esm.js",
   "sideEffects": false,
   "files": [
-    "dist/**/*.js",
-    "dist/**/*.d.ts",
-    "lib/**/*.js",
-    "lib/**/*.d.ts",
-    "es/**/*.js",
-    "es/**/*.d.ts"
+    "dist"
   ],
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/davidkpiano/xstate.git"
   },
-  "scripts": {
-    "clean": "rm -rf dist lib tsconfig.tsbuildinfo",
-    "build": "rollup -c",
-    "test": "jest",
-    "prepublish": "npm run build"
-  },
+  "scripts": {},
   "bugs": {
     "url": "https://github.com/davidkpiano/xstate/issues"
   },
-  "devDependencies": {
-    "jest": "^26.6.3",
-    "lerna-alias": "3.0.3-0",
-    "rollup": "^2.35.1",
-    "rollup-plugin-filesize": "^6.2.1",
-    "rollup-plugin-replace": "^2.2.0",
-    "rollup-plugin-terser": "^5.1.2",
-    "rollup-plugin-typescript2": "^0.30.0",
-    "ts-jest": "^26.5.6",
-    "typescript": "^4.3.2"
-  }
+  "devDependencies": {}
 }

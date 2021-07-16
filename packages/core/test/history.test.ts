@@ -1,4 +1,4 @@
-import { Machine, createMachine, interpret } from '../src/index';
+import { interpret, createMachine } from '../src/index';
 
 describe('history states', () => {
   const historyMachine = createMachine({
@@ -123,7 +123,7 @@ describe('history states', () => {
 });
 
 describe('deep history states', () => {
-  const historyMachine = Machine({
+  const historyMachine = createMachine({
     key: 'history',
     initial: 'off',
     states: {
@@ -203,7 +203,7 @@ describe('deep history states', () => {
 });
 
 describe('parallel history states', () => {
-  const historyMachine = Machine({
+  const historyMachine = createMachine({
     key: 'parallelhistory',
     initial: 'off',
     states: {
@@ -281,72 +281,70 @@ describe('parallel history states', () => {
     }
   });
 
-  describe('history', () => {
-    // on.first -> on.second.A
-    const stateABKL = historyMachine.transition(
-      historyMachine.initialState,
-      'SWITCH'
-    );
-    // INNER_A twice
-    const stateACDKL = historyMachine.transition(stateABKL, 'INNER_A');
-    const stateACEKL = historyMachine.transition(stateACDKL, 'INNER_A');
+  // on.first -> on.second.A
+  const stateABKL = historyMachine.transition(
+    historyMachine.initialState,
+    'SWITCH'
+  );
+  // INNER_A twice
+  const stateACDKL = historyMachine.transition(stateABKL, 'INNER_A');
+  const stateACEKL = historyMachine.transition(stateACDKL, 'INNER_A');
 
-    // INNER_K twice
-    const stateACEKMN = historyMachine.transition(stateACEKL, 'INNER_K');
-    const stateACEKMO = historyMachine.transition(stateACEKMN, 'INNER_K');
+  // INNER_K twice
+  const stateACEKMN = historyMachine.transition(stateACEKL, 'INNER_K');
+  const stateACEKMO = historyMachine.transition(stateACEKMN, 'INNER_K');
 
-    it('should ignore parallel state history', () => {
-      const stateOff = historyMachine.transition(stateACDKL, 'POWER');
-      expect(historyMachine.transition(stateOff, 'POWER').value).toEqual({
-        on: { A: 'B', K: 'L' }
-      });
+  it('should ignore parallel state history', () => {
+    const stateOff = historyMachine.transition(stateACDKL, 'POWER');
+    expect(historyMachine.transition(stateOff, 'POWER').value).toEqual({
+      on: { A: 'B', K: 'L' }
     });
+  });
 
-    it('should remember first level state history', () => {
-      const stateOff = historyMachine.transition(stateACDKL, 'POWER');
-      expect(historyMachine.transition(stateOff, 'DEEP_POWER').value).toEqual({
-        on: { A: { C: 'D' }, K: 'L' }
-      });
+  it('should remember first level state history', () => {
+    const stateOff = historyMachine.transition(stateACDKL, 'POWER');
+    expect(historyMachine.transition(stateOff, 'DEEP_POWER').value).toEqual({
+      on: { A: { C: 'D' }, K: 'L' }
     });
+  });
 
-    it('should re-enter each regions of parallel state correctly', () => {
-      const stateOff = historyMachine.transition(stateACEKMO, 'POWER');
-      expect(historyMachine.transition(stateOff, 'DEEP_POWER').value).toEqual({
-        on: { A: { C: 'E' }, K: { M: 'O' } }
-      });
+  it('should re-enter each regions of parallel state correctly', () => {
+    const stateOff = historyMachine.transition(stateACEKMO, 'POWER');
+    expect(historyMachine.transition(stateOff, 'DEEP_POWER').value).toEqual({
+      on: { A: { C: 'E' }, K: { M: 'O' } }
     });
+  });
 
-    it('should re-enter multiple history states', () => {
-      const stateOff = historyMachine.transition(stateACEKMO, 'POWER');
-      expect(
-        historyMachine.transition(stateOff, 'PARALLEL_HISTORY').value
-      ).toEqual({
-        on: { A: { C: 'D' }, K: { M: 'N' } }
-      });
+  it('should re-enter multiple history states', () => {
+    const stateOff = historyMachine.transition(stateACEKMO, 'POWER');
+    expect(
+      historyMachine.transition(stateOff, 'PARALLEL_HISTORY').value
+    ).toEqual({
+      on: { A: { C: 'D' }, K: { M: 'N' } }
     });
+  });
 
-    it('should re-enter a parallel with partial history', () => {
-      const stateOff = historyMachine.transition(stateACEKMO, 'POWER');
-      expect(
-        historyMachine.transition(stateOff, 'PARALLEL_SOME_HISTORY').value
-      ).toEqual({
-        on: { A: { C: 'D' }, K: { M: 'N' } }
-      });
+  it('should re-enter a parallel with partial history', () => {
+    const stateOff = historyMachine.transition(stateACEKMO, 'POWER');
+    expect(
+      historyMachine.transition(stateOff, 'PARALLEL_SOME_HISTORY').value
+    ).toEqual({
+      on: { A: { C: 'D' }, K: { M: 'N' } }
     });
+  });
 
-    it('should re-enter a parallel with full history', () => {
-      const stateOff = historyMachine.transition(stateACEKMO, 'POWER');
-      expect(
-        historyMachine.transition(stateOff, 'PARALLEL_DEEP_HISTORY').value
-      ).toEqual({
-        on: { A: { C: 'E' }, K: { M: 'O' } }
-      });
+  it('should re-enter a parallel with full history', () => {
+    const stateOff = historyMachine.transition(stateACEKMO, 'POWER');
+    expect(
+      historyMachine.transition(stateOff, 'PARALLEL_DEEP_HISTORY').value
+    ).toEqual({
+      on: { A: { C: 'E' }, K: { M: 'O' } }
     });
   });
 });
 
 describe('transient history', () => {
-  const transientMachine = Machine({
+  const transientMachine = createMachine({
     initial: 'A',
     states: {
       A: {
@@ -367,77 +365,45 @@ describe('transient history', () => {
   });
 });
 
-describe('internal transition with history', () => {
-  const machine = Machine({
-    key: 'test',
-    initial: 'first',
-    states: {
-      first: {
-        initial: 'foo',
-        states: {
-          foo: {}
-        },
-        on: {
-          NEXT: 'second.other'
-        }
-      },
-      second: {
-        initial: 'nested',
-        states: {
-          nested: {},
-          other: {},
-          hist: {
-            history: true
+it('internal transition to a history state should enter default history state configuration if the containing state has never been exited yet', () => {
+  const service = interpret(
+    createMachine({
+      initial: 'first',
+      states: {
+        first: {
+          on: {
+            NEXT: 'second.other'
           }
         },
-        on: {
-          NEXT: [
-            {
+        second: {
+          initial: 'nested',
+          states: {
+            nested: {},
+            other: {},
+            hist: {
+              history: true
+            }
+          },
+          on: {
+            NEXT: {
               target: '.hist'
             }
-          ]
+          }
         }
       }
-    }
-  });
+    })
+  ).start();
 
-  it('should transition internally to the most recently visited state', () => {
-    // {
-    //   $current: 'first',
-    //   first: undefined,
-    //   second: {
-    //     $current: 'nested',
-    //     nested: undefined,
-    //     other: undefined
-    //   }
-    // }
-    const state2 = machine.transition(machine.initialState, 'NEXT');
-    // {
-    //   $current: 'second',
-    //   first: undefined,
-    //   second: {
-    //     $current: 'other',
-    //     nested: undefined,
-    //     other: undefined
-    //   }
-    // }
-    const state3 = machine.transition(state2, 'NEXT');
-    // {
-    //   $current: 'second',
-    //   first: undefined,
-    //   second: {
-    //     $current: 'other',
-    //     nested: undefined,
-    //     other: undefined
-    //   }
-    // }
+  service.send('NEXT');
+  service.send('NEXT');
 
-    expect(state3.value).toEqual({ second: 'other' });
+  expect(service.state.value).toEqual({
+    second: 'nested'
   });
 });
 
 describe('multistage history states', () => {
-  const pcWithTurboButtonMachine = Machine({
+  const pcWithTurboButtonMachine = createMachine({
     key: 'pc-with-turbo-button',
     initial: 'off',
     states: {

@@ -21,3 +21,13 @@ Pull requests are encouraged. If you want to add a feature or fix a bug:
 8. Push your branch and open a PR 🚀
 
 PRs are reviewed promptly and merged in within a day or two (or even within an hour), if everything looks good.
+
+## Setup
+
+### Building
+
+We are using [preconstruct](https://preconstruct.tools/) to build our packages. It comes with a handy trick which allows us to always use source files of packages contained in this monorepo. It creates hook/redirecting files in place of dist files during development. This always happens after installing packages (during `postinstall` step) and you shouldn't be worried about it, but if you actually build packages you destroy those redirecting files and to run tests, typechecking etc correctly you need to bring them back by running `yarn postinstall`.
+
+### Publishing
+
+We are using [changesets](https://github.com/atlassian/changesets) to create "release intents" for our packages. When those pop up on master a release PR gets prepared automatically and once it gets merged actual release happen (also automatically).

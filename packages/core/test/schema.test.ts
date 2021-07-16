@@ -1,36 +1,26 @@
 import { createMachine, createSchema } from '../src';
+import { JSONSchema6 } from 'json-schema';
 
-namespace JSONSchema {
-  export interface String {
-    type: 'string';
-  }
-  export interface Number {
-    type: 'number';
-  }
-  export interface Object<TK extends string> {
-    type: 'object';
-    properties: {
-      [key in TK]: JSONSchema.Thing;
-    };
-  }
-  export type Thing =
-    | JSONSchema.String
-    | JSONSchema.Number
-    | JSONSchema.Object<string>;
-  export type TypeFrom<T extends JSONSchema.Thing> = T extends JSONSchema.String
-    ? string
-    : T extends JSONSchema.Number
-    ? number
-    : T extends JSONSchema.Object<infer Keys>
-    ? {
-        [Key in Keys]: TypeFrom<T['properties'][Key]>;
-      }
-    : unknown;
+export interface JSONSchemaObject<TK extends string> extends JSONSchema6 {
+  type: 'object';
+  properties: {
+    [key in TK]: JSONSchema6;
+  };
 }
 
-function fromJSONSchema<T extends JSONSchema.Thing>(
+type JSONSchemaTypeFrom<T extends JSONSchema6> = T extends { type: 'string' }
+  ? string
+  : T extends { type: 'number' }
+  ? number
+  : T extends JSONSchemaObject<infer Keys>
+  ? {
+      [Key in Keys]: JSONSchemaTypeFrom<T['properties'][Key]>;
+    }
+  : unknown;
+
+function fromJSONSchema<T extends JSONSchema6>(
   schema: T
-): JSONSchema.TypeFrom<T> {
+): JSONSchemaTypeFrom<T> {
   return schema as any;
 }
 

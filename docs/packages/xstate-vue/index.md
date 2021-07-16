@@ -81,7 +81,7 @@ A [Vue composition function](https://v3.vuejs.org/guide/composition-api-introduc
 **Arguments**
 
 - `machine` - An [XState machine](https://xstate.js.org/docs/guides/machines.html).
-- `options` (optional) - [Interpreter options](https://xstate.js.org/docs/guides/interpretation.html#options) OR one of the following Machine Config options: `guards`, `actions`, `activities`, `services`, `delays`, `immediate`, `context`, or `state`.
+- `options` (optional) - [Interpreter options](https://xstate.js.org/docs/guides/interpretation.html#options) OR one of the following Machine Config options: `guards`, `actions`, `actors`, `delays`, `immediate`, `context`, or `state`.
 
 **Returns** `{ state, send, service}`:
 
@@ -244,7 +244,7 @@ export default {
 
 A [Vue composition function](https://v3.vuejs.org/guide/composition-api-introduction.html) that interprets the given finite state `machine` from [`@xstate/fsm`] and starts a service that runs for the lifetime of the component.
 
-This special `useMachine` hook is imported from `@xstate/vue/lib/fsm`
+This special `useMachine` hook is imported from `@xstate/vue/fsm`
 
 **Arguments**
 

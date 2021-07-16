@@ -6,7 +6,7 @@ import {
   InitEvent
 } from './types';
 
-export { StateMachine, EventObject, InterpreterStatus, Typestate };
+export * from './types';
 
 const INIT_EVENT: InitEvent = { type: 'xstate.init' };
 const ASSIGN_ACTION: StateMachine.AssignAction = 'xstate.assign';
@@ -175,7 +175,11 @@ export function createMachine<
             return createUnchangedState(value, context);
           }
 
-          const { target, actions = [], cond = () => true } =
+          const {
+            target,
+            actions = [],
+            guard
+          }: StateMachine.TransitionObject<TContext, TEvent> =
             typeof transition === 'string'
               ? { target: transition }
               : transition;
@@ -193,7 +197,7 @@ export function createMachine<
             );
           }
 
-          if (cond(context, eventObject)) {
+          if (!guard || guard?.(context, eventObject)) {
             const allActions = (isTargetless
               ? toArray(actions)
               : ([] as any[])

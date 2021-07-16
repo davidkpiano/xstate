@@ -5,6 +5,7 @@ import UseActorCreateSimple from './UseActorCreateSimple.vue';
 import UseActorComponentProp from './UseActorComponentProp.vue';
 
 import { createMachine, interpret, sendParent } from 'xstate';
+import { invokeMachine } from 'xstate/invoke';
 
 describe('useActor composable function', () => {
   it('initial invoked actor should be immediately available', async () => {
@@ -33,7 +34,7 @@ describe('useActor composable function', () => {
       initial: 'active',
       invoke: {
         id: 'child',
-        src: childMachine
+        src: invokeMachine(childMachine)
       },
       states: {
         active: {

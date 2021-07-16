@@ -34,7 +34,7 @@ function defaultGetSnapshot<TEmitted>(
     : undefined;
 }
 
-export function useActor<TActor extends ActorRef<any, any>>(
+export function useActor<TActor extends ActorRef<any, any>, TEmitted = any>(
   actorRef: TActor,
   getSnapshot?: (actor: TActor) => EmittedFromActorRef<TActor>
 ): [EmittedFromActorRef<TActor>, TActor['send']];

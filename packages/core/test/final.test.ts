@@ -1,6 +1,6 @@
-import { Machine, interpret, assign, AnyEventObject } from '../src';
+import { createMachine, interpret, assign, AnyEventObject } from '../src';
 
-const finalMachine = Machine({
+const finalMachine = createMachine({
   id: 'final',
   initial: 'green',
   states: {
@@ -28,7 +28,7 @@ const finalMachine = Machine({
             }
           },
           onDone: {
-            cond: (_, e) => e.data.signal === 'stop',
+            guard: (_, e) => e.data.signal === 'stop',
             actions: 'stopCrosswalk1'
           }
         },
@@ -105,7 +105,7 @@ describe('final states', () => {
   });
 
   it('should execute final child state actions first', () => {
-    const nestedFinalMachine = Machine({
+    const nestedFinalMachine = createMachine({
       id: 'nestedFinal',
       initial: 'foo',
       states: {
@@ -119,13 +119,13 @@ describe('final states', () => {
               states: {
                 baz: {
                   type: 'final',
-                  onEntry: 'bazAction'
+                  entry: 'bazAction'
                 }
               }
             },
             barFinal: {
               type: 'final',
-              onDone: { actions: 'barAction' }
+              entry: 'barAction'
             }
           }
         }
@@ -146,7 +146,7 @@ describe('final states', () => {
       revealedSecret?: string;
     }
 
-    const machine = Machine<Ctx>({
+    const machine = createMachine<Ctx>({
       initial: 'secret',
       context: {
         revealedSecret: undefined
@@ -197,7 +197,7 @@ describe('final states', () => {
 
   it("should only call data expression once when entering root's final state", () => {
     const spy = jest.fn();
-    const machine = Machine({
+    const machine = createMachine({
       initial: 'start',
       states: {
         start: {
