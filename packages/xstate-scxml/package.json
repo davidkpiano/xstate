@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "xml-js": "^1.6.11",
-    "xstate": "^4.22.0"
+    "xstate": "^4.23.0"
   },
   "devDependencies": {
     "@scion-scxml/test-framework": "^2.0.15",
