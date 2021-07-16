@@ -28,7 +28,7 @@
     "react-dom": "^16.12.0"
   },
   "dependencies": {
-    "@xstate/react": "^1.0.0-rc.3",
+    "@xstate/react": "^2.0.0-next.0",
     "immer": "^8.0.1",
     "styled-components": "^4.4.1"
   }

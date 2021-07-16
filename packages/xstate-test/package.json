@@ -1,6 +1,6 @@
 {
   "name": "@xstate/test",
-  "version": "0.4.2",
+  "version": "1.0.0-next.0",
   "description": "XState test utilities",
   "keywords": [
     "state",
@@ -35,14 +35,14 @@
     "url": "https://github.com/davidkpiano/xstate/issues"
   },
   "peerDependencies": {
-    "xstate": "^4.9.0"
+    "xstate": "^5.0.0-next.0"
   },
   "devDependencies": {
     "strip-ansi": "^5.2.0",
     "xstate": "*"
   },
   "dependencies": {
-    "@xstate/graph": "^1.1.0",
+    "@xstate/graph": "^2.0.0-next.0",
     "chalk": "^2.4.2"
   }
 }

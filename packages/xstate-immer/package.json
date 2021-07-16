@@ -1,6 +1,6 @@
 {
   "name": "@xstate/immer",
-  "version": "0.2.0",
+  "version": "1.0.0-next.0",
   "description": "XState with Immer",
   "keywords": [
     "immer",
@@ -29,7 +29,7 @@
   "dependencies": {},
   "peerDependencies": {
     "immer": "^8.0.1",
-    "xstate": "^4.9.1"
+    "xstate": "^5.0.0-next.0"
   },
   "devDependencies": {
     "immer": "^8.0.1",

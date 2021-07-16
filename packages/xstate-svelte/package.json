@@ -1,6 +1,6 @@
 {
   "name": "@xstate/svelte",
-  "version": "0.1.0",
+  "version": "1.0.0-next.0",
   "description": "XState tools for Svelte",
   "keywords": [
     "state",
@@ -33,7 +33,7 @@
   "peerDependencies": {
     "@xstate/fsm": "^1.0.0",
     "svelte": "^3.24.1",
-    "xstate": "^4.11.0"
+    "xstate": "^5.0.0-next.0"
   },
   "peerDependenciesMeta": {
     "@xstate/fsm": {

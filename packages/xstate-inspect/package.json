@@ -1,6 +1,6 @@
 {
   "name": "@xstate/inspect",
-  "version": "0.4.1",
+  "version": "1.0.0-next.0",
   "description": "XState inspection utilities",
   "keywords": [
     "state",
@@ -36,7 +36,7 @@
   },
   "peerDependencies": {
     "ws": "^7.3.1",
-    "xstate": "^4.11.0"
+    "xstate": "^5.0.0-next.0"
   },
   "dependencies": {
     "fast-safe-stringify": "^2.0.7"
