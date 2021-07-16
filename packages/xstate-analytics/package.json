@@ -29,7 +29,7 @@
     "url": "https://github.com/davidkpiano/xstate/issues"
   },
   "peerDependencies": {
-    "xstate": "^4.7.0-rc"
+    "xstate": "^5.0.0-next.0"
   },
   "devDependencies": {
     "xstate": "*"

@@ -1,6 +1,6 @@
 {
   "name": "@xstate/vue",
-  "version": "0.8.0",
+  "version": "1.0.0-next.0",
   "description": "XState tools for Vue",
   "keywords": [
     "state",
@@ -33,7 +33,7 @@
   "peerDependencies": {
     "@xstate/fsm": "^1.0.0",
     "vue": "^3.0.0",
-    "xstate": "^4.7.8"
+    "xstate": "^5.0.0-next.0"
   },
   "peerDependenciesMeta": {
     "@xstate/fsm": {
