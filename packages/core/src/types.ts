@@ -481,12 +481,6 @@ export interface StateNodeConfig<
    */
   type?: 'atomic' | 'compound' | 'parallel' | 'final' | 'history';
   /**
-   * The initial context (extended state) of the machine.
-   *
-   * Can be an object or a function that returns an object.
-   */
-  context?: TContext | (() => TContext);
-  /**
    * Indicates whether the state node is a history state node, and what
    * type of history:
    * shallow, deep, true (shallow), false (none), undefined (none)

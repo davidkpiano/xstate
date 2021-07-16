@@ -65,7 +65,8 @@ import {
   DelayExpr,
   InvokeSourceDefinition,
   MachineSchema,
-  ActorRef
+  ActorRef,
+  StateMachine
 } from './types';
 import { matchesState } from './utils';
 import { State, stateValuesEqual } from './State';
@@ -291,7 +292,9 @@ class StateNode<
      */
     private _context:
       | Readonly<TContext>
-      | (() => Readonly<TContext>) = config.context as any // TODO: this is unsafe, but we're removing it in v5 anyway
+      | (() => Readonly<TContext>) = ('context' in config
+      ? (config as StateMachine<TContext, any, TEvent>).context
+      : undefined) as any // TODO: this is unsafe, but we're removing it in v5 anyway
   ) {
     this.options = Object.assign(createDefaultOptions<TContext>(), options);
     this.parent = this.options._parent;
