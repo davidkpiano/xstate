@@ -343,6 +343,79 @@ parentService.send({ type: 'LOCAL.WAKE' });
 // => 'connected'
 ```
 
+### Stopping Spawned Machines
+
+The object returned from a successful `spawn` action is an `Interpreter`. It implements the `actor` interface, but has slightly different behavior. If you call `stop()` on an `Interpreter` it does not clean up any ongoing `activities` in the active `StateNode`. To properly stop spawned machines you must additionally send them an action using `actions.stop()`.
+
+Further, as `assign` actions are run in advance of custom user actions, by the time you would usually attempt to stop a spawned machine, you may need to take care that the reference to the machine in `context` is not overwritten.
+
+For actions which do not have side effects (such as mutating `context`), you can use `actions.pure()` to ensure that your custom actions is run in order of definition, and before `assign` actions' updates are applied to `context`. Depending upon why you need to stop a spawned machine, this technique may be required.
+
+The below machine demonstrates how to use `actions.pure()` and `actions.stop()` to properly stop a consistently respawned machine.
+
+```js {18-20,27-29,35}
+const childMachine = Machine({
+  id: 'child-machine',
+  initial: 'idle',
+  states: {
+    idle: {
+      /* ... */
+    }
+  }
+});
+
+const parentMachine = Machine({
+  id: 'stoppable-machine',
+  initial: 'spawn',
+  context: {},
+
+  states: {
+    reset: {
+      always: {
+        target: 'spawn',
+        actions: actions.pure((context) => {
+          context.childMachine.stop();
+          return actions.stop(context.childMachine.id);
+        })
+      }
+    },
+
+    spawn: {
+      always: {
+        target: 'waiting',
+        actions: assign({
+          childMachine: () => spawn(childMachine)
+        })
+      }
+    },
+
+    waiting: {
+      after: {
+        2000: 'reset'
+      }
+    }
+  }
+});
+```
+
+Using `actions.pure()` results in the properly interleaved ordering:
+
+1. `assign({ childMachine: () => spawn(childMachine) })` (First time through.)
+1. `actions.stop(context.childMachine.id)` (Second time through.)
+1. `assign({ childMachine: () => spawn(childMachine) })` (Second time through.)
+1. `actions.stop(context.childMachine.id)` (Third time through.)
+1. `assign({ childMachine: () => spawn(childMachine) })` (Third time through.)
+
+If you were to omit `actions.pure()` the order of actions would be:
+
+1. `assign({ childMachine: () => spawn(childMachine) })` (First time through.)
+1. `assign({ childMachine: () => spawn(childMachine) })` (Second time through.)
+1. `actions.stop(context.childMachine.id)` (Second time through.)
+1. `assign({ childMachine: () => spawn(childMachine) })` (Third time through.)
+1. `actions.stop(context.childMachine.id)` (Third time through.)
+
+This results in immediately stopping all spawned machines except for the first one, which instead continues running.
+
 ## Syncing and Reading State <Badge text="4.6.1+"/>
 
 One of the main tenets of the Actor model is that actor state is _private_ and _local_ - it is never shared unless the actor chooses to share it, via message passing. Sticking with this model, an actor can _notify_ its parent whenever its state changes by sending it a special "update" event with its latest state. In other words, parent actors can subscribe to their child actors' states.
